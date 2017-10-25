@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="JiKeView">
+        <attr name="jk_angle" format="integer" />
+        <attr name="jk_gap_angle" format="integer" />
+        <attr name="jk_letter_color" format="color" />
+        <attr name="jk_letter_background_color" format="color" />
+        <attr name="jk_corner_radius" format="dimension" />
+        <attr name="jk_stroke_width" format="dimension" />
+    </declare-styleable>
+</resources>

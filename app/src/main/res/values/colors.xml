@@ -4,4 +4,11 @@
     <color name="colorPrimaryDark">#34495E</color>
     <color name="colorAccent">#FF4081</color>
     <color name="default_text_color">#bfbfbf</color>
+    <color name="white">#ffffff</color>
+    <color name="letter_bg1">#DEDEDE</color>
+    <color name="letter_bg2">#E5E5E5</color>
+    <color name="letter_bg3">#CDC9C9</color>
+    <color name="letter_color1">#34495E</color>
+    <color name="letter_color2">#FF4081</color>
+    <color name="letter_color3">#FABC76</color>
 </resources>

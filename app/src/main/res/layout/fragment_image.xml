@@ -1,0 +1,45 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+
+    <com.monster.monstersport.view.JiKeView
+        android:id="@+id/jikeView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:jk_angle="70"
+        app:jk_corner_radius="10dp"
+        app:jk_gap_angle="10"
+        app:jk_letter_background_color="@color/letter_bg3"
+        app:jk_letter_color="@color/letter_color1"
+        app:jk_stroke_width="5dp" />
+
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        android:layout_marginTop="20dp" />
+
+    <Button
+        android:id="@+id/RESET"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="RESET" />
+
+    <Button
+        android:id="@+id/COMPLETE"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="COMPLETE" />
+
+</LinearLayout>

@@ -7,10 +7,14 @@
     android:orientation="vertical"
     tools:context="com.monster.monstersport.MainActivity">
 
-    <View
+    <FrameLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="20dp" />
 
     <View
         android:layout_width="match_parent"
