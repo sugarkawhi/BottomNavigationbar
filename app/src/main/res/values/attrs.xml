@@ -8,5 +8,14 @@
         <attr name="jk_letter_background_color" format="color" />
         <attr name="jk_corner_radius" format="dimension" />
         <attr name="jk_stroke_width" format="dimension" />
+        <attr name="jk_duration" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="MonsterView">
+        <attr name="mv_startangle" format="integer" />
+        <attr name="mv_letter_color" format="color" />
+        <attr name="mv_letter_background_color" format="color" />
+        <attr name="mv_corner_radius" format="dimension" />
+        <attr name="mv_stroke_width" format="dimension" />
     </declare-styleable>
 </resources>

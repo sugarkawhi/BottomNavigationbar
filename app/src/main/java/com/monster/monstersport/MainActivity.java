@@ -2,11 +2,11 @@ package com.monster.monstersport;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 
-import com.monster.monstersport.fragment.ImageViewFragment;
+import com.monster.monstersport.fragment.JikeViewFragment;
+import com.monster.monstersport.fragment.MonsterViewFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,21 +41,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBottomNavigationBarItemClick(int position) {
                 bottomNavigationBar.setCurrentPosition(position);
+                switch (position) {
+                    case 0:
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.container, new MonsterViewFragment())
+                                .commit();
+                        break;
+                    case 1:
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.container, new JikeViewFragment())
+                                .commit();
+                        break;
+                }
+
             }
         });
 
         bottomNavigationBar.setOnBottomNavigationBarItemDoubleClickListener(new BottomNavigationBar.OnBottomNavigationBarItemDoubleClickListener() {
             @Override
             public void onBottomNavigationBarItemDoubleClick(int position) {
-                Toast.makeText(MainActivity.this, "position=" + position, Toast.LENGTH_SHORT).show();
             }
         });
-
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new ImageViewFragment())
+                .replace(R.id.container, new MonsterViewFragment())
                 .commit();
-
-
     }
 
 }

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
@@ -20,26 +19,26 @@ import android.view.animation.LinearInterpolator;
 import com.monster.monstersport.R;
 
 /**
- * Created by ZhaoZongyao on 2017/10/24.
+ * Created by ZhaoZongyao on 2017/10/23.
  */
 
-public class JiKeView extends View {
-    String TAG = "JiKeView";
+public class MonsterView extends View {
 
-    private int mAngle;
-    private int mGapAngle;
-    private float mLineTimes = 1.3f;
+    private String TAG = "MonsterView";
+
+    private int mStartAngle = 320;
     private int mLetterColor;
     private int mLetterBackgroundColor;
-    private int mCornerRadius = 50;
+    private int mRadius = 50;
     private int mStrokeWidth = 25;
-    //加载状态转圈速度
-    private int mAnimDuration;
 
-    //正常状态  显示字母J
+    private int mReduceDuration = 100;
+    private int mAnimDuration = 500;
+
+    //正常状态  显示字母G
     private static final int STATE_NORMAL = 1;
-    //转换状态
-    private static final int STATE_TRANSFORM = 3;
+    //减少阶段
+    private static final int STATE_REDUCE = 2;
     //加载状态 变为缺口圆圈
     private static final int STATE_LOADING = 4;
     //加载完成状态 缺口圆圈变小
@@ -56,39 +55,31 @@ public class JiKeView extends View {
     private int mHeight;
     private RectF mRectF;
     private Path mLetterPath;
-    private Path mBackgroundPath;
+    private Path mDstPath;
+    private Path mDstNextPath;
+    private PathMeasure mPathMeasure;
 
-    private ValueAnimator mXAnimator;
+    private ValueAnimator mReduceAnimator;
     private ValueAnimator mLoadingAnimator;
 
-    public JiKeView(Context context) {
+    public MonsterView(Context context) {
         this(context, null);
     }
 
-    public JiKeView(Context context, @Nullable AttributeSet attrs) {
+    public MonsterView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public JiKeView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public MonsterView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.JiKeView);
-        mAngle = array.getInt(R.styleable.JiKeView_jk_angle, 60);
-        mGapAngle = array.getInt(R.styleable.JiKeView_jk_gap_angle, 10);
-        mAnimDuration = array.getInt(R.styleable.JiKeView_jk_duration, 800);
-        mLetterColor = array.getColor(R.styleable.JiKeView_jk_letter_color, Color.parseColor("#4682B4"));
-        mLetterBackgroundColor = array.getColor(R.styleable.JiKeView_jk_letter_background_color, Color.parseColor("#F4F4F4"));
-        mStrokeWidth = array.getDimensionPixelSize(R.styleable.JiKeView_jk_stroke_width, 25);
-        mCornerRadius = array.getDimensionPixelSize(R.styleable.JiKeView_jk_corner_radius, 50);
+        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.MonsterView);
+        mLetterColor = array.getColor(R.styleable.MonsterView_mv_letter_color, Color.parseColor("#4682B4"));
+        mLetterBackgroundColor = array.getColor(R.styleable.MonsterView_mv_letter_background_color, Color.parseColor("#F4F4F4"));
+        mStrokeWidth = array.getDimensionPixelSize(R.styleable.MonsterView_mv_stroke_width, 25);
+        mRadius = array.getDimensionPixelSize(R.styleable.MonsterView_mv_corner_radius, 50);
+        mStartAngle = array.getInt(R.styleable.MonsterView_mv_startangle, 290);
         array.recycle();
 
-        if (mGapAngle < 0)
-            mGapAngle = Math.abs(mGapAngle);
-        if (mGapAngle >= 90)
-            mGapAngle = 10;
-        if (mAngle < 0)
-            mAngle = Math.abs(mAngle);
-        if (mAngle >= 90)
-            mAngle = 90;
         init();
     }
 
@@ -97,30 +88,34 @@ public class JiKeView extends View {
         mLetterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mLetterPaint.setStyle(Paint.Style.STROKE);
         mLetterPaint.setStrokeWidth(mStrokeWidth);
+        mLetterPaint.setStrokeCap(Paint.Cap.ROUND);
         mLetterPaint.setColor(mLetterColor);
         mRectF = new RectF();
         mLetterPath = new Path();
-        mBackgroundPath = new Path();
+        mDstPath = new Path();
+        mDstNextPath = new Path();
         mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mBackgroundPaint.setColor(mLetterBackgroundColor);
         mBackgroundPaint.setStyle(Paint.Style.STROKE);
         mBackgroundPaint.setStrokeWidth(mStrokeWidth);
-        initXAnimator();
+        mBackgroundPaint.setStrokeCap(Paint.Cap.ROUND);
+
+        mPathMeasure = new PathMeasure();
+        initReduceAnimator();
         initLoadingAnimator();
     }
 
 
-    private void initXAnimator() {
-        mXAnimator = ValueAnimator.ofFloat(0, 1f);
-        mXAnimator.setDuration(mAnimDuration / 2);
-        mXAnimator.setInterpolator(new LinearInterpolator());
-        mXAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+    private void initReduceAnimator() {
+        mReduceAnimator = ValueAnimator.ofFloat(0f, 1f);
+        mReduceAnimator.setDuration(mReduceDuration);
+        mReduceAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 invalidate();
             }
         });
-        mXAnimator.addListener(new Animator.AnimatorListener() {
+        mReduceAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
 
@@ -147,6 +142,7 @@ public class JiKeView extends View {
         });
     }
 
+
     private void initLoadingAnimator() {
         mLoadingAnimator = ValueAnimator.ofFloat(0, 1f);
         mLoadingAnimator.setDuration(mAnimDuration);
@@ -171,8 +167,8 @@ public class JiKeView extends View {
         }
         mHeight = mWidth;
 
-        if (mCornerRadius > mWidth / 2) {
-            mCornerRadius = mWidth / 2 - mStrokeWidth / 2;
+        if (mRadius > mWidth / 2) {
+            mRadius = mWidth / 2 - mStrokeWidth / 2;
         }
         setMeasuredDimension(mWidth, mHeight);
     }
@@ -183,8 +179,8 @@ public class JiKeView extends View {
             case STATE_NORMAL:
                 drawNormal(canvas);
                 break;
-            case STATE_TRANSFORM:
-                drawTransform(canvas);
+            case STATE_REDUCE:
+                drawReduce(canvas);
                 break;
             case STATE_LOADING:
                 drawLoading(canvas);
@@ -198,60 +194,70 @@ public class JiKeView extends View {
     }
 
     /**
+     * 画拐角
+     */
+    private void drawCorner() {
+
+
+    }
+
+
+    /**
      * 正常状态
      */
     private void drawNormal(Canvas canvas) {
-        //先画拐角
         mLetterPath.reset();
-        mRectF.set(mWidth / 2 - mCornerRadius, mHeight / 2 - mCornerRadius, mWidth / 2 + mCornerRadius, mHeight / 2 + mCornerRadius);
-        mLetterPath.addArc(mRectF, mAngle, -mAngle);
-        //再画进度
-        mLetterPath.moveTo(mWidth / 2 + mCornerRadius, mHeight / 2);
-        mLetterPath.lineTo(mWidth / 2 + mCornerRadius, mHeight / 2 - (mCornerRadius * mLineTimes) * mPercent);
-        canvas.drawPath(mLetterPath, mLetterPaint);
-        //最后画背景
-        mBackgroundPath.reset();
-        mBackgroundPath.moveTo(mWidth / 2 + mCornerRadius, mHeight / 2 - (mCornerRadius * mLineTimes) * mPercent);
-        mBackgroundPath.lineTo(mWidth / 2 + mCornerRadius, mHeight / 2 - mCornerRadius * mLineTimes);
-        canvas.drawPath(mBackgroundPath, mBackgroundPaint);
+        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
+        mLetterPath.addArc(mRectF, 0, mStartAngle);
+
+        mDstPath.reset();
+        mDstNextPath.reset();
+        mPathMeasure.setPath(mLetterPath, false);
+        float length = mPathMeasure.getLength();
+        float currentLength = length * mPercent;
+        mPathMeasure.getSegment(0, currentLength, mDstPath, true);
+        mPathMeasure.getSegment(currentLength, length, mDstNextPath, true);
+        canvas.drawPath(mDstNextPath, mBackgroundPaint);
+        canvas.drawPath(mDstPath, mLetterPaint);
+        canvas.drawLine(mWidth / 2 + mRadius, mHeight / 2, mWidth / 2, mHeight / 2, mLetterPaint);
+
     }
 
-
     /**
-     * STATE_TRANSFORM
+     * STATE_REDUCE
      */
-    private void drawTransform(Canvas canvas) {
+    private void drawReduce(Canvas canvas) {
 
         mLetterPath.reset();
-        float value = (float) mXAnimator.getAnimatedValue();
-        mLetterPath.addArc(mRectF, 0, mAngle);
-        mLetterPath.addArc(mRectF, mAngle, (360 - mGapAngle - mAngle) * value);
-        mLetterPath.moveTo(mWidth / 2 + mCornerRadius, mHeight / 2);
-        value = (1 - 1.5f * value) > 0 ? (1 - 1.5f * value) : 0;//竖线的部分缩短的更快
-        mLetterPath.lineTo(mWidth / 2 + mCornerRadius, mHeight / 2 - (mCornerRadius * mLineTimes) * value);
+        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
+        mLetterPath.addArc(mRectF, 0, mStartAngle);
+
+        float value = (float) mReduceAnimator.getAnimatedValue();
+        canvas.drawLine(mWidth / 2 + mRadius * value, mHeight / 2, mWidth / 2 + mRadius, mHeight / 2, mLetterPaint);
+
         canvas.drawPath(mLetterPath, mLetterPaint);
     }
 
     /**
-     * STATE_LOADING
+     * 加载状态
      */
     private void drawLoading(Canvas canvas) {
         mLetterPath.reset();
-        mRectF.set(mWidth / 2 - mCornerRadius, mHeight / 2 - mCornerRadius, mWidth / 2 + mCornerRadius, mHeight / 2 + mCornerRadius);
+        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
         float value = (float) mLoadingAnimator.getAnimatedValue();
-        mLetterPath.addArc(mRectF, 360 * value, 360 - mGapAngle);
+        mLetterPath.addArc(mRectF, 360 * value, mStartAngle);
         canvas.drawPath(mLetterPath, mLetterPaint);
     }
 
     /**
-     * STATE_COMPLETE
+     * 完成状态
      */
     private void drawComplete(Canvas canvas) {
         mLetterPaint.setStrokeWidth(mStrokeWidth / 3);
         mLetterPath.reset();
-        mRectF.set(mWidth / 2 - mCornerRadius, mHeight / 2 - mCornerRadius, mWidth / 2 + mCornerRadius, mHeight / 2 + mCornerRadius);
+        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
         float value = (float) mLoadingAnimator.getAnimatedValue();
-        mLetterPath.addArc(mRectF, 360 * value, 360 - mGapAngle);
+        mLetterPath.addArc(mRectF, 360 * value, 360);
         canvas.drawPath(mLetterPath, mLetterPaint);
     }
 
@@ -264,12 +270,10 @@ public class JiKeView extends View {
             return;
         if (mCurrentState != STATE_NORMAL)
             return;
-        if (percent < 1) {
-            this.mPercent = percent;
-        }
-        if (percent == 1) {
-            mCurrentState = STATE_TRANSFORM;
-            mXAnimator.start();
+        this.mPercent = percent;
+        if (mPercent == 1) {
+            mCurrentState = STATE_REDUCE;
+            mReduceAnimator.start();
         }
         invalidate();
     }
@@ -293,10 +297,8 @@ public class JiKeView extends View {
     public void reset() {
         this.mPercent = 0;
         mCurrentState = STATE_NORMAL;
-        mXAnimator.cancel();
+        mReduceAnimator.cancel();
         mLoadingAnimator.cancel();
-        mLetterPaint.setStrokeWidth(mStrokeWidth);
         invalidate();
     }
-
 }
