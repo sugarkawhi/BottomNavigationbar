@@ -26,19 +26,18 @@ public class MonsterView extends View {
 
     private String TAG = "MonsterView";
 
+    private int mEndAngle = 320;
     private int mStartAngle = 320;
     private int mLetterColor;
     private int mLetterBackgroundColor;
     private int mRadius = 50;
     private int mStrokeWidth = 25;
 
-    private int mReduceDuration = 100;
     private int mAnimDuration = 500;
 
     //正常状态  显示字母G
     private static final int STATE_NORMAL = 1;
-    //减少阶段
-    private static final int STATE_REDUCE = 2;
+
     //加载状态 变为缺口圆圈
     private static final int STATE_LOADING = 4;
     //加载完成状态 缺口圆圈变小
@@ -55,11 +54,8 @@ public class MonsterView extends View {
     private int mHeight;
     private RectF mRectF;
     private Path mLetterPath;
-    private Path mDstPath;
-    private Path mDstNextPath;
-    private PathMeasure mPathMeasure;
+    private Path mBackgroundPath;
 
-    private ValueAnimator mReduceAnimator;
     private ValueAnimator mLoadingAnimator;
 
     public MonsterView(Context context) {
@@ -77,7 +73,8 @@ public class MonsterView extends View {
         mLetterBackgroundColor = array.getColor(R.styleable.MonsterView_mv_letter_background_color, Color.parseColor("#F4F4F4"));
         mStrokeWidth = array.getDimensionPixelSize(R.styleable.MonsterView_mv_stroke_width, 25);
         mRadius = array.getDimensionPixelSize(R.styleable.MonsterView_mv_corner_radius, 50);
-        mStartAngle = array.getInt(R.styleable.MonsterView_mv_startangle, 290);
+        mStartAngle = array.getInt(R.styleable.MonsterView_mv_angle_start, 290);
+        mEndAngle = array.getInt(R.styleable.MonsterView_mv_angle_end, 90);
         array.recycle();
 
         init();
@@ -92,54 +89,14 @@ public class MonsterView extends View {
         mLetterPaint.setColor(mLetterColor);
         mRectF = new RectF();
         mLetterPath = new Path();
-        mDstPath = new Path();
-        mDstNextPath = new Path();
+        mBackgroundPath = new Path();
         mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mBackgroundPaint.setColor(mLetterBackgroundColor);
         mBackgroundPaint.setStyle(Paint.Style.STROKE);
         mBackgroundPaint.setStrokeWidth(mStrokeWidth);
         mBackgroundPaint.setStrokeCap(Paint.Cap.ROUND);
 
-        mPathMeasure = new PathMeasure();
-        initReduceAnimator();
         initLoadingAnimator();
-    }
-
-
-    private void initReduceAnimator() {
-        mReduceAnimator = ValueAnimator.ofFloat(0f, 1f);
-        mReduceAnimator.setDuration(mReduceDuration);
-        mReduceAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                invalidate();
-            }
-        });
-        mReduceAnimator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mCurrentState = STATE_LOADING;
-                if (!mLoadingAnimator.isStarted()) {
-                    mLoadingAnimator.start();
-                }
-                invalidate();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        });
     }
 
 
@@ -179,9 +136,6 @@ public class MonsterView extends View {
             case STATE_NORMAL:
                 drawNormal(canvas);
                 break;
-            case STATE_REDUCE:
-                drawReduce(canvas);
-                break;
             case STATE_LOADING:
                 drawLoading(canvas);
                 break;
@@ -193,64 +147,36 @@ public class MonsterView extends View {
         }
     }
 
-    /**
-     * 画拐角
-     */
-    private void drawCorner() {
-
-
-    }
-
 
     /**
-     * 正常状态
+     * STATE_NORMAL
      */
     private void drawNormal(Canvas canvas) {
+        mBackgroundPath.reset();
+        mBackgroundPath.addArc(mRectF, mStartAngle + (mEndAngle - mStartAngle) * mPercent, mEndAngle - (mStartAngle + (mEndAngle - mStartAngle) * mPercent));
+        canvas.drawPath(mBackgroundPath, mBackgroundPaint);
         mLetterPath.reset();
         mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
-        mLetterPath.addArc(mRectF, 0, mStartAngle);
-
-        mDstPath.reset();
-        mDstNextPath.reset();
-        mPathMeasure.setPath(mLetterPath, false);
-        float length = mPathMeasure.getLength();
-        float currentLength = length * mPercent;
-        mPathMeasure.getSegment(0, currentLength, mDstPath, true);
-        mPathMeasure.getSegment(currentLength, length, mDstNextPath, true);
-        canvas.drawPath(mDstNextPath, mBackgroundPaint);
-        canvas.drawPath(mDstPath, mLetterPaint);
-        canvas.drawLine(mWidth / 2 + mRadius, mHeight / 2, mWidth / 2, mHeight / 2, mLetterPaint);
-
-    }
-
-    /**
-     * STATE_REDUCE
-     */
-    private void drawReduce(Canvas canvas) {
-
-        mLetterPath.reset();
-        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
-        mLetterPath.addArc(mRectF, 0, mStartAngle);
-
-        float value = (float) mReduceAnimator.getAnimatedValue();
-        canvas.drawLine(mWidth / 2 + mRadius * value, mHeight / 2, mWidth / 2 + mRadius, mHeight / 2, mLetterPaint);
-
+        mLetterPath.addArc(mRectF, 0, mStartAngle + (mEndAngle - mStartAngle) * mPercent);
         canvas.drawPath(mLetterPath, mLetterPaint);
+        canvas.drawLine(mWidth / 2 + mRadius * mPercent, mHeight / 2, mWidth / 2 + mRadius, mHeight / 2, mLetterPaint);
+
     }
 
+
     /**
-     * 加载状态
+     * STATE_LOADING
      */
     private void drawLoading(Canvas canvas) {
         mLetterPath.reset();
         mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
         float value = (float) mLoadingAnimator.getAnimatedValue();
-        mLetterPath.addArc(mRectF, 360 * value, mStartAngle);
+        mLetterPath.addArc(mRectF, 360 * value, mEndAngle);
         canvas.drawPath(mLetterPath, mLetterPaint);
     }
 
     /**
-     * 完成状态
+     * STATE_COM
      */
     private void drawComplete(Canvas canvas) {
         mLetterPaint.setStrokeWidth(mStrokeWidth / 3);
@@ -272,8 +198,8 @@ public class MonsterView extends View {
             return;
         this.mPercent = percent;
         if (mPercent == 1) {
-            mCurrentState = STATE_REDUCE;
-            mReduceAnimator.start();
+            mCurrentState = STATE_LOADING;
+            mLoadingAnimator.start();
         }
         invalidate();
     }
@@ -297,7 +223,6 @@ public class MonsterView extends View {
     public void reset() {
         this.mPercent = 0;
         mCurrentState = STATE_NORMAL;
-        mReduceAnimator.cancel();
         mLoadingAnimator.cancel();
         invalidate();
     }

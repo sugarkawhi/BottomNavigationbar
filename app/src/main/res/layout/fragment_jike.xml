@@ -15,7 +15,7 @@
         app:jk_angle="70"
         app:jk_corner_radius="10dp"
         app:jk_gap_angle="10"
-        app:jk_duration="600"
+        app:jk_duration="400"
         app:jk_letter_background_color="@color/letter_bg3"
         app:jk_letter_color="@color/letter_color1"
         app:jk_stroke_width="5dp" />

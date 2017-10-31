@@ -12,7 +12,8 @@
     </declare-styleable>
 
     <declare-styleable name="MonsterView">
-        <attr name="mv_startangle" format="integer" />
+        <attr name="mv_angle_start" format="integer" />
+        <attr name="mv_angle_end" format="integer" />
         <attr name="mv_letter_color" format="color" />
         <attr name="mv_letter_background_color" format="color" />
         <attr name="mv_corner_radius" format="dimension" />

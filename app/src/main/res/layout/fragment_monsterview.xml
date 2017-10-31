@@ -12,10 +12,11 @@
         android:id="@+id/monsterView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:mv_corner_radius="14dp"
+        app:mv_corner_radius="10dp"
         app:mv_letter_background_color="@color/letter_bg3"
         app:mv_letter_color="@color/letter_color1"
-        app:mv_startangle="330"
+        app:mv_angle_start="90"
+        app:mv_angle_end="330"
         app:mv_stroke_width="4dp" />
 
 

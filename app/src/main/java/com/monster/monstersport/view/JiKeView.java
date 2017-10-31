@@ -74,7 +74,7 @@ public class JiKeView extends View {
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.JiKeView);
         mAngle = array.getInt(R.styleable.JiKeView_jk_angle, 60);
         mGapAngle = array.getInt(R.styleable.JiKeView_jk_gap_angle, 10);
-        mAnimDuration = array.getInt(R.styleable.JiKeView_jk_duration, 800);
+        mAnimDuration = array.getInt(R.styleable.JiKeView_jk_duration, 500);
         mLetterColor = array.getColor(R.styleable.JiKeView_jk_letter_color, Color.parseColor("#4682B4"));
         mLetterBackgroundColor = array.getColor(R.styleable.JiKeView_jk_letter_background_color, Color.parseColor("#F4F4F4"));
         mStrokeWidth = array.getDimensionPixelSize(R.styleable.JiKeView_jk_stroke_width, 25);
@@ -111,8 +111,10 @@ public class JiKeView extends View {
 
 
     private void initXAnimator() {
+        float offsetValue = mAngle / (360f - mGapAngle);
+        int xDuration = (int) (mAnimDuration * (1 - offsetValue));
         mXAnimator = ValueAnimator.ofFloat(0, 1f);
-        mXAnimator.setDuration(mAnimDuration / 2);
+        mXAnimator.setDuration(xDuration);
         mXAnimator.setInterpolator(new LinearInterpolator());
         mXAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -221,14 +223,12 @@ public class JiKeView extends View {
      * STATE_TRANSFORM
      */
     private void drawTransform(Canvas canvas) {
-
         mLetterPath.reset();
         float value = (float) mXAnimator.getAnimatedValue();
         mLetterPath.addArc(mRectF, 0, mAngle);
         mLetterPath.addArc(mRectF, mAngle, (360 - mGapAngle - mAngle) * value);
         mLetterPath.moveTo(mWidth / 2 + mCornerRadius, mHeight / 2);
-        value = (1 - 1.5f * value) > 0 ? (1 - 1.5f * value) : 0;//竖线的部分缩短的更快
-        mLetterPath.lineTo(mWidth / 2 + mCornerRadius, mHeight / 2 - (mCornerRadius * mLineTimes) * value);
+        mLetterPath.lineTo(mWidth / 2 + mCornerRadius, mHeight / 2 - (mCornerRadius * mLineTimes) * (1 - value));
         canvas.drawPath(mLetterPath, mLetterPaint);
     }
 
