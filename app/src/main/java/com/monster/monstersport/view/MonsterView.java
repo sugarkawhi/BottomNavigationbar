@@ -144,6 +144,7 @@ public class MonsterView extends View {
                 break;
             default:
                 drawNormal(canvas);
+                break;
         }
     }
 
@@ -155,10 +156,12 @@ public class MonsterView extends View {
         mBackgroundPath.reset();
         mBackgroundPath.addArc(mRectF, mStartAngle + (mEndAngle - mStartAngle) * mPercent, mEndAngle - (mStartAngle + (mEndAngle - mStartAngle) * mPercent));
         canvas.drawPath(mBackgroundPath, mBackgroundPaint);
+
         mLetterPath.reset();
         mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
         mLetterPath.addArc(mRectF, 0, mStartAngle + (mEndAngle - mStartAngle) * mPercent);
         canvas.drawPath(mLetterPath, mLetterPaint);
+
         canvas.drawLine(mWidth / 2 + mRadius * mPercent, mHeight / 2, mWidth / 2 + mRadius, mHeight / 2, mLetterPaint);
 
     }

@@ -40,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationBar.setOnBottomNavigationBarItemClickListener(new BottomNavigationBar.OnBottomNavigationBarItemClickListener() {
             @Override
             public void onBottomNavigationBarItemClick(int position) {
-                bottomNavigationBar.setCurrentPosition(position);
                 switch (position) {
                     case 0:
                         getSupportFragmentManager().beginTransaction()
@@ -62,9 +61,7 @@ public class MainActivity extends AppCompatActivity {
             public void onBottomNavigationBarItemDoubleClick(int position) {
             }
         });
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new MonsterViewFragment())
-                .commit();
+        bottomNavigationBar.setCurrentPosition(0);
     }
 
 }

@@ -19,4 +19,8 @@
         <attr name="mv_corner_radius" format="dimension" />
         <attr name="mv_stroke_width" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="PtrLayout">
+        <attr name="ptr_layout_headerview" format="reference" />
+    </declare-styleable>
 </resources>
