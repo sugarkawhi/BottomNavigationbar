@@ -12,11 +12,11 @@
         android:id="@+id/monsterView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:mv_angle_end="330"
+        app:mv_angle_start="90"
         app:mv_corner_radius="10dp"
         app:mv_letter_background_color="@color/letter_bg3"
         app:mv_letter_color="@color/letter_color1"
-        app:mv_angle_start="90"
-        app:mv_angle_end="330"
         app:mv_stroke_width="4dp" />
 
 
@@ -35,11 +35,11 @@
         android:layout_marginTop="20dp"
         android:text="RESET" />
 
-    <!--<Button-->
-    <!--android:id="@+id/COMPLETE"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_marginTop="20dp"-->
-    <!--android:text="COMPLETE" />-->
+    <Button
+        android:id="@+id/COMPLETE"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="COMPLETE" />
 
 </LinearLayout>

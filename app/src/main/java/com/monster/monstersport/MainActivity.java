@@ -12,34 +12,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.sugarkawhi.bottomnavigationbar.BottomNavigationBar;
+import me.sugarkawhi.bottomnavigationbar.BottomNavigationEntity;
 
 
 public class MainActivity extends AppCompatActivity {
 
 
-    private List<BottomNavigationBar.BottomNavigationEntity> entities = new ArrayList<>();
+    private List<BottomNavigationEntity> entities = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final BottomNavigationBar bottomNavigationBar = (BottomNavigationBar) findViewById(R.id.bottomNavigationBar);
-        entities.add(new BottomNavigationBar.BottomNavigationEntity("新闻",
+        entities.add(new BottomNavigationEntity("新闻",
                 R.drawable.ic_tab_news_default,
                 R.drawable.ic_tab_news_selected));
-        entities.add(new BottomNavigationBar.BottomNavigationEntity("发现",
+        entities.add(new BottomNavigationEntity("发现",
                 R.drawable.ic_tab_img_default,
                 R.drawable.ic_tab_img_selected));
-        entities.add(new BottomNavigationBar.BottomNavigationEntity("关注",
+        entities.add(new BottomNavigationEntity("关注",
                 R.drawable.ic_tab_album_default,
                 R.drawable.ic_tab_album_selected));
-        entities.add(new BottomNavigationBar.BottomNavigationEntity("我的",
+        entities.add(new BottomNavigationEntity("我的",
                 R.drawable.ic_tab_avatar_default,
                 R.drawable.ic_tab_avatar_selected));
         bottomNavigationBar.setEntities(entities);
-        bottomNavigationBar.setOnBottomNavigationBarItemClickListener(new BottomNavigationBar.OnBottomNavigationBarItemClickListener() {
+        bottomNavigationBar.setBnbItemClickListener(new BottomNavigationBar.IBnbItemClickListener() {
+
             @Override
-            public void onBottomNavigationBarItemClick(int position) {
+            public void onBnbItemClick(int position) {
                 switch (position) {
                     case 0:
                         getSupportFragmentManager().beginTransaction()
@@ -52,16 +54,15 @@ public class MainActivity extends AppCompatActivity {
                                 .commit();
                         break;
                 }
-
             }
         });
 
-        bottomNavigationBar.setOnBottomNavigationBarItemDoubleClickListener(new BottomNavigationBar.OnBottomNavigationBarItemDoubleClickListener() {
+        bottomNavigationBar.setBnbItemDoubleClickListener(new BottomNavigationBar.IBnbItemDoubleClickListener() {
             @Override
-            public void onBottomNavigationBarItemDoubleClick(int position) {
+            public void onBnbItemDoubleClick(int position) {
+                Toast.makeText(MainActivity.this, "onBottomNavigationBarItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
             }
         });
-        bottomNavigationBar.setCurrentPosition(0);
     }
 
 }

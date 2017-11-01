@@ -15,27 +15,29 @@ import java.util.List;
 
 /**
  * 自定义顶部导航栏
- * Created by ZhaoZongyao on 2017/8/25.
+ * Created by sugarkawhi on 2017/8/25.
  */
 
 public class BottomNavigationBar extends LinearLayout implements View.OnClickListener {
 
     private String TAG = "BottomNavigationBar";
 
-    private OnBottomNavigationBarItemClickListener onBottomNavigationBarItemClickListener;
-    private OnBottomNavigationBarItemDoubleClickListener onBottomNavigationBarItemDoubleClickListener;
+    private IBnbItemClickListener bnbItemClickListener;
+    private IBnbItemDoubleClickListener bnbItemDoubleClickListener;
     private List<BottomNavigationEntity> entities = new ArrayList<>();
 
     //这里是-1主要是为了第一次比较
     private int mCurrentPosition = -1;
-    //这里是0 是因为第一次进入默认是0
-    private int mLastPosition = 0;
 
     private int mTextSelectedColor;
     private int mTextUnSelectedColor;
     //dot 用于实现提醒的功能
     private int mDotColor;
     private int mTextSize;
+    //是否需要缩放动画
+    private boolean isAnim;
+    //缩放的比例
+    private float scaleRatio;
     private static final String DEFAULT_SELECTED_COLOR = "#000000";
     private static final String DEFAULT_UNSELECTED_COLOR = "#999999";
     private static final String DEFAULT_DOT_COLOR = "#ff0000";
@@ -64,11 +66,12 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
      */
     private void init(Context context, AttributeSet attrs) {
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.BottomNavigationBar);
-        mTextSelectedColor = array.getColor(R.styleable.BottomNavigationBar_selectedColor, Color.parseColor(DEFAULT_SELECTED_COLOR));
-        mTextUnSelectedColor = array.getColor(R.styleable.BottomNavigationBar_unSelectedColor, Color.parseColor(DEFAULT_UNSELECTED_COLOR));
-        mDotColor = array.getColor(R.styleable.BottomNavigationBar_dotColor, Color.parseColor(DEFAULT_DOT_COLOR));
-        mTextSize = array.getDimensionPixelSize(R.styleable.BottomNavigationBar_textSize, 12);
-
+        mTextSelectedColor = array.getColor(R.styleable.BottomNavigationBar_bnb_selectedColor, Color.parseColor(DEFAULT_SELECTED_COLOR));
+        mTextUnSelectedColor = array.getColor(R.styleable.BottomNavigationBar_bnb_unSelectedColor, Color.parseColor(DEFAULT_UNSELECTED_COLOR));
+        mDotColor = array.getColor(R.styleable.BottomNavigationBar_bnb_dotColor, Color.parseColor(DEFAULT_DOT_COLOR));
+        mTextSize = array.getDimensionPixelSize(R.styleable.BottomNavigationBar_bnb_textSize, 12);
+        isAnim = array.getBoolean(R.styleable.BottomNavigationBar_bnb_anim, false);
+        scaleRatio = array.getFloat(R.styleable.BottomNavigationBar_bnb_scale_ratio, 1.1f);
         array.recycle();
     }
 
@@ -83,10 +86,12 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
         for (int i = 0; i < entities.size(); i++) {
             BottomNavigationEntity entity = entities.get(i);
             BottomNavigationItemView item = new BottomNavigationItemView(getContext());
-            item.setText(entity.text);
+            item.setAnim(isAnim);
+            item.setScaleRatio(scaleRatio);
+            item.setText(entity.getText());
             item.setTextSize(mTextSize);
-            item.setSelectedIcon(entity.selectedIcon);
-            item.setUnSelectedIcon(entity.unSelectIcon);
+            item.setSelectedIcon(entity.getSelectedIcon());
+            item.setUnSelectedIcon(entity.getUnSelectIcon());
             item.setTextSelectedColor(mTextSelectedColor);
             item.setTextUnSelectedColor(mTextUnSelectedColor);
             item.setTag(i);
@@ -105,60 +110,55 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
     public void onClick(View view) {
         int position = (int) view.getTag();
         Log.e(TAG, "onClick: position=" + position);
-        if (onBottomNavigationBarItemClickListener != null)
-            onBottomNavigationBarItemClickListener.onBottomNavigationBarItemClick((Integer) view.getTag());
+        if (position == mCurrentPosition && bnbItemDoubleClickListener != null) {
+            bnbItemDoubleClickListener.onBnbItemDoubleClick(position);
+            return;
+        }
+        if (position != mCurrentPosition) {
+            setCurrentPosition(position);
+            if (bnbItemClickListener != null) bnbItemClickListener.onBnbItemClick(position);
+        }
     }
 
 
-    public void setOnBottomNavigationBarItemClickListener(OnBottomNavigationBarItemClickListener onBottomNavigationBarItemClickListener) {
-        this.onBottomNavigationBarItemClickListener = onBottomNavigationBarItemClickListener;
+    public void setBnbItemClickListener(IBnbItemClickListener listener) {
+        this.bnbItemClickListener = listener;
     }
 
-    public void setOnBottomNavigationBarItemDoubleClickListener(OnBottomNavigationBarItemDoubleClickListener onBottomNavigationBarItemDoubleClickListener) {
-        this.onBottomNavigationBarItemDoubleClickListener = onBottomNavigationBarItemDoubleClickListener;
+    public void setBnbItemDoubleClickListener(IBnbItemDoubleClickListener listener) {
+        this.bnbItemDoubleClickListener = listener;
     }
 
     /**
      * 设置当前选中位置
+     *
+     * @param position 当前选中的item位置索引
      */
     public void setCurrentPosition(int position) {
         int count = getChildCount();
-        if (position == mCurrentPosition && onBottomNavigationBarItemDoubleClickListener != null) {
-            onBottomNavigationBarItemDoubleClickListener.onBottomNavigationBarItemDoubleClick(position);
-            return;
-        }
         if (count == 0 || position > count)
             return;
-        mLastPosition = mCurrentPosition;
-        mCurrentPosition = position;
-        BottomNavigationItemView lastItem = (BottomNavigationItemView) getChildAt(mLastPosition);
-        BottomNavigationItemView currentItem = (BottomNavigationItemView) getChildAt(mCurrentPosition);
+        if (position == mCurrentPosition)
+            return;
+        BottomNavigationItemView lastItem = (BottomNavigationItemView) getChildAt(mCurrentPosition);
+        BottomNavigationItemView currentItem = (BottomNavigationItemView) getChildAt(position);
         if (lastItem != null) {
             lastItem.setSelected(false);
         }
         if (currentItem != null) {
             currentItem.setSelected(true);
         }
+        mCurrentPosition = position;
+
     }
 
-    public static class BottomNavigationEntity {
-        String text;
-        int selectedIcon;
-        int unSelectIcon;
 
-        public BottomNavigationEntity(String text, int unSelectIcon, int selectedIcon) {
-            this.text = text;
-            this.unSelectIcon = unSelectIcon;
-            this.selectedIcon = selectedIcon;
-        }
+    public interface IBnbItemClickListener {
+        void onBnbItemClick(int position);
     }
 
-    public interface OnBottomNavigationBarItemClickListener {
-        void onBottomNavigationBarItemClick(int position);
-    }
-
-    public interface OnBottomNavigationBarItemDoubleClickListener {
-        void onBottomNavigationBarItemDoubleClick(int position);
+    public interface IBnbItemDoubleClickListener {
+        void onBnbItemDoubleClick(int position);
     }
 
 

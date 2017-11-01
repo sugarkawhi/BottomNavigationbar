@@ -25,9 +25,10 @@
         android:id="@+id/bottomNavigationBar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        app:selectedColor="@color/colorPrimaryDark"
-        app:textSize="12sp"
-        app:unSelectedColor="@color/default_text_color" />
+        app:bnb_anim="true"
+        app:bnb_selectedColor="@color/colorPrimaryDark"
+        app:bnb_textSize="12sp"
+        app:bnb_unSelectedColor="@color/default_text_color" />
 
 
 </LinearLayout>

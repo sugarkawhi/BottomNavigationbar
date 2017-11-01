@@ -12,10 +12,10 @@ import android.widget.TextView;
 
 
 /**
- * Created by ZhaoZongyao on 2017/8/25.
+ * BottomNavigationItemView
+ * Created by sugarkawhi on 2017/8/25.
  */
-
-public class BottomNavigationItemView extends LinearLayout {
+class BottomNavigationItemView extends LinearLayout {
     private int mSelectedIcon;
     private int mUnSelectedIcon;
     private int mTextSize;
@@ -25,6 +25,9 @@ public class BottomNavigationItemView extends LinearLayout {
 
     private ImageView mItemIcon;
     private TextView mItemText;
+
+    private boolean isAnim;
+    private float scaleRatio;
 
     private static final float SCALE_MAX = 1.1f;
 
@@ -44,10 +47,27 @@ public class BottomNavigationItemView extends LinearLayout {
     private void init() {
         setOrientation(VERTICAL);
         setGravity(Gravity.CENTER);
-        LayoutInflater.from(getContext()).inflate(R.layout.bottom_navigation_item, this, true);
-        mItemIcon = findViewById(R.id.navigation_item_icon);
-        mItemText = findViewById(R.id.navigation_item_text);
+        LayoutInflater.from(getContext()).inflate(R.layout.bnb_item_view, this, true);
+        mItemIcon = findViewById(R.id.bnb_item_icon);
+        mItemText = findViewById(R.id.bnb_item_text);
         defaultState();
+    }
+
+    public void setScaleRatio(float scaleRatio) {
+        this.scaleRatio = Math.abs(scaleRatio);
+    }
+
+    public float getScaleRatio() {
+        return scaleRatio;
+    }
+
+    public void setAnim(boolean anim) {
+        isAnim = anim;
+    }
+
+    /*unused*/
+    public boolean isAnim() {
+        return isAnim;
     }
 
     public void setSelectedIcon(int selectedIcon) {
@@ -83,13 +103,17 @@ public class BottomNavigationItemView extends LinearLayout {
                 mItemIcon.setImageResource(mSelectedIcon);
             if (mItemText != null)
                 mItemText.setTextColor(mTextSelectedColor);
-            scale(1f, SCALE_MAX);
+            if (isAnim) {
+                scale(1f, scaleRatio > SCALE_MAX ? scaleRatio : SCALE_MAX);
+            }
         } else {
             if (mItemIcon != null)
                 mItemIcon.setImageResource(mUnSelectedIcon);
             if (mItemText != null)
                 mItemText.setTextColor(mTextUnSelectedColor);
-            scale(SCALE_MAX, 1f);
+            if (isAnim) {
+                scale(scaleRatio > SCALE_MAX ? scaleRatio : SCALE_MAX, 1f);
+            }
         }
     }
 
@@ -100,11 +124,12 @@ public class BottomNavigationItemView extends LinearLayout {
         }
     }
 
+    private ValueAnimator valueAnimator;
 
     private void scale(float from, float to) {
-        ValueAnimator animator = ValueAnimator.ofFloat(from, to);
-        animator.setDuration(200);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        valueAnimator = ValueAnimator.ofFloat(from, to);
+        valueAnimator.setDuration(200);
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 float value = (float) valueAnimator.getAnimatedValue();
@@ -112,10 +137,16 @@ public class BottomNavigationItemView extends LinearLayout {
                 setScaleY(value);
             }
         });
-        animator.start();
+        valueAnimator.start();
     }
 
-    public static int px2dip(Context context, float pxValue) {
+    @Override
+    protected void onDetachedFromWindow() {
+        if (null != valueAnimator) valueAnimator.cancel();
+        super.onDetachedFromWindow();
+    }
+
+    private static int px2dip(Context context, float pxValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
     }

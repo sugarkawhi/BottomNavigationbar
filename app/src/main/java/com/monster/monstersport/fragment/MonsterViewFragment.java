@@ -55,12 +55,12 @@ public class MonsterViewFragment extends Fragment {
                 seekBar.setProgress(0);
             }
         });
-//        v.findViewById(R.id.COMPLETE).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//            }
-//        });
+        v.findViewById(R.id.COMPLETE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                monsterView.complete();
+            }
+        });
         return v;
     }
 

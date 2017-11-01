@@ -1,6 +1,5 @@
 package com.monster.monstersport.view;
 
-import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,11 +7,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
@@ -153,12 +150,13 @@ public class MonsterView extends View {
      * STATE_NORMAL
      */
     private void drawNormal(Canvas canvas) {
+        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
+
         mBackgroundPath.reset();
         mBackgroundPath.addArc(mRectF, mStartAngle + (mEndAngle - mStartAngle) * mPercent, mEndAngle - (mStartAngle + (mEndAngle - mStartAngle) * mPercent));
         canvas.drawPath(mBackgroundPath, mBackgroundPaint);
 
         mLetterPath.reset();
-        mRectF.set(mWidth / 2 - mRadius, mHeight / 2 - mRadius, mWidth / 2 + mRadius, mHeight / 2 + mRadius);
         mLetterPath.addArc(mRectF, 0, mStartAngle + (mEndAngle - mStartAngle) * mPercent);
         canvas.drawPath(mLetterPath, mLetterPaint);
 
