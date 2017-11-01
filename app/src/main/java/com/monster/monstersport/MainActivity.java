@@ -38,10 +38,10 @@ public class MainActivity extends AppCompatActivity {
                 R.drawable.ic_tab_avatar_default,
                 R.drawable.ic_tab_avatar_selected));
         bottomNavigationBar.setEntities(entities);
-        bottomNavigationBar.setBnbItemClickListener(new BottomNavigationBar.IBnbItemClickListener() {
+        bottomNavigationBar.setBnbItemSelectListener(new BottomNavigationBar.IBnbItemSelectListener() {
 
             @Override
-            public void onBnbItemClick(int position) {
+            public void onBnbItemSelect(int position) {
                 switch (position) {
                     case 0:
                         getSupportFragmentManager().beginTransaction()
@@ -60,9 +60,11 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationBar.setBnbItemDoubleClickListener(new BottomNavigationBar.IBnbItemDoubleClickListener() {
             @Override
             public void onBnbItemDoubleClick(int position) {
-                Toast.makeText(MainActivity.this, "onBottomNavigationBarItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
             }
         });
+
+        bottomNavigationBar.setCurrentPosition(1);
     }
 
 }

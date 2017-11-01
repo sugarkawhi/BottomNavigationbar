@@ -9,15 +9,15 @@ import android.content.Context;
 
 public class MonApplication extends Application {
 
-    public static Application application;
+//    public static Application application;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        application = this;
+//        application = this;
     }
 
-    public static Application getInstance() {
-        return application;
-    }
+//    public static Application getInstance() {
+//        return application;
+//    }
 }

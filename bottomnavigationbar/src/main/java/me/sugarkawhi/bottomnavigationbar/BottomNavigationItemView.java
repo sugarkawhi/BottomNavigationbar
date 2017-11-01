@@ -50,13 +50,14 @@ class BottomNavigationItemView extends LinearLayout {
         LayoutInflater.from(getContext()).inflate(R.layout.bnb_item_view, this, true);
         mItemIcon = findViewById(R.id.bnb_item_icon);
         mItemText = findViewById(R.id.bnb_item_text);
-        defaultState();
+        setDefaultState();
     }
 
     public void setScaleRatio(float scaleRatio) {
         this.scaleRatio = Math.abs(scaleRatio);
     }
 
+    /*unused*/
     public float getScaleRatio() {
         return scaleRatio;
     }
@@ -97,7 +98,6 @@ class BottomNavigationItemView extends LinearLayout {
     @Override
     public void setSelected(boolean selected) {
         super.setSelected(selected);
-        defaultState();
         if (selected) {
             if (mItemIcon != null)
                 mItemIcon.setImageResource(mSelectedIcon);
@@ -117,11 +117,18 @@ class BottomNavigationItemView extends LinearLayout {
         }
     }
 
-    public void defaultState() {
+    /**
+     * 设置为初始状态
+     * 默认未选中
+     */
+    public void setDefaultState() {
         if (mItemText != null) {
             mItemText.setText(mText);
+            mItemText.setTextColor(mTextUnSelectedColor);
             mItemText.setTextSize(px2dip(getContext(), mTextSize));
         }
+        if (mItemIcon != null)
+            mItemIcon.setImageResource(mUnSelectedIcon);
     }
 
     private ValueAnimator valueAnimator;

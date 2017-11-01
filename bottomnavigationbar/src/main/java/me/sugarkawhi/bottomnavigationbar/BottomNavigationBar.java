@@ -22,7 +22,7 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
 
     private String TAG = "BottomNavigationBar";
 
-    private IBnbItemClickListener bnbItemClickListener;
+    private IBnbItemSelectListener bnbItemSelectListener;
     private IBnbItemDoubleClickListener bnbItemDoubleClickListener;
     private List<BottomNavigationEntity> entities = new ArrayList<>();
 
@@ -97,11 +97,7 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
             item.setTag(i);
             addView(item, params);
             item.setOnClickListener(this);
-            if (i == 0) {
-                setCurrentPosition(0);
-            } else {
-                item.setSelected(false);
-            }
+            item.setDefaultState();
         }
 
     }
@@ -116,13 +112,13 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
         }
         if (position != mCurrentPosition) {
             setCurrentPosition(position);
-            if (bnbItemClickListener != null) bnbItemClickListener.onBnbItemClick(position);
+            if (bnbItemSelectListener != null) bnbItemSelectListener.onBnbItemSelect(position);
         }
     }
 
 
-    public void setBnbItemClickListener(IBnbItemClickListener listener) {
-        this.bnbItemClickListener = listener;
+    public void setBnbItemSelectListener(IBnbItemSelectListener listener) {
+        this.bnbItemSelectListener = listener;
     }
 
     public void setBnbItemDoubleClickListener(IBnbItemDoubleClickListener listener) {
@@ -149,12 +145,12 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
             currentItem.setSelected(true);
         }
         mCurrentPosition = position;
-
+        if (bnbItemSelectListener != null) bnbItemSelectListener.onBnbItemSelect(position);
     }
 
 
-    public interface IBnbItemClickListener {
-        void onBnbItemClick(int position);
+    public interface IBnbItemSelectListener {
+        void onBnbItemSelect(int position);
     }
 
     public interface IBnbItemDoubleClickListener {
