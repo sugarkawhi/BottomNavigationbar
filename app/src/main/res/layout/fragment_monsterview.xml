@@ -8,6 +8,7 @@
     tools:context=".MainActivity">
 
 
+
     <com.monster.monstersport.view.MonsterView
         android:id="@+id/monsterView"
         android:layout_width="wrap_content"

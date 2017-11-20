@@ -13,8 +13,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="20dp" />
+        android:orientation="vertical" />
 
     <View
         android:layout_width="match_parent"
@@ -25,10 +24,11 @@
         android:id="@+id/bottomNavigationBar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        app:bnb_anim="true"
-        app:bnb_selectedColor="@color/colorPrimaryDark"
-        app:bnb_textSize="12sp"
-        app:bnb_unSelectedColor="@color/default_text_color" />
+        app:bnb_anim="false"
+        app:bnb_layoutId="@layout/bnb_item_view"
+        app:bnb_selectedColor="#FF4788"
+        app:bnb_unSelectedColor="#CCCCCC"
+        tools:ignore="UnusedAttribute" />
 
 
 </LinearLayout>

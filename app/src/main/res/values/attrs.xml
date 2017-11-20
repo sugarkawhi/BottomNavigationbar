@@ -23,4 +23,11 @@
     <declare-styleable name="PtrLayout">
         <attr name="ptr_layout_headerview" format="reference" />
     </declare-styleable>
+
+    <declare-styleable name="RewardRankView">
+        <attr name="rrv_circle_radius" format="dimension" />
+        <attr name="rrv_color" format="color" />
+        <attr name="rrv_shadow_radius" format="dimension" />
+        <attr name="rrv_shadow_color" format="color" />
+    </declare-styleable>
 </resources>

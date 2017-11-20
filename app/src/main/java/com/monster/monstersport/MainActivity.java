@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.monster.monstersport.fragment.JikeViewFragment;
 import com.monster.monstersport.fragment.MonsterViewFragment;
+import com.monster.monstersport.fragment.TestFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,19 +25,31 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final BottomNavigationBar bottomNavigationBar = (BottomNavigationBar) findViewById(R.id.bottomNavigationBar);
-        entities.add(new BottomNavigationEntity("新闻",
-                R.drawable.ic_tab_news_default,
-                R.drawable.ic_tab_news_selected));
-        entities.add(new BottomNavigationEntity("发现",
-                R.drawable.ic_tab_img_default,
-                R.drawable.ic_tab_img_selected));
-        entities.add(new BottomNavigationEntity("关注",
-                R.drawable.ic_tab_album_default,
-                R.drawable.ic_tab_album_selected));
-        entities.add(new BottomNavigationEntity("我的",
-                R.drawable.ic_tab_avatar_default,
-                R.drawable.ic_tab_avatar_selected));
+        final BottomNavigationBar bottomNavigationBar = findViewById(R.id.bottomNavigationBar);
+//        entities.add(new BottomNavigationEntity("",
+//                R.drawable.hy_mian_icon_sc,
+//                R.drawable.hy_mian_icon_sc_down));
+//        entities.add(new BottomNavigationEntity("",
+//                R.drawable.hy_mian_icon_sj,
+//                R.drawable.hy_mian_icon_sj_down));
+//        entities.add(new BottomNavigationEntity("",
+//                R.drawable.hy_mian_icon_tj,
+//                R.drawable.hy_mian_icon_tj_down));
+//        entities.add(new BottomNavigationEntity("",
+//                R.drawable.hy_mian_icon_wd,
+//                R.drawable.hy_mian_icon_wd_down));
+        entities.add(new BottomNavigationEntity(
+                R.drawable.hy_mian_icon_sc,
+                R.drawable.hy_mian_icon_sc_down));
+        entities.add(new BottomNavigationEntity(
+                R.drawable.hy_mian_icon_sj,
+                R.drawable.hy_mian_icon_sj_down));
+        entities.add(new BottomNavigationEntity(
+                R.drawable.hy_mian_icon_tj,
+                R.drawable.hy_mian_icon_tj_down));
+        entities.add(new BottomNavigationEntity(
+                R.drawable.hy_mian_icon_wd,
+                R.drawable.hy_mian_icon_wd_down));
         bottomNavigationBar.setEntities(entities);
         bottomNavigationBar.setBnbItemSelectListener(new BottomNavigationBar.IBnbItemSelectListener() {
 
@@ -45,13 +58,13 @@ public class MainActivity extends AppCompatActivity {
                 switch (position) {
                     case 0:
                         getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.container, new MonsterViewFragment())
+                                .replace(R.id.container, new TestFragment())
                                 .commit();
                         break;
                     case 1:
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.container, new JikeViewFragment())
-                                .commit();
+//                        getSupportFragmentManager().beginTransaction()
+//                                .replace(R.id.container, new JikeViewFragment())
+//                                .commit();
                         break;
                 }
             }
