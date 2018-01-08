@@ -3,9 +3,13 @@ package me.sugarkawhi.bottomnavigationbar;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -18,16 +22,17 @@ import android.widget.TextView;
 class BottomNavigationItemView extends LinearLayout {
     private int mSelectedIcon;
     private int mUnSelectedIcon;
-    private int mTextSize;
     private String mText;
     private int mTextSelectedColor;
     private int mTextUnSelectedColor;
+    private int mGap;
 
     private ImageView mItemIcon;
     private TextView mItemText;
 
     private boolean isAnim;
     private float scaleRatio;
+    private int mLayoutId;
 
     private static final float SCALE_MAX = 1.1f;
 
@@ -47,10 +52,6 @@ class BottomNavigationItemView extends LinearLayout {
     private void init() {
         setOrientation(VERTICAL);
         setGravity(Gravity.CENTER);
-        LayoutInflater.from(getContext()).inflate(R.layout.bnb_item_view, this, true);
-        mItemIcon = findViewById(R.id.bnb_item_icon);
-        mItemText = findViewById(R.id.bnb_item_text);
-        setDefaultState();
     }
 
     public void setScaleRatio(float scaleRatio) {
@@ -66,6 +67,20 @@ class BottomNavigationItemView extends LinearLayout {
         isAnim = anim;
     }
 
+
+    /**
+     * //set item layout
+     *
+     * @param layoutId 布局ID
+     */
+    public void setLayoutId(int layoutId) {
+        mLayoutId = layoutId;
+        LayoutInflater.from(getContext()).inflate(mLayoutId, this, true);
+        mItemIcon = findViewById(R.id.bnb_item_icon);
+        mItemText = findViewById(R.id.bnb_item_text);
+        setDefaultState();
+    }
+
     /*unused*/
     public boolean isAnim() {
         return isAnim;
@@ -79,9 +94,6 @@ class BottomNavigationItemView extends LinearLayout {
         this.mUnSelectedIcon = unSelectedIcon;
     }
 
-    public void setTextSize(int textSize) {
-        this.mTextSize = textSize;
-    }
 
     public void setTextSelectedColor(int textSelectedColor) {
         this.mTextSelectedColor = textSelectedColor;
@@ -93,28 +105,25 @@ class BottomNavigationItemView extends LinearLayout {
 
     public void setText(String text) {
         this.mText = text;
+        if (mItemText != null) {
+            mItemText.setText(mText);
+        }
     }
+
 
     @Override
     public void setSelected(boolean selected) {
         super.setSelected(selected);
-        if (selected) {
-            if (mItemIcon != null)
-                mItemIcon.setImageResource(mSelectedIcon);
-            if (mItemText != null)
-                mItemText.setTextColor(mTextSelectedColor);
-            if (isAnim) {
+        rendingItemText(selected);
+        rendingItemIcon(selected);
+        if (isAnim) {
+            if (selected) {
                 scale(1f, scaleRatio > SCALE_MAX ? scaleRatio : SCALE_MAX);
-            }
-        } else {
-            if (mItemIcon != null)
-                mItemIcon.setImageResource(mUnSelectedIcon);
-            if (mItemText != null)
-                mItemText.setTextColor(mTextUnSelectedColor);
-            if (isAnim) {
+            } else {
                 scale(scaleRatio > SCALE_MAX ? scaleRatio : SCALE_MAX, 1f);
             }
         }
+
     }
 
     /**
@@ -122,13 +131,36 @@ class BottomNavigationItemView extends LinearLayout {
      * 默认未选中
      */
     public void setDefaultState() {
-        if (mItemText != null) {
-            mItemText.setText(mText);
-            mItemText.setTextColor(mTextUnSelectedColor);
-            mItemText.setTextSize(px2dip(getContext(), mTextSize));
+        rendingItemText(false);
+        rendingItemIcon(false);
+    }
+
+    /**
+     * rendind ICON only
+     */
+    private void rendingItemText(boolean select) {
+        if (mItemText == null)
+            return;
+        if (TextUtils.isEmpty(mText)) {
+            mItemText.setVisibility(GONE);
+        } else {
+            mItemText.setText(View.VISIBLE);
+            if (select) {
+                mItemText.setTextColor(mTextSelectedColor);
+            } else {
+                mItemText.setTextColor(mTextUnSelectedColor);
+            }
         }
-        if (mItemIcon != null)
+    }
+
+    private void rendingItemIcon(boolean select) {
+        if (mItemIcon == null)
+            return;
+        if (select) {
+            mItemIcon.setImageResource(mSelectedIcon);
+        } else {
             mItemIcon.setImageResource(mUnSelectedIcon);
+        }
     }
 
     private ValueAnimator valueAnimator;
@@ -151,10 +183,5 @@ class BottomNavigationItemView extends LinearLayout {
     protected void onDetachedFromWindow() {
         if (null != valueAnimator) valueAnimator.cancel();
         super.onDetachedFromWindow();
-    }
-
-    private static int px2dip(Context context, float pxValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (pxValue / scale + 0.5f);
     }
 }

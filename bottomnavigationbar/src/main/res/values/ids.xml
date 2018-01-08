@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="bnb_item_icon" type="id"/>
+    <item name="bnb_item_text" type="id"/>
+</resources>

@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -26,18 +27,23 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
     private IBnbItemDoubleClickListener bnbItemDoubleClickListener;
     private List<BottomNavigationEntity> entities = new ArrayList<>();
 
+
     //这里是-1主要是为了第一次比较
     private int mCurrentPosition = -1;
-
+    //选中的color
     private int mTextSelectedColor;
+    //未选中的color
     private int mTextUnSelectedColor;
     //dot 用于实现提醒的功能
     private int mDotColor;
-    private int mTextSize;
+
+    //单个布局
+    private int mItemLayout;
     //是否需要缩放动画
     private boolean isAnim;
     //缩放的比例
     private float scaleRatio;
+
     private static final String DEFAULT_SELECTED_COLOR = "#000000";
     private static final String DEFAULT_UNSELECTED_COLOR = "#999999";
     private static final String DEFAULT_DOT_COLOR = "#ff0000";
@@ -69,9 +75,9 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
         mTextSelectedColor = array.getColor(R.styleable.BottomNavigationBar_bnb_selectedColor, Color.parseColor(DEFAULT_SELECTED_COLOR));
         mTextUnSelectedColor = array.getColor(R.styleable.BottomNavigationBar_bnb_unSelectedColor, Color.parseColor(DEFAULT_UNSELECTED_COLOR));
         mDotColor = array.getColor(R.styleable.BottomNavigationBar_bnb_dotColor, Color.parseColor(DEFAULT_DOT_COLOR));
-        mTextSize = array.getDimensionPixelSize(R.styleable.BottomNavigationBar_bnb_textSize, 12);
         isAnim = array.getBoolean(R.styleable.BottomNavigationBar_bnb_anim, false);
         scaleRatio = array.getFloat(R.styleable.BottomNavigationBar_bnb_scale_ratio, 1.1f);
+        mItemLayout = array.getResourceId(R.styleable.BottomNavigationBar_bnb_layoutId, -1);
         array.recycle();
     }
 
@@ -83,13 +89,14 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
             return;
         LayoutParams params = new LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT);
         params.weight = 1;
+        BottomNavigationItemView item;
         for (int i = 0; i < entities.size(); i++) {
             BottomNavigationEntity entity = entities.get(i);
-            BottomNavigationItemView item = new BottomNavigationItemView(getContext());
+            item = new BottomNavigationItemView(getContext());
+            item.setLayoutId(mItemLayout);
             item.setAnim(isAnim);
             item.setScaleRatio(scaleRatio);
             item.setText(entity.getText());
-            item.setTextSize(mTextSize);
             item.setSelectedIcon(entity.getSelectedIcon());
             item.setUnSelectedIcon(entity.getUnSelectIcon());
             item.setTextSelectedColor(mTextSelectedColor);
@@ -112,7 +119,6 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
         }
         if (position != mCurrentPosition) {
             setCurrentPosition(position);
-            if (bnbItemSelectListener != null) bnbItemSelectListener.onBnbItemSelect(position);
         }
     }
 

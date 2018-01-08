@@ -1,13 +1,17 @@
 package com.monster.monstersport;
 
+import android.content.Intent;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
 
-import com.monster.monstersport.fragment.JikeViewFragment;
-import com.monster.monstersport.fragment.MonsterViewFragment;
+import com.monster.monstersport.activity.LeakCanaryActivity;
+import com.monster.monstersport.fragment.LoadingFragment;
 import com.monster.monstersport.fragment.TestFragment;
+import com.monster.monstersport.view.SViewPager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,55 +22,44 @@ import me.sugarkawhi.bottomnavigationbar.BottomNavigationEntity;
 
 public class MainActivity extends AppCompatActivity {
 
+    private SViewPager mSViewPager;
 
-    private List<BottomNavigationEntity> entities = new ArrayList<>();
+    private List<BottomNavigationEntity> mEntities;
+    private List<Fragment> mFragments;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mSViewPager = findViewById(R.id.viewPager);
+        mSViewPager.setCanScroll(false);
+        mSViewPager.setOffscreenPageLimit(4);
         final BottomNavigationBar bottomNavigationBar = findViewById(R.id.bottomNavigationBar);
-//        entities.add(new BottomNavigationEntity("",
-//                R.drawable.hy_mian_icon_sc,
-//                R.drawable.hy_mian_icon_sc_down));
-//        entities.add(new BottomNavigationEntity("",
-//                R.drawable.hy_mian_icon_sj,
-//                R.drawable.hy_mian_icon_sj_down));
-//        entities.add(new BottomNavigationEntity("",
-//                R.drawable.hy_mian_icon_tj,
-//                R.drawable.hy_mian_icon_tj_down));
-//        entities.add(new BottomNavigationEntity("",
-//                R.drawable.hy_mian_icon_wd,
-//                R.drawable.hy_mian_icon_wd_down));
-        entities.add(new BottomNavigationEntity(
+
+        mEntities = new ArrayList<>();
+        mFragments = new ArrayList<>();
+        mFragments.add(LoadingFragment.newInstance());
+        mFragments.add(TestFragment.newInstance("2"));
+        mFragments.add(TestFragment.newInstance("3"));
+        mFragments.add(TestFragment.newInstance("4"));
+        mEntities.add(new BottomNavigationEntity(
                 R.drawable.hy_mian_icon_sc,
                 R.drawable.hy_mian_icon_sc_down));
-        entities.add(new BottomNavigationEntity(
+        mEntities.add(new BottomNavigationEntity(
                 R.drawable.hy_mian_icon_sj,
                 R.drawable.hy_mian_icon_sj_down));
-        entities.add(new BottomNavigationEntity(
+        mEntities.add(new BottomNavigationEntity(
                 R.drawable.hy_mian_icon_tj,
                 R.drawable.hy_mian_icon_tj_down));
-        entities.add(new BottomNavigationEntity(
+        mEntities.add(new BottomNavigationEntity(
                 R.drawable.hy_mian_icon_wd,
                 R.drawable.hy_mian_icon_wd_down));
-        bottomNavigationBar.setEntities(entities);
+        bottomNavigationBar.setEntities(mEntities);
         bottomNavigationBar.setBnbItemSelectListener(new BottomNavigationBar.IBnbItemSelectListener() {
 
             @Override
             public void onBnbItemSelect(int position) {
-                switch (position) {
-                    case 0:
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.container, new TestFragment())
-                                .commit();
-                        break;
-                    case 1:
-//                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.container, new JikeViewFragment())
-//                                .commit();
-                        break;
-                }
+                mSViewPager.setCurrentItem(position);
             }
         });
 
@@ -74,10 +67,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBnbItemDoubleClick(int position) {
                 Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, LeakCanaryActivity.class);
+                startActivity(intent);
             }
         });
 
-        bottomNavigationBar.setCurrentPosition(1);
+        bottomNavigationBar.setCurrentPosition(0);
+
+        mSViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public Fragment getItem(int position) {
+                return mFragments.get(position);
+            }
+
+            @Override
+            public int getCount() {
+                return mFragments.size();
+            }
+        });
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
 }

@@ -9,8 +9,15 @@ public class BottomNavigationEntity {
     private int selectedIcon;
     private int unSelectIcon;
 
+    //need text
     public BottomNavigationEntity(String text, int unSelectIcon, int selectedIcon) {
         this.text = text;
+        this.unSelectIcon = unSelectIcon;
+        this.selectedIcon = selectedIcon;
+    }
+
+    //do not need text
+    public BottomNavigationEntity(int unSelectIcon, int selectedIcon) {
         this.unSelectIcon = unSelectIcon;
         this.selectedIcon = selectedIcon;
     }

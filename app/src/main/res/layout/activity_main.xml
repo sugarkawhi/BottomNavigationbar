@@ -4,16 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.monster.monstersport.MainActivity">
+    android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/container"
+    <com.monster.monstersport.view.SViewPager
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center_horizontal"
-        android:orientation="vertical" />
+        android:layout_weight="1" />
 
     <View
         android:layout_width="match_parent"

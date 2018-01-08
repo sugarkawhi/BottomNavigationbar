@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">怪兽BA</string>
+    <string name="app_name">ATest</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
@@ -14,4 +14,5 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+    <string name="title_activity_leak_canary">LeakCanaryActivity</string>
 </resources>

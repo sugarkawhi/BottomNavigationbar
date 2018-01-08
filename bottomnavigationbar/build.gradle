@@ -36,7 +36,7 @@ publish {
     userOrg = 'zhaozy'// organizationId
     groupId = 'me.sugarkawhi'//jcenter上的路径
     artifactId = 'BottomNavigationBar'//项目名称
-    publishVersion = '1.0.8'//版本号
+    publishVersion = '1.1.0'//版本号
     desc = 'cute bottom navigation bar'//描述，不重要
     website = 'https://github.com/sugarkawhi/BottomNavigationBar'//网站，不重要；尽量模拟github上的地址，例如我这样的；当然你有地址最好了
 }
