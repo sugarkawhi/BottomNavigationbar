@@ -30,4 +30,24 @@
         <attr name="rrv_shadow_radius" format="dimension" />
         <attr name="rrv_shadow_color" format="color" />
     </declare-styleable>
+
+    <declare-styleable name="ZWHistoryView">
+        <attr name="xhh_zw_gap" format="dimension" />
+        <attr name="xhh_zw_aspect_ratio" format="float" />
+    </declare-styleable>
+    <declare-styleable name="ZWTimeLineView">
+        <attr name="xhh_zwTL_nodeColor" format="color" />
+        <attr name="xhh_zwTL_lineColor" format="color" />
+        <attr name="xhh_zwTL_nodeRangeHeight" format="dimension" />
+        <attr name="xhh_zwTL_nodeRadius" format="dimension" />
+        <attr name="xhh_zwTL_lineWidth" format="dimension" />
+        <attr name="xhh_zwTL_isFirstNode" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="HyTabLayout">
+        <attr name="xhh_tl_selectColor" format="color" />
+        <attr name="xhh_tl_defaultTabTextColor" format="color" />
+        <attr name="xhh_tl_defaultTabTextSize" format="dimension" />
+        <attr name="xhh_tl_underlineColor" format="color" />
+        <attr name="xhh_tl_underlineThickness" format="color" />
+    </declare-styleable>
 </resources>

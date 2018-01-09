@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.monster.monstersport.activity.LeakCanaryActivity;
 import com.monster.monstersport.fragment.LoadingFragment;
 import com.monster.monstersport.fragment.TestFragment;
+import com.monster.monstersport.fragment.ZwHistoryFragment;
 import com.monster.monstersport.view.SViewPager;
 
 import java.util.ArrayList;
@@ -38,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
         mEntities = new ArrayList<>();
         mFragments = new ArrayList<>();
+        mFragments.add(ZwHistoryFragment.newInstance());
         mFragments.add(LoadingFragment.newInstance());
-        mFragments.add(TestFragment.newInstance("2"));
         mFragments.add(TestFragment.newInstance("3"));
         mFragments.add(TestFragment.newInstance("4"));
         mEntities.add(new BottomNavigationEntity(
