@@ -1,19 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="vertical"
+        app:elevation="0dp">
+
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|enterAlwaysCollapsed">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.monster.monstersport.view.HyTabLayout
+                    android:id="@+id/hyTabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:paddingStart="44dp"
+                    app:xhh_tl_defaultTabTextColor="@color/colorPrimary"
+                    app:xhh_tl_defaultTabTextSize="15sp"
+                    app:xhh_tl_selectColor="@color/colorPrimaryDark"
+                    app:xhh_tl_tabMinWidth="40dp"
+                    app:xhh_tl_tabPadding="10dp"
+                    tools:ignore="RtlSymmetry" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginEnd="13dp"
+                    android:layout_marginStart="44dp"
+                    android:background="@drawable/abc_bg_search"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:text="输入征文名字或作者名字" />
+            </LinearLayout>
+
+        </android.support.design.widget.CollapsingToolbarLayout>
 
 
+    </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:overScrollMode="never" />
-</LinearLayout>
+        android:overScrollMode="never"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+</android.support.design.widget.CoordinatorLayout>

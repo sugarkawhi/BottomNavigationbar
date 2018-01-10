@@ -15,6 +15,8 @@ import com.monster.monstersport.view.ZWHistoryView;
 import com.monster.monstersport.view.ZWTimeLineView;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -33,72 +35,22 @@ public class ZwHistoryAdapter extends RecyclerView.Adapter<ZwHistoryAdapter.ZwHi
     public ZwHistoryAdapter(Context context) {
         mContext = context;
         mList = new ArrayList<>();
-        List<String> list1 = new ArrayList<>();
-        list1.add("http://bookbk.img.ireader.com/group6/M00/16/18/CmQUOVaxXIiEJY9AAAAAAFHYwBQ342446061.jpg?v=IYhDlqxY");
-        List<String> list2 = new ArrayList<>();
-        list2.add("https://img.xhhread.cn/images/covers/20171031113315649.jpg");
-        list2.add("https://img.xhhread.cn/images/covers/20170321195717153.png");
-        List<String> list3 = new ArrayList<>();
-        list3.add("https://img.xhhread.cn/images/covers/20170330215335077.jpg");
-        list3.add("https://img.xhhread.cn/images/covers/20171116231600840.jpg");
-        list3.add("https://img.xhhread.cn/images/covers/20171031113315649.jpg");
-        List<String> list4 = new ArrayList<>();
-        list4.add("https://img.xhhread.cn/images/covers/20170406113455220.png");
-        list4.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list4.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        list4.add("https://img.xhhread.cn/images/covers/20171103182113202.jpg");
-        List<String> list5 = new ArrayList<>();
-        list5.add("https://img.xhhread.cn/images/covers/20170406113455220.png");
-        list5.add("https://img.xhhread.cn/images/covers/20171103182113202.jpg");
-        list5.add("http://book.img.ireader.com/group6/M00/6C/A9/CmQUN1avNDSEQkbGAAAAAK4hmko417445595.jpg?v=49pVi6zE");
-        list5.add("http://book.img.ireader.com/group6/M00/6C/A9/CmQUN1avNDSEQkbGAAAAAK4hmko417445595.jpg?v=49pVi6zE");
-        list5.add("http://bookbk.img.ireader.com/group6/M00/6B/16/CmQUN1agju6EGM01AAAAALskY8Y213298834.jpg?v=eyExaQKZ");
-        List<String> list6 = new ArrayList<>();
-        list6.add("https://img.xhhread.cn/images/covers/20170406113455220.png");
-        list6.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list6.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        list6.add("https://img.xhhread.cn/images/covers/20171103182113202.jpg");
-        list6.add("http://bookbk.img.ireader.com/group6/M00/6B/16/CmQUN1agju6EGM01AAAAALskY8Y213298834.jpg?v=eyExaQKZ");
-        list6.add("https://img.xhhread.cn/images/covers/20171116231600840.jpg");
-        List<String> list7 = new ArrayList<>();
-        list7.add("http://bookbk.img.ireader.com/group6/M00/16/18/CmQUOVaxXIiEJY9AAAAAAFHYwBQ342446061.jpg?v=IYhDlqxY");
-        list7.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list7.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        list7.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list7.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        list7.add("https://img.xhhread.cn/images/covers/20171107134554014.jpg");
-        list7.add("https://img.xhhread.cn/images/covers/20171128181718203164.jpg");
-        List<String> list8 = new ArrayList<>();
-        list8.add("http://book.img.ireader.com/group6/M00/6C/A9/CmQUN1avNDSEQkbGAAAAAK4hmko417445595.jpg?v=49pVi6zE");
-        list8.add("http://book.img.ireader.com/group6/M00/63/B9/CmQUNlZubLGEA8SHAAAAAKe3INY156227192.jpg?v=fTn49eo8");
-        list8.add("http://bookbk.img.ireader.com/group6/M00/16/18/CmQUOVaxXIiEJY9AAAAAAFHYwBQ342446061.jpg?v=IYhDlqxY");
-        list8.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list8.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list8.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        list8.add("https://img.xhhread.cn/images/covers/20171107134554014.jpg");
-        list8.add("https://img.xhhread.cn/images/covers/20171128181718203164.jpg");
-        List<String> list9 = new ArrayList<>();
-        list9.add("http://book.img.ireader.com/group6/M00/6C/A9/CmQUN1avNDSEQkbGAAAAAK4hmko417445595.jpg?v=49pVi6zE");
-        list9.add("http://book.img.ireader.com/group6/M00/63/B9/CmQUNlZubLGEA8SHAAAAAKe3INY156227192.jpg?v=fTn49eo8");
-        list9.add("http://bookbk.img.ireader.com/group6/M00/16/18/CmQUOVaxXIiEJY9AAAAAAFHYwBQ342446061.jpg?v=IYhDlqxY");
-        list9.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list9.add("http://bookbk.img.ireader.com/group6/M00/D2/E4/CmQUN1jdGHuEQpZIAAAAAH6skjU284582432.jpg?v=yGsjoK9L");
-        list9.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        list9.add("https://img.xhhread.cn/images/covers/20171107134554014.jpg");
-        list9.add("https://img.xhhread.cn/images/covers/20171128181718203164.jpg");
-        list9.add("http://bookbk.img.ireader.com/group6/M00/14/DB/CmQUOVanMEiEJ7PvAAAAAJWt4y4554842635.jpg?v=CauWCGkY");
-        mList.add(list1);
-        mList.add(list2);
-        mList.add(list3);
-        mList.add(list4);
-        mList.add(list5);
-        mList.add(list6);
-        mList.add(list7);
-        mList.add(list8);
-        mList.add(list9);
-        mList.add(list6);
-        mList.add(list6);
-        mList.add(list6);
+        List<String> list = new ArrayList<>();
+        list.add("https://img.xhhread.cn/images/covers/20170406113455220.png");
+        list.add("https://img.xhhread.cn/images/covers/20171103182113202.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20171116231600840.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20171107134554014.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20170330215335077.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20171221234956665176.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20171207174902717447.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20170707165223373.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20171114170046408.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20171221232543194145.jpg");
+        list.add("https://img.xhhread.cn/images/covers/20161212170634252.jpg");
+        Collections.shuffle(list);
+        for (int i = 0; i < 12; i++) {
+            mList.add(list.subList(0, 6));
+        }
     }
 
     @Override

@@ -47,7 +47,7 @@
         <attr name="xhh_tl_selectColor" format="color" />
         <attr name="xhh_tl_defaultTabTextColor" format="color" />
         <attr name="xhh_tl_defaultTabTextSize" format="dimension" />
-        <attr name="xhh_tl_underlineColor" format="color" />
-        <attr name="xhh_tl_underlineThickness" format="color" />
+        <attr name="xhh_tl_tabMinWidth" format="dimension" />
+        <attr name="xhh_tl_tabPadding" format="dimension" />
     </declare-styleable>
 </resources>

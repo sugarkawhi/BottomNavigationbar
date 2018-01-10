@@ -34,10 +34,6 @@
         <activity
             android:name=".activity.LoginActivity"
             android:label="@string/title_activity_login"></activity>
-        <activity
-            android:name=".activity.LeakCanaryActivity"
-            android:label="@string/title_activity_leak_canary"
-            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>
