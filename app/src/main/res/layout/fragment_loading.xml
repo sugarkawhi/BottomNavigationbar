@@ -5,17 +5,6 @@
     android:gravity="center"
     android:orientation="vertical">
 
-    <me.sugarkawhi.hyloadingview.SimpleHyLoadingView
-        android:id="@+id/loadingView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center"
-        app:hy_loading_color="@color/colorPrimary"
-        app:hy_loading_duration="800"
-        app:hy_loading_error_color="@color/colorAccent"
-        app:hy_loading_stoke_width="8dp"
-        app:hy_loading_success_color="@color/colorPrimaryDark" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

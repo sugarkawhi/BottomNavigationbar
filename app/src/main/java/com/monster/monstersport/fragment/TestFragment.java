@@ -3,15 +3,16 @@ package com.monster.monstersport.fragment;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseLazyFragment;
-import com.monster.monstersport.pop.BottomDialog;
-import com.monster.monstersport.pop.BottomPop;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 
 /**
  * Created by ZhaoZongyao on 2017/10/16.
@@ -50,24 +51,19 @@ public class TestFragment extends BaseLazyFragment {
                 show();
             }
         });
-        button.setOnClickListener(new View.OnClickListener() {
+    }
+
+
+    public void show() {
+        Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void onClick(View view) {
-                hide();
+            public void subscribe(ObservableEmitter<String> e) throws Exception {
+                //DB....
+                e.onNext("");
             }
         });
     }
 
-    BottomDialog bottomPop;
-
-    public void show() {
-        bottomPop = new BottomDialog(getActivity());
-        bottomPop.show();
-    }
-
-    public void hide() {
-        bottomPop.dismiss();
-    }
 
 
     @Override

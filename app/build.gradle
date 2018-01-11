@@ -36,7 +36,6 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:27.0.2'
     compile 'com.android.support:cardview-v7:27.0.2'
     testCompile 'junit:junit:4.12'
-    compile project(path: ':bottomnavigationbar')
     //LeakCanary
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.4'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
@@ -47,7 +46,7 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
     //RxLifecycle
     compile 'com.trello.rxlifecycle2:rxlifecycle-components:2.1.0'
-    compile project(':hyloadingview')
-
     compile 'jp.wasabeef:glide-transformations:3.0.1'
+    compile project(':mReader')
+    compile project(':bottomnavigationbar')
 }

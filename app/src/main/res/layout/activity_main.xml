@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -12,20 +11,16 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <View
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:background="@color/default_text_color" />
+        android:background="@color/colorDivider" />
 
     <me.sugarkawhi.bottomnavigationbar.BottomNavigationBar
         android:id="@+id/bottomNavigationBar"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        app:bnb_anim="false"
-        app:bnb_layoutId="@layout/bnb_item_view"
-        app:bnb_selectedColor="#FF4788"
-        app:bnb_unSelectedColor="#CCCCCC"
-        tools:ignore="UnusedAttribute" />
-
+        android:layout_height="40dp"
+        app:bnb_anim="true"
+        app:bnb_layoutId="@layout/bnb_item_view" />
 
 </LinearLayout>

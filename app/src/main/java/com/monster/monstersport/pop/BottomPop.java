@@ -21,7 +21,7 @@ public class BottomPop extends PopupWindow {
     private int mHeight;
 
     public BottomPop(Context context) {
-        mContentView = LayoutInflater.from(context).inflate(R.layout.pop_bottom, null);
+//        mContentView = LayoutInflater.from(context).inflate(R.layout.pop_bottom, null);
         setContentView(mContentView);
         setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         setWidth(ViewGroup.LayoutParams.MATCH_PARENT);

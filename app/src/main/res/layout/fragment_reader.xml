@@ -1,30 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/text_long_text" />
+    <me.sugarkawhi.mreader.view.BaseReaderView
+        android:id="@+id/readerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:mReader_batteryHead="10dp"
+        app:mReader_batteryHeight="30dp"
+        app:mReader_batteryWidth="30dp"
+        app:mReader_footerHeight="20dp"
+        app:mReader_headerHeight="20dp"
+        app:mReader_headerTextSize="12sp"
+        app:mReader_padding="20dp" />
 
-    <Button
-        android:id="@+id/btn_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="开始" />
-
-    <Button
-        android:id="@+id/btn_pause"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="暂停" />
-
-    <Button
-        android:id="@+id/btn_recover"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="恢复" />
 </LinearLayout>

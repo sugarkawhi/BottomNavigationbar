@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#34495E</color>
     <color name="colorAccent">#FF4081</color>
     <color name="default_text_color">#bfbfbf</color>
+    <color name="colorDivider">#EBEBF3</color>
     <color name="white">#ffffff</color>
     <color name="black">#000</color>
     <color name="letter_bg1">#DEDEDE</color>
