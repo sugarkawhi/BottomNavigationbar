@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import me.sugarkawhi.mreader.R;
+import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.config.Config;
 import me.sugarkawhi.mreader.element.PageElement;
@@ -16,10 +17,13 @@ import me.sugarkawhi.mreader.element.PageElement;
  * Base
  * Created by ZhaoZongyao on 2018/1/11.
  */
-
 public class BaseReaderView extends View {
     public PageElement mPageElement;
     public ChapterBean mCurChapter, mPreChapter, mNextChapter;
+
+    private float mContentSize;
+    private float mLineSpacing;
+    private float mParagraphSpacing;
 
     public BaseReaderView(Context context) {
         this(context, null);
@@ -28,7 +32,6 @@ public class BaseReaderView extends View {
     public BaseReaderView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
-
     public BaseReaderView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.BaseReaderView);
@@ -41,15 +44,18 @@ public class BaseReaderView extends View {
         int batteryHead = array.getDimensionPixelSize(R.styleable.BaseReaderView_mReader_batteryHead, Config.DEFAULT_BATTERY_HEAD);
         int batteryGap = array.getDimensionPixelSize(R.styleable.BaseReaderView_mReader_batteryGap, Config.DEFAULT_BATTERY_GAP);
         array.recycle();
-        mPageElement = new PageElement(headerHeight, footerHeight, padding, chapterNameSize, batteryWidth, batteryHeight, batteryHead, batteryGap);
+        mContentSize = Config.DEFAULT_CONTENT_TEXTSIZE;
+        mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
+        mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
+        Battery battery = new Battery(batteryHead, batteryWidth, batteryHeight, batteryGap);
+        mPageElement = new PageElement(headerHeight, footerHeight, padding, chapterNameSize, battery);
     }
 
+
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = MeasureSpec.getSize(heightMeasureSpec);
-        mPageElement.setReaderSize(width, height);
-        setMeasuredDimension(width, height);
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        mPageElement.setReaderSize(w, h);
     }
 
     @Override
@@ -80,7 +86,7 @@ public class BaseReaderView extends View {
 
     public void setChapter(ChapterBean curChapter) {
         this.mCurChapter = curChapter;
-
+        mPageElement.setChapter(curChapter);
     }
 
     public void setNextChapter(ChapterBean nextChapter) {

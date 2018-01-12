@@ -1,5 +1,6 @@
 package com.monster.monstersport.activity;
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import com.monster.monstersport.fragment.ReaderFragment;
 import com.monster.monstersport.fragment.TtsFragment;
 import com.monster.monstersport.fragment.ZwFragment;
 import com.monster.monstersport.view.SViewPager;
+import com.squareup.haha.perflib.Main;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +40,8 @@ public class MainActivity extends AppCompatActivity {
 
         mEntities = new ArrayList<>();
         mFragments = new ArrayList<>();
-        mFragments.add(ReaderFragment.newInstance());
-        mFragments.add(TtsFragment.newInstance());
         mFragments.add(ZwFragment.newInstance());
+        mFragments.add(TtsFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(
                 R.drawable.ic_tab_album_default,
                 R.drawable.ic_tab_album_selected));
@@ -65,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationBar.setBnbItemDoubleClickListener(new BottomNavigationBar.IBnbItemDoubleClickListener() {
             @Override
             public void onBnbItemDoubleClick(int position) {
-                Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(MainActivity.this, ReaderActivity.class));
             }
         });
 

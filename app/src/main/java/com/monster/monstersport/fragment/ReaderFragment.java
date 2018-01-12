@@ -6,6 +6,7 @@ import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseFragment;
 
 import me.sugarkawhi.mreader.bean.ChapterBean;
+import me.sugarkawhi.mreader.config.Config;
 import me.sugarkawhi.mreader.view.BaseReaderView;
 import me.sugarkawhi.mreader.view.MReaderView;
 
@@ -16,7 +17,6 @@ import me.sugarkawhi.mreader.view.MReaderView;
 
 public class ReaderFragment extends BaseFragment {
 
-    BaseReaderView mReaderView;
 
     public static ReaderFragment newInstance() {
         return new ReaderFragment();
@@ -29,13 +29,6 @@ public class ReaderFragment extends BaseFragment {
 
     @Override
     protected void init(View view) {
-        mReaderView = view.findViewById(R.id.readerView);
-        ChapterBean pre = new ChapterBean();
-        pre.setChapterName("第一章 XXX");
-        pre.setChapterContent(getString(R.string.text_long_text));
-//        mReaderView.setChapters(pre, pre, pre);
-//        mReaderView.setElectric(0.6f);
-//        mReaderView.setTime("18:00");
     }
 
 

@@ -1,8 +1,12 @@
 package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.text.TextUtils;
+
+import me.sugarkawhi.mreader.bean.Battery;
+import me.sugarkawhi.mreader.config.Config;
 
 /**
  * 页尾部分：绘制每一页的页尾,包括进度，时间和电量。
@@ -20,16 +24,16 @@ public class FooterElement extends Element {
     private float electric;
     private Paint mPaint;
     private Paint.FontMetrics mFontMetrics;
-    private int mBatteryWidth, mBatteryHeight, mBatteryHeadSize, mBatteryGap;
+    private float mBatteryWidth, mBatteryHeight, mBatteryHeadSize, mBatteryGap;
+    private int mTextColor = Config.DEFAULT_COLOR;
 
-    public FooterElement(float footerHeight, float padding, float textSize,
-                         int batteryWidth, int batteryHeight, int batteryHead, int batteryGap) {
+    public FooterElement(float footerHeight, float padding, float textSize, Battery battery) {
         this.mFooterHeight = footerHeight;
         this.mPadding = padding;
-        this.mBatteryWidth = batteryWidth;
-        this.mBatteryHeight = batteryHeight;
-        this.mBatteryHeadSize = batteryHead;
-        this.mBatteryGap = batteryGap;
+        this.mBatteryWidth = battery.getWidth();
+        this.mBatteryHeight = battery.getHeight();
+        this.mBatteryHeadSize = battery.getHead();
+        this.mBatteryGap = battery.getGap();
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setTextSize(textSize);
         mFontMetrics = mPaint.getFontMetrics();
@@ -40,6 +44,10 @@ public class FooterElement extends Element {
         mReaderHeight = readerHeight;
     }
 
+    public void setTextColor(int textColor) {
+        mTextColor = textColor;
+        mPaint.setColor(textColor);
+    }
 
     public void setProgress(String progress) {
         this.progress = progress;
@@ -55,6 +63,12 @@ public class FooterElement extends Element {
 
     @Override
     public void onDraw(Canvas canvas) {
+
+        if (Config.DEBUG) {
+            mPaint.setColor(Color.YELLOW);
+            canvas.drawRect(0, mReaderHeight - mFooterHeight, mReaderWidth, mReaderHeight, mPaint);
+            mPaint.setColor(mTextColor);
+        }
 
         //画进度
         if (!TextUtils.isEmpty(progress)) {

@@ -1,6 +1,8 @@
 package me.sugarkawhi.mreader.data;
 
 
+import java.util.ArrayList;
+
 /**
  * PageData 记录了每一页开头文字在章节的位置，
  * 同时包含该页面HeaderData, LineData,ImageData 和 FooterData 数据等。
@@ -9,10 +11,20 @@ package me.sugarkawhi.mreader.data;
 
 public class PageData {
     private float indexOfChapter;
-    private HeaderData headerData;
+    //同时包含该页面HeaderData
+    private String chapterName;
+    //进度
+    private String progress;
     private LineData lineData;
     private ImageData imageData;
-    private FooterData footerData;
+
+    public static PageData newInstance() {
+        PageData pageData = new PageData();
+        LineData lineData = new LineData();
+        lineData.setLines(new ArrayList<String>());
+        pageData.setLineData(lineData);
+        return pageData;
+    }
 
     public float getIndexOfChapter() {
         return indexOfChapter;
@@ -22,12 +34,20 @@ public class PageData {
         this.indexOfChapter = indexOfChapter;
     }
 
-    public HeaderData getHeaderData() {
-        return headerData;
+    public String getChapterName() {
+        return chapterName;
     }
 
-    public void setHeaderData(HeaderData headerData) {
-        this.headerData = headerData;
+    public void setChapterName(String chapterName) {
+        this.chapterName = chapterName;
+    }
+
+    public String getProgress() {
+        return progress;
+    }
+
+    public void setProgress(String progress) {
+        this.progress = progress;
     }
 
     public LineData getLineData() {
@@ -46,11 +66,4 @@ public class PageData {
         this.imageData = imageData;
     }
 
-    public FooterData getFooterData() {
-        return footerData;
-    }
-
-    public void setFooterData(FooterData footerData) {
-        this.footerData = footerData;
-    }
 }
