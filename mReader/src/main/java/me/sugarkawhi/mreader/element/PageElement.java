@@ -68,6 +68,8 @@ public class PageElement extends Element {
         mHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mHeaderPaint.setTextSize(Config.DEFAULT_CHAPTER_TEXTSIZE);
 
+        mBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
         mHeaderElement = new HeaderElement(headerHeight, padding, mHeaderPaint);
         mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, battery, mHeaderPaint);
         mLineElement = new LineElement(mContentWidth, mContentHeight, headerHeight, footerHeight, padding, lineSpacing, paragraphSpacing, mContentPaint);

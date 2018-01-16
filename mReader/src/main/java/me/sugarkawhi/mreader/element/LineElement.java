@@ -45,8 +45,8 @@ public class LineElement extends Element {
 
     @Override
     public void onDraw(Canvas canvas) {
-        mPaint.setColor(Color.YELLOW);
-        canvas.drawRect(mPadding, mHeaderHeight, mPadding + mContentWidth, mHeaderHeight + mContentHeight, mPaint);
+//        mPaint.setColor();
+//        canvas.drawRect(mPadding, mHeaderHeight, mPadding + mContentWidth, mHeaderHeight + mContentHeight, mPaint);
         mPaint.setColor(Color.BLACK);
         if (mPageData == null) return;
         List<String> lines = mPageData.getLines();
