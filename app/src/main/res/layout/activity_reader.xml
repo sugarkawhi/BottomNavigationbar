@@ -13,9 +13,8 @@
         app:mReader_batteryHead="2dp"
         app:mReader_batteryHeight="9dp"
         app:mReader_batteryWidth="18dp"
-        app:mReader_footerHeight="30dp"
-        app:mReader_headerHeight="30dp"
-        app:mReader_headerTextSize="10sp"
-        app:mReader_padding="10dp" />
+        app:mReader_footerHeight="25dp"
+        app:mReader_headerHeight="35dp"
+        app:mReader_padding="20dp" />
 
 </LinearLayout>

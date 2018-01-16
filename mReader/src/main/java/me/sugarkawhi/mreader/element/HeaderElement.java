@@ -18,20 +18,11 @@ public class HeaderElement extends Element {
     private float mPadding;
     private String mChapterTitle;
     private Paint mPaint;
-    private Paint.FontMetrics mFontMetrics;
-    private int mTextColor = Config.DEFAULT_COLOR;
 
-    public HeaderElement(float headerHeight, float padding, float textSize) {
+    public HeaderElement(float headerHeight, float padding, Paint paint) {
         this.mHeaderHeight = headerHeight;
         this.mPadding = padding;
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setTextSize(textSize);
-        mFontMetrics = mPaint.getFontMetrics();
-    }
-
-    public void setTextColor(int textColor) {
-        this.mTextColor = textColor;
-        mPaint.setColor(textColor);
+        this.mPaint = paint;
     }
 
     public void setChapterName(String chapterTitle) {
@@ -41,13 +32,8 @@ public class HeaderElement extends Element {
     @Override
     public void onDraw(Canvas canvas) {
         if (TextUtils.isEmpty(mChapterTitle)) return;
-        if (Config.DEBUG) {
-            mPaint.setColor(Color.YELLOW);
-            canvas.drawRect(0, 0, 500, mHeaderHeight, mPaint);
-            mPaint.setColor(mTextColor);
-        }
         mPaint.measureText(mChapterTitle);
-        float titleHeight = Math.abs(mFontMetrics.descent + mFontMetrics.ascent);
+        float titleHeight = mPaint.getFontSpacing();
         canvas.drawText(mChapterTitle, mPadding, mHeaderHeight / 2 + (titleHeight / 2), mPaint);
     }
 

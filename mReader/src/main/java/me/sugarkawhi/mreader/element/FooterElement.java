@@ -25,29 +25,20 @@ public class FooterElement extends Element {
     private Paint mPaint;
     private Paint.FontMetrics mFontMetrics;
     private float mBatteryWidth, mBatteryHeight, mBatteryHeadSize, mBatteryGap;
-    private int mTextColor = Config.DEFAULT_COLOR;
 
-    public FooterElement(float footerHeight, float padding, float textSize, Battery battery) {
+    public FooterElement(float readerWidth, float readerHeight, float footerHeight, float padding, Battery battery, Paint paint) {
+        this.mReaderWidth = readerWidth;
+        this.mReaderHeight = readerHeight;
         this.mFooterHeight = footerHeight;
         this.mPadding = padding;
         this.mBatteryWidth = battery.getWidth();
         this.mBatteryHeight = battery.getHeight();
         this.mBatteryHeadSize = battery.getHead();
         this.mBatteryGap = battery.getGap();
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setTextSize(textSize);
+        this.mPaint = paint;
         mFontMetrics = mPaint.getFontMetrics();
     }
 
-    public void setReaderSize(float readerWidth, float readerHeight) {
-        mReaderWidth = readerWidth;
-        mReaderHeight = readerHeight;
-    }
-
-    public void setTextColor(int textColor) {
-        mTextColor = textColor;
-        mPaint.setColor(textColor);
-    }
 
     public void setProgress(String progress) {
         this.progress = progress;
@@ -63,12 +54,6 @@ public class FooterElement extends Element {
 
     @Override
     public void onDraw(Canvas canvas) {
-
-        if (Config.DEBUG) {
-            mPaint.setColor(Color.YELLOW);
-            canvas.drawRect(0, mReaderHeight - mFooterHeight, mReaderWidth, mReaderHeight, mPaint);
-            mPaint.setColor(mTextColor);
-        }
 
         //画进度
         if (!TextUtils.isEmpty(progress)) {

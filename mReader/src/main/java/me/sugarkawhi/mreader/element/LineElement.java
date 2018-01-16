@@ -17,78 +17,57 @@ import me.sugarkawhi.mreader.data.PageData;
 
 public class LineElement extends Element {
 
-    private float mReaderWidth;
-    private float mReaderHeight;
     private float mHeaderHeight;
     private float mFooterHeight;
     private float mPadding;
     private float mContentWidth;
     private float mContentHeight;
+    private float mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
+    private float mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
     private Paint mPaint;
-    private int mColor;
-    private float mTextSize = Config.DEFAULT_CONTENT_TEXTSIZE;
+
     private PageData mPageData;
 
-    public LineElement(float headerHeight, float footerHeight, float padding) {
+    public LineElement(float contentWidth, float contentHeight, float headerHeight, float footerHeight, float padding, float lineSpacing, float paragraphSpacing, Paint paint) {
         this.mHeaderHeight = headerHeight;
         this.mFooterHeight = footerHeight;
         this.mPadding = padding;
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mColor = Color.BLACK;
-        mPaint.setTextSize(mTextSize);
+        this.mContentWidth = contentWidth;
+        this.mContentHeight = contentHeight;
+        this.mLineSpacing = lineSpacing;
+        this.mParagraphSpacing = paragraphSpacing;
+        this.mPaint = paint;
     }
 
     public void setPageData(PageData pageData) {
         mPageData = pageData;
     }
 
-    public void setColor(int color) {
-        mPaint.setColor(color);
-    }
-
-    public void setTextSize(float textSize) {
-        mTextSize = textSize;
-        mPaint.setTextSize(textSize);
-    }
-
-    public void setReaderSize(float readerWidth, float readerHeight) {
-        mReaderWidth = readerWidth;
-        mReaderHeight = readerHeight;
-        mContentWidth = readerWidth - 2 * mPadding;
-        mContentHeight = readerHeight - mHeaderHeight - mFooterHeight;
-    }
-
     @Override
     public void onDraw(Canvas canvas) {
-
+        mPaint.setColor(Color.YELLOW);
+        canvas.drawRect(mPadding, mHeaderHeight, mPadding + mContentWidth, mHeaderHeight + mContentHeight, mPaint);
+        mPaint.setColor(Color.BLACK);
         if (mPageData == null) return;
-        LineData lineData = mPageData.getLineData();
-        if (lineData == null) return;
-        List<String> lines = lineData.getLines();
+        List<String> lines = mPageData.getLines();
         if (lines == null) return;
         float fontHeight = mPaint.getFontSpacing();
-        float currentHeight = mHeaderHeight;
+        float currentHeight = mHeaderHeight + fontHeight;
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
-            currentHeight += fontHeight;
-            if (i != 0) {
-                if (line.contains("\n")) {
-                    currentHeight += Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
-                } else {
-                    currentHeight += Config.DEFAULT_CONTENT_LINE_SPACING;
-                }
+            //单独一行是换行 就不画了 避免段落间距多大
+            if (!line.equals("\n")) {
+                canvas.drawText(line, mPadding, currentHeight, mPaint);
+                currentHeight += fontHeight;
             }
-            canvas.drawText(line, mPadding, currentHeight, mPaint);
+            if (line.endsWith("\n")) {
+                currentHeight += mParagraphSpacing;
+                if (line.equals("\n")) {
+                    currentHeight -= mLineSpacing;
+                }
+            } else {
+                currentHeight += mLineSpacing;
+            }
         }
-
-    }
-
-    public void setContentTextSize(float textSize) {
-        mPaint.setTextSize(textSize);
-
-    }
-
-    public void setContentTextColor(int color) {
-        mPaint.setColor(color);
     }
 }

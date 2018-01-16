@@ -12,6 +12,7 @@ import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.config.Config;
 import me.sugarkawhi.mreader.element.PageElement;
+import me.sugarkawhi.mreader.utils.ScreenUtils;
 
 /**
  * Base
@@ -32,6 +33,7 @@ public class BaseReaderView extends View {
     public BaseReaderView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
+
     public BaseReaderView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.BaseReaderView);
@@ -48,14 +50,14 @@ public class BaseReaderView extends View {
         mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
         mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
         Battery battery = new Battery(batteryHead, batteryWidth, batteryHeight, batteryGap);
-        mPageElement = new PageElement(headerHeight, footerHeight, padding, chapterNameSize, battery);
-    }
-
-
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        mPageElement.setReaderSize(w, h);
+        int screenSize[] = ScreenUtils.getScreenSize(context);
+        int width = screenSize[0];
+        int height = screenSize[1];
+        mPageElement = new PageElement(width, height,
+                headerHeight, footerHeight,
+                padding,
+                Config.DEFAULT_CONTENT_LINE_SPACING, Config.DEFAULT_CONTENT_PARAGRAPH_SPACING,
+                battery);
     }
 
     @Override

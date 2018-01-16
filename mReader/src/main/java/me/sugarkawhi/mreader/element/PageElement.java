@@ -1,7 +1,13 @@
 package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,52 +32,63 @@ import me.sugarkawhi.mreader.manager.PageManager;
 
 public class PageElement extends Element {
 
-    private float mReaderWidth;
-    private float mReaderHeight;
-    private float mReaderPadding;
-    private float mHeaderHeight;
-    private float mFooterHeight;
-
     private HeaderElement mHeaderElement;
     private FooterElement mFooterElement;
     private LineElement mLineElement;
-    private ImageElement mImageElement;
 
     private List<PageData> mPageDatas;
+    //背景Paint
+    private Paint mBgPaint;
+    //内容 宽。高
+    private float mContentWidth;
+    private float mContentHeight;
+    //内容 Paint
+    private Paint mContentPaint;
+    //头 底 Paint
+    private Paint mHeaderPaint;
     private String mTime;
     private float mElectric;
+    private PageManager mPageManager;
 
-    private float mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
-    private float mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
+    private float mReaderWidth;
+    private float mReaderHeight;
 
-    public PageElement(float headerHeight, float footerHeight, float padding, float chapterNameSize, Battery battery) {
-        mHeaderElement = new HeaderElement(headerHeight, padding, chapterNameSize);
-        mFooterElement = new FooterElement(footerHeight, padding, chapterNameSize, battery);
-        mLineElement = new LineElement(headerHeight, footerHeight, padding);
-        mPageDatas = new ArrayList<>();
-    }
-
-
-    public void setReaderSize(float readerWidth, float readerHeight) {
+    public PageElement(float readerWidth, float readerHeight,
+                       float headerHeight, float footerHeight,
+                       float padding,
+                       float lineSpacing, float paragraphSpacing,
+                       Battery battery) {
         mReaderWidth = readerWidth;
         mReaderHeight = readerHeight;
-        mFooterElement.setReaderSize(readerWidth, readerHeight);
-        mLineElement.setReaderSize(readerWidth, readerHeight);
-        dividerChapter();
+        mContentWidth = readerWidth - padding - padding;
+        mContentHeight = readerHeight - headerHeight - footerHeight;
+        mPageDatas = new ArrayList<>();
+        mContentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mContentPaint.setTextSize(Config.DEFAULT_CONTENT_TEXTSIZE);
+        mHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mHeaderPaint.setTextSize(Config.DEFAULT_CHAPTER_TEXTSIZE);
+
+        mHeaderElement = new HeaderElement(headerHeight, padding, mHeaderPaint);
+        mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, battery, mHeaderPaint);
+        mLineElement = new LineElement(mContentWidth, mContentHeight, headerHeight, footerHeight, padding, lineSpacing, paragraphSpacing, mContentPaint);
+        mPageManager = new PageManager(mContentWidth, mContentHeight, lineSpacing, paragraphSpacing, mContentPaint);
     }
 
 
     private void dividerChapter() {
         if (mChapter == null) return;
-        mPageDatas = PageManager.generatePages(mChapter,
-                mReaderWidth - 2 * mReaderPadding,
-                mReaderHeight - mFooterHeight - mHeaderHeight,
-                40, mLineSpacing, mParagraphSpacing);
+        // convert String into InputStream
+        InputStream is = new ByteArrayInputStream(mChapter.getChapterContent().getBytes());
+        // read it with BufferedReader
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        mPageDatas = mPageManager.generatePages(mChapter, br);
     }
 
 
     @Override
     public void onDraw(Canvas canvas) {
+        mBgPaint.setColor(Color.parseColor("#CEC29C"));
+        canvas.drawRect(0, 0, mReaderWidth,mReaderHeight,mBgPaint);
         PageData page = null;
         if (mPageDatas.size() > 0) {
             page = mPageDatas.get(0);
@@ -109,13 +126,6 @@ public class PageElement extends Element {
 
     public void setChapter(ChapterBean chapter) {
         this.mChapter = chapter;
-    }
-
-    public void setContentTextSize(float textSize) {
-        mLineElement.setTextSize(textSize);
-    }
-
-    public void setContentTextColor(int color) {
-        mLineElement.setContentTextColor(color);
+        dividerChapter();
     }
 }

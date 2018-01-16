@@ -2,6 +2,7 @@ package me.sugarkawhi.mreader.data;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * PageData 记录了每一页开头文字在章节的位置，
@@ -15,14 +16,12 @@ public class PageData {
     private String chapterName;
     //进度
     private String progress;
-    private LineData lineData;
+    //
+    private List<String> lines;
     private ImageData imageData;
 
     public static PageData newInstance() {
         PageData pageData = new PageData();
-        LineData lineData = new LineData();
-        lineData.setLines(new ArrayList<String>());
-        pageData.setLineData(lineData);
         return pageData;
     }
 
@@ -50,12 +49,12 @@ public class PageData {
         this.progress = progress;
     }
 
-    public LineData getLineData() {
-        return lineData;
+    public List<String> getLines() {
+        return lines;
     }
 
-    public void setLineData(LineData lineData) {
-        this.lineData = lineData;
+    public void setLines(List<String> lines) {
+        this.lines = lines;
     }
 
     public ImageData getImageData() {
