@@ -1,7 +1,6 @@
 package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 
 import java.util.List;
@@ -24,19 +23,23 @@ public class LineElement extends Element {
     private float mContentHeight;
     private float mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
     private float mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
-    private Paint mPaint;
+    private Paint mContentPaint;
+    private Paint mChapterNamePaint;
 
     private PageData mPageData;
 
-    public LineElement(float contentWidth, float contentHeight, float headerHeight, float footerHeight, float padding, float lineSpacing, float paragraphSpacing, Paint paint) {
+    public LineElement(float contentWidth, float contentHeight,
+                       float headerHeight, float footerHeight,
+                       float padding, float lineSpacing,
+                       Paint contentPaint, Paint chapterNamePaint) {
         this.mHeaderHeight = headerHeight;
         this.mFooterHeight = footerHeight;
         this.mPadding = padding;
         this.mContentWidth = contentWidth;
         this.mContentHeight = contentHeight;
         this.mLineSpacing = lineSpacing;
-        this.mParagraphSpacing = paragraphSpacing;
-        this.mPaint = paint;
+        this.mContentPaint = contentPaint;
+        this.mChapterNamePaint = chapterNamePaint;
     }
 
     public void setPageData(PageData pageData) {
@@ -45,28 +48,40 @@ public class LineElement extends Element {
 
     @Override
     public void onDraw(Canvas canvas) {
-//        mPaint.setColor();
-//        canvas.drawRect(mPadding, mHeaderHeight, mPadding + mContentWidth, mHeaderHeight + mContentHeight, mPaint);
-        mPaint.setColor(Color.BLACK);
         if (mPageData == null) return;
-        List<String> lines = mPageData.getLines();
+        List<LineData> lines = mPageData.getLines();
         if (lines == null) return;
-        float fontHeight = mPaint.getFontSpacing();
-        float currentHeight = mHeaderHeight + fontHeight;
+
         for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            //单独一行是换行 就不画了 避免段落间距多大
-            if (!line.equals("\n")) {
-                canvas.drawText(line, mPadding, currentHeight, mPaint);
-                currentHeight += fontHeight;
-            }
-            if (line.endsWith("\n")) {
-                currentHeight += mParagraphSpacing;
-                if (line.equals("\n")) {
-                    currentHeight -= mLineSpacing;
+            LineData lineData = lines.get(i);
+//            String line = lineData.getLine();
+//            float y = lineData.getOffsetY() + mHeaderHeight;
+//            if (lineData.isChapterName()) {
+//                canvas.drawText(line, mPadding, y, mChapterNamePaint);
+//            } else {
+//                float textLength = mContentPaint.measureText(line);
+//                if (textLength > mContentWidth || mContentWidth - textLength < (textLength / line.length())) {
+//                    float x = mPadding;
+//                    float letterWidth = mContentWidth / line.length();
+//                    for (int j = 0; j < line.length(); j++) {
+//                        String letter = String.valueOf(line.charAt(j));
+//                        canvas.drawText(letter, x, y, mContentPaint);
+//                        x += letterWidth;
+//                    }
+//                } else {
+//                    canvas.drawText(line, mPadding, lineData.getOffsetY() + mHeaderHeight, mContentPaint);
+//                }
+//            }
+
+            for (LineData.LetterData letter : lineData.getLetters()) {
+                String str = String.valueOf(letter.getLetter());
+                float x = letter.getOffsetX() + mPadding;
+                float y = lineData.getOffsetY() + mHeaderHeight;
+                if (lineData.isChapterName()) {
+                    canvas.drawText(str, x, y, mChapterNamePaint);
+                } else {
+                    canvas.drawText(str, x, y, mContentPaint);
                 }
-            } else {
-                currentHeight += mLineSpacing;
             }
         }
     }

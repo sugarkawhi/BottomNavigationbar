@@ -32,4 +32,5 @@ public class MReaderView extends BaseReaderView {
         super.onDraw(canvas);
 
     }
+
 }

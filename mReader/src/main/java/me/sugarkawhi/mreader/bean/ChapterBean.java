@@ -8,9 +8,17 @@ import java.io.Serializable;
  */
 
 public class ChapterBean implements Serializable {
+    private String bookName;
     private String chapterName;
     private String chapterContent;
 
+    public String getBookName() {
+        return bookName;
+    }
+
+    public void setBookName(String bookName) {
+        this.bookName = bookName;
+    }
 
     public String getChapterName() {
         return chapterName;

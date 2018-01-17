@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <me.sugarkawhi.mreader.view.BaseReaderView
+    <me.sugarkawhi.mreader.view.MReaderView
         android:id="@+id/readerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -13,8 +13,8 @@
         app:mReader_batteryHead="2dp"
         app:mReader_batteryHeight="9dp"
         app:mReader_batteryWidth="18dp"
-        app:mReader_footerHeight="25dp"
-        app:mReader_headerHeight="35dp"
+        app:mReader_footerHeight="30dp"
+        app:mReader_headerHeight="25dp"
         app:mReader_padding="20dp" />
 
 </LinearLayout>

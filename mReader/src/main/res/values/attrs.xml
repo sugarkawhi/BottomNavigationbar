@@ -4,7 +4,6 @@
         <attr name="mReader_padding" format="dimension" />
         <attr name="mReader_headerHeight" format="dimension" />
         <attr name="mReader_footerHeight" format="dimension" />
-        <attr name="mReader_headerTextSize" format="dimension" />
         <attr name="mReader_batteryWidth" format="dimension" />
         <attr name="mReader_batteryHeight" format="dimension" />
         <attr name="mReader_batteryHead" format="dimension" />

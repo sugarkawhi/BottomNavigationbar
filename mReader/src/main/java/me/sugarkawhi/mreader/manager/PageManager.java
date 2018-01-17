@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.sugarkawhi.mreader.bean.ChapterBean;
+import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
 
 /**
@@ -26,18 +27,33 @@ public class PageManager {
     public static final char[] NO_LINE_HEADER = {',', '，', ';', '；', ':', '：', '、', '.', '。', '!', '！', '?', '？', '”', '>', '》', ']', ')', '）', '}'};
     public static final char[] NO_LINE_TAIL = {'“', '<', '《', '[', '(', '（', '{'};
 
+    //内容宽高
     private float mContentHeight;
     private float mContentWidth;
+    //行间距
     private float mLineSpacing;
+    //段间距
     private float mParagraphSpacing;
-    private Paint mTextPaint;
+    //章节名多行间距
+    private float mChapterNameSpacing;
+    //章节名 顶部、底部 间距
+    private float mChapterNameMargin;
 
-    public PageManager(float contentWidth, float contentHeight, float lineSpacing, float paragraphSpacing, Paint contentPaint) {
+    private Paint mContentPaint;
+    private Paint mChapterNamePaint;
+
+    public PageManager(float contentWidth, float contentHeight,
+                       float lineSpacing, float paragraphSpacing,
+                       float chapterNameSpacing, float chapterNameMargin,
+                       Paint contentPaint, Paint chapterNamePaint) {
         mContentWidth = contentWidth;
         mContentHeight = contentHeight;
         mLineSpacing = lineSpacing;
         mParagraphSpacing = paragraphSpacing;
-        mTextPaint = contentPaint;
+        mChapterNameSpacing = chapterNameSpacing;
+        mChapterNameMargin = chapterNameMargin;
+        mContentPaint = contentPaint;
+        mChapterNamePaint = chapterNamePaint;
     }
 
     /**
@@ -51,56 +67,99 @@ public class PageManager {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
         //使用流的方式加载
-        List<String> lines = new ArrayList<>();
+        List<LineData> lines = new ArrayList<>();
+        LineData lineData;
         float rHeight = mContentHeight;
-        String paragraph;//默认展示标题
+        boolean isChapterName = true;
+        String paragraph = chapter.getChapterName();//默认展示标题
         try {
-            while ((paragraph = br.readLine()) != null) {
+            while (isChapterName || (paragraph = br.readLine()) != null) {
                 //重置段落
                 if (paragraph.equals("")) continue;
-                //手动添加换行符  BufferedReader据'\n'读取一行
-                paragraph = paragraph + "\n";
+                if (isChapterName) {
+                    //设置Title的顶部间距
+                    rHeight -= mChapterNameMargin;
+                } else {
+                    //手动添加换行符  BufferedReader据'\n'读取一行
+                    paragraph = paragraph + "\n";
+                }
                 int wordCount = 0;
                 String subStr = null;
                 //段落进行分行
                 while (paragraph.length() > 0) {
                     if (paragraph.equals("\n")) {
-                        lines.add(paragraph);
                         break;
                     }
                     //当前空间，是否容得下一行文字
-                    rHeight -= mTextPaint.getFontSpacing();
+                    if (isChapterName) {
+                        rHeight -= mChapterNamePaint.getFontSpacing();
+                    } else {
+                        rHeight -= mContentPaint.getFontSpacing();
+                    }
                     //一页已经填充满了，创建 TextPage
                     if (rHeight < 0) {
                         //创建Page
                         PageData page = new PageData();
                         page.setIndexOfChapter(pages.size());
-                        page.setChapterName(chapter.getChapterName());
                         page.setLines(new ArrayList<>(lines));
                         pages.add(page);
+                        if (pages.size() == 1) {
+                            page.setChapterName(chapter.getBookName());
+                        } else {
+                            page.setChapterName(chapter.getChapterName());
+                        }
                         //重置Lines
                         lines.clear();
                         rHeight = mContentHeight;
                         continue;
                     }
                     //测量一行占用的字节数
-                    wordCount = mTextPaint.breakText(paragraph, true, mContentWidth, null);
-                    if (wordCount < paragraph.length()) {
-                        char c = paragraph.charAt(wordCount);
-                        if (ArrayUtils.contains(NO_LINE_HEADER, c)) {
-                            wordCount++;//往前挪一位
+                    if (isChapterName) {
+                        wordCount = mChapterNamePaint.breakText(paragraph, true, mContentWidth, null);
+                    } else {
+                        wordCount = mContentPaint.breakText(paragraph, true, mContentWidth, null);
+                    }
+
+                    //最后
+                    if (ArrayUtils.contains(NO_LINE_TAIL, paragraph.charAt(wordCount - 1))) {
+                        wordCount--;
+                    } else {
+                        if (wordCount < paragraph.length()) {
+                            char c = paragraph.charAt(wordCount);
+                            if (ArrayUtils.contains(NO_LINE_HEADER, c)) {
+                                wordCount++;//往前挪一位
+                            }
                         }
                     }
                     subStr = paragraph.substring(0, wordCount);
-                    lines.add(subStr);
+                    lineData = new LineData();
+                    lineData.setLine(subStr);
+                    if (isChapterName) {
+                        lineData.setChapterName(true);
+                    }
+                    lines.add(lineData);
+                    mContentPaint.getFontSpacing();
+                    lineData.setOffsetY(mContentHeight - rHeight);
+                    //测量每个字在屏幕中的位置
+                    List<LineData.LetterData> letters = measureLetters(isChapterName, subStr);
+                    lineData.setLetters(letters);
+
                     //设置行间距
-                    rHeight -= mLineSpacing;
+                    if (isChapterName) {
+                        rHeight -= mChapterNameSpacing;
+                    } else {
+                        rHeight -= mLineSpacing;
+                    }
                     //裁剪
                     paragraph = paragraph.substring(wordCount);
                 }
                 //段落分行完成
-                if (lines.size() != 0) {
+                if (!isChapterName && lines.size() != 0) {
                     rHeight = rHeight - mParagraphSpacing;
+                }
+                if (isChapterName) {
+                    isChapterName = false;
+                    rHeight = rHeight - mChapterNameMargin;
                 }
                 Log.e(TAG, "rHeight = " + rHeight);
             }
@@ -126,10 +185,47 @@ public class PageManager {
         //可能出现内容为空的情况
         if (pages.size() == 0) {
             PageData page = new PageData();
-            page.setLines(new ArrayList<String>(1));
+            page.setLines(new ArrayList<LineData>(1));
             pages.add(page);
         }
         return pages;
+    }
+
+    private void generateLines(String paragraph) {
+
+    }
+
+    /**
+     * 测量每个文字在屏幕中的位置
+     * 空格符 也占一个位置 但是在breakText中它所占的位置不是均分的 所以如果在最后
+     * @param isChapaterName 是否是标题
+     * @param line 行数据
+     * @return
+     */
+    private List<LineData.LetterData> measureLetters(boolean isChapaterName, String line) {
+        List<LineData.LetterData> letters = new ArrayList<>();
+        float textLength;
+        if (isChapaterName) {
+            textLength = mChapterNamePaint.measureText(line);
+        } else {
+            textLength = mContentPaint.measureText(line);
+        }
+        //单个文字平均宽度
+        float singleWidth;
+        if (textLength > mContentWidth || mContentWidth - textLength < (textLength / line.length())) {
+            singleWidth = mContentWidth / line.length();
+        } else {
+            singleWidth = textLength / line.length();
+        }
+        float offsetX = 0;
+        for (int j = 0; j < line.length(); j++) {
+            LineData.LetterData letter = new LineData.LetterData();
+            letter.setLetter(line.charAt(j));
+            letter.setOffsetX(offsetX);
+            offsetX += singleWidth;
+            letters.add(letter);
+        }
+        return letters;
     }
 
 }

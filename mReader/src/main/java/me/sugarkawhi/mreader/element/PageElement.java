@@ -42,6 +42,8 @@ public class PageElement extends Element {
     //内容 宽。高
     private float mContentWidth;
     private float mContentHeight;
+    //章节名 Paint
+    private Paint mChapterNamePaint;
     //内容 Paint
     private Paint mContentPaint;
     //头 底 Paint
@@ -65,15 +67,21 @@ public class PageElement extends Element {
         mPageDatas = new ArrayList<>();
         mContentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mContentPaint.setTextSize(Config.DEFAULT_CONTENT_TEXTSIZE);
+        mContentPaint.setColor(Color.parseColor("#404040"));
         mHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mHeaderPaint.setTextSize(Config.DEFAULT_CHAPTER_TEXTSIZE);
+        mHeaderPaint.setTextSize(Config.DEFAULT_HEADER_TEXTSIZE);
 
         mBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
+        mChapterNamePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mChapterNamePaint.setTextSize(Config.DEFAULT_CONTENT_TEXTSIZE * 1.3f);
+        mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
         mHeaderElement = new HeaderElement(headerHeight, padding, mHeaderPaint);
         mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, battery, mHeaderPaint);
-        mLineElement = new LineElement(mContentWidth, mContentHeight, headerHeight, footerHeight, padding, lineSpacing, paragraphSpacing, mContentPaint);
-        mPageManager = new PageManager(mContentWidth, mContentHeight, lineSpacing, paragraphSpacing, mContentPaint);
+        mLineElement = new LineElement(mContentWidth, mContentHeight,
+                headerHeight, footerHeight,
+                padding, lineSpacing, mContentPaint, mChapterNamePaint);
+        mPageManager = new PageManager(mContentWidth, mContentHeight, lineSpacing, paragraphSpacing,
+                20, 260, mContentPaint, mChapterNamePaint);
     }
 
 
@@ -90,7 +98,7 @@ public class PageElement extends Element {
     @Override
     public void onDraw(Canvas canvas) {
         mBgPaint.setColor(Color.parseColor("#CEC29C"));
-        canvas.drawRect(0, 0, mReaderWidth,mReaderHeight,mBgPaint);
+        canvas.drawRect(0, 0, mReaderWidth, mReaderHeight, mBgPaint);
         PageData page = null;
         if (mPageDatas.size() > 0) {
             page = mPageDatas.get(0);

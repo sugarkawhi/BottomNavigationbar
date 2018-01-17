@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 
 import com.monster.monstersport.R;
+import com.monster.monstersport.fragment.CbFragment;
 import com.monster.monstersport.fragment.ReaderFragment;
 import com.monster.monstersport.fragment.TtsFragment;
 import com.monster.monstersport.fragment.ZwFragment;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         mFragments = new ArrayList<>();
         mFragments.add(ZwFragment.newInstance());
         mFragments.add(TtsFragment.newInstance());
+        mFragments.add(CbFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(
                 R.drawable.ic_tab_album_default,
                 R.drawable.ic_tab_album_selected));

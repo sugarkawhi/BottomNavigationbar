@@ -1,7 +1,6 @@
 package me.sugarkawhi.mreader.data;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,7 +16,7 @@ public class PageData {
     //进度
     private String progress;
     //
-    private List<String> lines;
+    private List<LineData> lines;
     private ImageData imageData;
 
     public static PageData newInstance() {
@@ -49,11 +48,11 @@ public class PageData {
         this.progress = progress;
     }
 
-    public List<String> getLines() {
+    public List<LineData> getLines() {
         return lines;
     }
 
-    public void setLines(List<String> lines) {
+    public void setLines(List<LineData> lines) {
         this.lines = lines;
     }
 
