@@ -57,7 +57,7 @@ public class PageElement extends Element {
 
     public PageElement(float readerWidth, float readerHeight,
                        float headerHeight, float footerHeight,
-                       float padding,
+                       float padding, float letterSpacing,
                        float lineSpacing, float paragraphSpacing,
                        Battery battery) {
         mReaderWidth = readerWidth;
@@ -80,8 +80,9 @@ public class PageElement extends Element {
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight,
                 padding, lineSpacing, mContentPaint, mChapterNamePaint);
-        mPageManager = new PageManager(mContentWidth, mContentHeight, lineSpacing, paragraphSpacing,
-                20, 260, mContentPaint, mChapterNamePaint);
+        mPageManager = new PageManager(mContentWidth, mContentHeight,
+                letterSpacing, lineSpacing, paragraphSpacing,
+                20, 50, mContentPaint, mChapterNamePaint);
     }
 
 

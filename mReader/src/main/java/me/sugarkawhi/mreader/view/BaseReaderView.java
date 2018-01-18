@@ -33,6 +33,8 @@ public class BaseReaderView extends View {
     private float mHeight;
     //内容文字代销
     private float mContentSize;
+    //字间距
+    private float mLetterSpacing;
     //行间距
     private float mLineSpacing;
     //段落间距
@@ -67,6 +69,7 @@ public class BaseReaderView extends View {
         array.recycle();
         mContentSize = Config.DEFAULT_CONTENT_TEXTSIZE;
         mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
+        mLetterSpacing = Config.DEFAULT_CONTENT_LETTER_SPACING;
         mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
         Battery battery = new Battery(batteryHead, batteryWidth, batteryHeight, batteryGap);
         int screenSize[] = ScreenUtils.getScreenSize(context);
@@ -74,7 +77,7 @@ public class BaseReaderView extends View {
         mHeight = screenSize[1];
         mPageElement = new PageElement(mWidth, mHeight,
                 headerHeight, footerHeight, padding,
-                mLineSpacing, mParagraphSpacing,
+                mLetterSpacing, mLineSpacing, mParagraphSpacing,
                 battery);
         init();
     }
@@ -92,28 +95,7 @@ public class BaseReaderView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int x = (int) event.getX();
-        int y = (int) event.getY();
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                x = (int) event.getX();
-                y = (int) event.getY();
-                if (x > mWidth / 3 && x < mWidth / 3 * 2) {
-                    //点击了中心区域
-                    if (mReaderTouchListener != null) mReaderTouchListener.onTouchCenter();
-                }
-                performClick();
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                return true;
-            case MotionEvent.ACTION_UP:
-                x = (int) event.getX();
-                y = (int) event.getY();
-                return true;
-            case MotionEvent.ACTION_CANCEL:
-                return true;
-
-        }
+        if (mPageAnimation != null) mPageAnimation.dispatchTouchEvent(event, this);
         return super.onTouchEvent(event);
     }
 

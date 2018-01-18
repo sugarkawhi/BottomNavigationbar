@@ -54,25 +54,6 @@ public class LineElement extends Element {
 
         for (int i = 0; i < lines.size(); i++) {
             LineData lineData = lines.get(i);
-//            String line = lineData.getLine();
-//            float y = lineData.getOffsetY() + mHeaderHeight;
-//            if (lineData.isChapterName()) {
-//                canvas.drawText(line, mPadding, y, mChapterNamePaint);
-//            } else {
-//                float textLength = mContentPaint.measureText(line);
-//                if (textLength > mContentWidth || mContentWidth - textLength < (textLength / line.length())) {
-//                    float x = mPadding;
-//                    float letterWidth = mContentWidth / line.length();
-//                    for (int j = 0; j < line.length(); j++) {
-//                        String letter = String.valueOf(line.charAt(j));
-//                        canvas.drawText(letter, x, y, mContentPaint);
-//                        x += letterWidth;
-//                    }
-//                } else {
-//                    canvas.drawText(line, mPadding, lineData.getOffsetY() + mHeaderHeight, mContentPaint);
-//                }
-//            }
-
             for (LineData.LetterData letter : lineData.getLetters()) {
                 String str = String.valueOf(letter.getLetter());
                 float x = letter.getOffsetX() + mPadding;

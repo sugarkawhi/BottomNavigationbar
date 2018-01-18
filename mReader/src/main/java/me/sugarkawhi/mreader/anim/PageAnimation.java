@@ -26,7 +26,7 @@ public abstract class PageAnimation {
 
     public boolean isAnimRunning;
 
-    abstract void dispatchDrawPage(Canvas canvas);
+    public abstract void dispatchDrawPage(Canvas canvas);
 
-    abstract void dispatchTouchEvent(MotionEvent event, BaseReaderView baseReaderView);
+    public abstract void dispatchTouchEvent(MotionEvent event, BaseReaderView baseReaderView);
 }

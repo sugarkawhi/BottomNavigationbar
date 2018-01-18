@@ -18,15 +18,14 @@ public interface Config {
     //电池内边距
     int DEFAULT_BATTERY_GAP = 3;
     //内容文字大小
-    int DEFAULT_CONTENT_TEXTSIZE = 55;
+    int DEFAULT_CONTENT_TEXTSIZE = 50;
     //头部(包括底部 i.时间 ii.进度 )文字大小
     int DEFAULT_HEADER_TEXTSIZE = 30;
+    //字间距
+    int DEFAULT_CONTENT_LETTER_SPACING = 3;
     //行间距
     int DEFAULT_CONTENT_LINE_SPACING = 20;
     //段间距
     int DEFAULT_CONTENT_PARAGRAPH_SPACING = 40;
-
-    //行内容 偏差
-    int DEFAULT_LINE_WIDTH_OFFSET = 30;
 
 }
