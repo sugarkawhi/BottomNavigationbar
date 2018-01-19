@@ -8,6 +8,11 @@ package me.sugarkawhi.mreader.listener;
 public interface IReaderTouchListener {
 
     /**
+     * is can touch
+     */
+    boolean canTouch();
+
+    /**
      * touch center
      */
     void onTouchCenter();

@@ -41,7 +41,9 @@ public class PageData {
     }
 
     public String getProgress() {
-        return progress;
+        //TODO 测试
+        return "44%";
+//        return progress;
     }
 
     public void setProgress(String progress) {

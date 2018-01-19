@@ -5,7 +5,7 @@ import android.graphics.Paint;
 
 import java.util.List;
 
-import me.sugarkawhi.mreader.config.Config;
+import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
 
@@ -21,12 +21,10 @@ public class LineElement extends Element {
     private float mPadding;
     private float mContentWidth;
     private float mContentHeight;
-    private float mLineSpacing = Config.DEFAULT_CONTENT_LINE_SPACING;
-    private float mParagraphSpacing = Config.DEFAULT_CONTENT_PARAGRAPH_SPACING;
     private Paint mContentPaint;
     private Paint mChapterNamePaint;
 
-    private PageData mPageData;
+    private List<LineData> mLineDataList;
 
     public LineElement(float contentWidth, float contentHeight,
                        float headerHeight, float footerHeight,
@@ -37,23 +35,20 @@ public class LineElement extends Element {
         this.mPadding = padding;
         this.mContentWidth = contentWidth;
         this.mContentHeight = contentHeight;
-        this.mLineSpacing = lineSpacing;
         this.mContentPaint = contentPaint;
         this.mChapterNamePaint = chapterNamePaint;
     }
 
-    public void setPageData(PageData pageData) {
-        mPageData = pageData;
+    public void setLineData(List<LineData> lineDataList) {
+        this.mLineDataList = lineDataList;
     }
 
     @Override
-    public void onDraw(Canvas canvas) {
-        if (mPageData == null) return;
-        List<LineData> lines = mPageData.getLines();
-        if (lines == null) return;
+    public boolean onDraw(Canvas canvas) {
 
-        for (int i = 0; i < lines.size(); i++) {
-            LineData lineData = lines.get(i);
+        if (mLineDataList == null) return false;
+        for (int i = 0; i < mLineDataList.size(); i++) {
+            LineData lineData = mLineDataList.get(i);
             for (LineData.LetterData letter : lineData.getLetters()) {
                 String str = String.valueOf(letter.getLetter());
                 float x = letter.getOffsetX() + mPadding;
@@ -65,5 +60,6 @@ public class LineElement extends Element {
                 }
             }
         }
+        return true;
     }
 }

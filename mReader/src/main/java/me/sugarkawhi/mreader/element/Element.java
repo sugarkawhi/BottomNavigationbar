@@ -13,7 +13,11 @@ import android.graphics.Canvas;
 public abstract class Element {
 
 
-    public abstract void onDraw(Canvas canvas);
+    /**
+     * @param canvas 画布
+     * @return 绘制成功  true
+     */
+    public abstract boolean onDraw(Canvas canvas);
 
 
 }

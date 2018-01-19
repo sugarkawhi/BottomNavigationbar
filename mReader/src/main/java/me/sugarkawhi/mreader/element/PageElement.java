@@ -1,21 +1,12 @@
 package me.sugarkawhi.mreader.element;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-
 import me.sugarkawhi.mreader.bean.Battery;
-import me.sugarkawhi.mreader.bean.ChapterBean;
-import me.sugarkawhi.mreader.config.Config;
 import me.sugarkawhi.mreader.data.PageData;
-import me.sugarkawhi.mreader.manager.PageManager;
 
 /**
  * 分页模块：功能包括将传入的章节数据分成数个 PageData
@@ -36,92 +27,64 @@ public class PageElement extends Element {
     private FooterElement mFooterElement;
     private LineElement mLineElement;
 
-    private List<PageData> mPageDatas;
-    //背景Paint
-    private Paint mBgPaint;
+
     //内容 宽。高
     private float mContentWidth;
     private float mContentHeight;
-    //章节名 Paint
-    private Paint mChapterNamePaint;
-    //内容 Paint
-    private Paint mContentPaint;
-    //头 底 Paint
-    private Paint mHeaderPaint;
+
     private String mTime;
     private float mElectric;
-    private PageManager mPageManager;
 
     private float mReaderWidth;
     private float mReaderHeight;
+
+    private PageData mPageData;
+    //背景Bitmap 有时候纯色 有时候纹理图片
+    private Bitmap mBackgroundBitmap;
+    private Canvas mBackgroundCanvas;
 
     public PageElement(float readerWidth, float readerHeight,
                        float headerHeight, float footerHeight,
                        float padding, float letterSpacing,
                        float lineSpacing, float paragraphSpacing,
-                       Battery battery) {
+                       Battery battery,
+                       Paint headPaint, Paint contentPaint, Paint chapterNamePaint) {
         mReaderWidth = readerWidth;
         mReaderHeight = readerHeight;
         mContentWidth = readerWidth - padding - padding;
         mContentHeight = readerHeight - headerHeight - footerHeight;
-        mPageDatas = new ArrayList<>();
-        mContentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mContentPaint.setTextSize(Config.DEFAULT_CONTENT_TEXTSIZE);
-        mContentPaint.setColor(Color.parseColor("#404040"));
-        mHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mHeaderPaint.setTextSize(Config.DEFAULT_HEADER_TEXTSIZE);
 
-        mBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mChapterNamePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mChapterNamePaint.setTextSize(Config.DEFAULT_CONTENT_TEXTSIZE * 1.3f);
-        mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
-        mHeaderElement = new HeaderElement(headerHeight, padding, mHeaderPaint);
-        mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, battery, mHeaderPaint);
+        mHeaderElement = new HeaderElement(headerHeight, padding, headPaint);
+        mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, battery, headPaint);
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight,
-                padding, lineSpacing, mContentPaint, mChapterNamePaint);
-        mPageManager = new PageManager(mContentWidth, mContentHeight,
-                letterSpacing, lineSpacing, paragraphSpacing,
-                20, 50, mContentPaint, mChapterNamePaint);
+                padding, lineSpacing, contentPaint, chapterNamePaint);
+        init();
     }
 
-
-    private void dividerChapter() {
-        if (mChapter == null) return;
-        // convert String into InputStream
-        InputStream is = new ByteArrayInputStream(mChapter.getChapterContent().getBytes());
-        // read it with BufferedReader
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        mPageDatas = mPageManager.generatePages(mChapter, br);
+    private void init() {
+        mBackgroundBitmap = Bitmap.createBitmap((int) mReaderWidth, (int) mReaderHeight, Bitmap.Config.RGB_565);
+        mBackgroundCanvas = new Canvas(mBackgroundBitmap);
+        mBackgroundCanvas.drawColor(Color.parseColor("#CEC29C"));
     }
-
 
     @Override
-    public void onDraw(Canvas canvas) {
-        mBgPaint.setColor(Color.parseColor("#CEC29C"));
-        canvas.drawRect(0, 0, mReaderWidth, mReaderHeight, mBgPaint);
-        PageData page = null;
-        if (mPageDatas.size() > 0) {
-            page = mPageDatas.get(0);
-        }
-        if (page != null) {
-            //set header
-            mHeaderElement.setChapterName(page.getChapterName());
-            mHeaderElement.onDraw(canvas);
-            //set footer
-            mFooterElement.setProgress(page.getProgress());
-        }
-        if (Config.DEBUG) {
-            mElectric = 0.6f;
-            mTime = "19:28";
-            mFooterElement.setProgress("78%");
-        }
+    public boolean onDraw(Canvas canvas) {
+        if (mPageData == null) return false;
+        //draw background
+        canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
+        //set header
+        mHeaderElement.setChapterName(mPageData.getChapterName());
+        mHeaderElement.onDraw(canvas);
+        //set footer
+        mFooterElement.setProgress(mPageData.getProgress());
         mFooterElement.setElectric(mElectric);
         mFooterElement.setTime(mTime);
         mFooterElement.onDraw(canvas);
         //set line
-        mLineElement.setPageData(page);
+        mLineElement.setLineData(mPageData.getLines());
         mLineElement.onDraw(canvas);
+        return true;
     }
 
     public void setTime(String time) {
@@ -132,11 +95,9 @@ public class PageElement extends Element {
         mElectric = electric;
     }
 
-
-    private ChapterBean mChapter;
-
-    public void setChapter(ChapterBean chapter) {
-        this.mChapter = chapter;
-        dividerChapter();
+    public void setPageData(PageData pageData) {
+        mPageData = pageData;
     }
+
+
 }

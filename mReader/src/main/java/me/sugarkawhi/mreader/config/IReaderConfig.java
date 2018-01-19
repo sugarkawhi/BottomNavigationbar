@@ -6,7 +6,7 @@ package me.sugarkawhi.mreader.config;
  * Created by ZhaoZongyao on 2018/1/11.
  */
 
-public interface Config {
+public interface IReaderConfig {
 
     boolean DEBUG = true;
     //电池宽

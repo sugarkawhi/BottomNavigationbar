@@ -5,6 +5,7 @@ import android.view.View;
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseFragment;
+import com.monster.monstersport.view.CbView;
 
 
 /**
@@ -14,6 +15,7 @@ import com.monster.monstersport.base.BaseFragment;
 public class CbFragment extends BaseFragment {
 
     String TAG = "TtsFragment";
+    CbView mCbView;
 
     public static CbFragment newInstance() {
         return new CbFragment();
@@ -26,6 +28,14 @@ public class CbFragment extends BaseFragment {
 
     @Override
     protected void init(View view) {
+        mCbView = view.findViewById(R.id.cbView);
+        view.findViewById(R.id.btn_reset)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mCbView.reset();
+                    }
+                });
     }
 
 

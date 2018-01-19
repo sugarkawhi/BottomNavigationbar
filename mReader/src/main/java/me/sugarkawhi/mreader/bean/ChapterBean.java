@@ -11,7 +11,10 @@ public class ChapterBean implements Serializable {
     private String bookName;
     private String chapterName;
     private String chapterContent;
-
+    //是否是第一章
+    private boolean isFirstChapter;
+    //是否是最后一章
+    private boolean isLastChapter;
     public String getBookName() {
         return bookName;
     }

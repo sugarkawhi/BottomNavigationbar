@@ -5,8 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.text.TextUtils;
 
-import me.sugarkawhi.mreader.config.Config;
-
 /**
  * 页头部分：显示章节的标题；绘制每一页的头部。
  * Created by ZhaoZongyao on 2018/1/11.
@@ -30,11 +28,12 @@ public class HeaderElement extends Element {
     }
 
     @Override
-    public void onDraw(Canvas canvas) {
-        if (TextUtils.isEmpty(mChapterTitle)) return;
+    public boolean onDraw(Canvas canvas) {
+        if (TextUtils.isEmpty(mChapterTitle)) return false;
         mPaint.measureText(mChapterTitle);
         float titleHeight = mPaint.getFontSpacing();
         canvas.drawText(mChapterTitle, mPadding, mHeaderHeight / 2 + (titleHeight / 2), mPaint);
+        return true;
     }
 
 }

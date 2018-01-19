@@ -10,9 +10,8 @@ import android.widget.Toast;
 import com.monster.monstersport.R;
 
 import me.sugarkawhi.mreader.bean.ChapterBean;
-import me.sugarkawhi.mreader.config.Config;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
-import me.sugarkawhi.mreader.view.BaseReaderView;
+import me.sugarkawhi.mreader.view.MReaderView;
 
 /**
  * Created by ZhaoZongyao on 2018/1/12.
@@ -20,7 +19,7 @@ import me.sugarkawhi.mreader.view.BaseReaderView;
 
 public class ReaderActivity extends AppCompatActivity {
 
-    BaseReaderView readView;
+    MReaderView readView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,8 +33,13 @@ public class ReaderActivity extends AppCompatActivity {
         chapter.setChapterContent(TEST_CONTENT);
         readView.setChapter(chapter);
         readView.setElectric(0.6f);
-        readView.setTime("18:00");
+        readView.setTime("时间");
         readView.setReaderTouchListener(new IReaderTouchListener() {
+            @Override
+            public boolean canTouch() {
+                return true;
+            }
+
             @Override
             public void onTouchCenter() {
                 Toast.makeText(ReaderActivity.this, "onTouchCenter", Toast.LENGTH_SHORT).show();
@@ -53,6 +57,7 @@ public class ReaderActivity extends AppCompatActivity {
         });
         hideSystemUI();
     }
+
 
 
     /**

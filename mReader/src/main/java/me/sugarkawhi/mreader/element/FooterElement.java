@@ -6,7 +6,6 @@ import android.graphics.Paint;
 import android.text.TextUtils;
 
 import me.sugarkawhi.mreader.bean.Battery;
-import me.sugarkawhi.mreader.config.Config;
 
 /**
  * 页尾部分：绘制每一页的页尾,包括进度，时间和电量。
@@ -23,7 +22,6 @@ public class FooterElement extends Element {
     private String time;
     private float electric;
     private Paint mPaint;
-    private Paint.FontMetrics mFontMetrics;
     private float mBatteryWidth, mBatteryHeight, mBatteryHeadSize, mBatteryGap;
 
     public FooterElement(float readerWidth, float readerHeight, float footerHeight, float padding, Battery battery, Paint paint) {
@@ -36,7 +34,6 @@ public class FooterElement extends Element {
         this.mBatteryHeadSize = battery.getHead();
         this.mBatteryGap = battery.getGap();
         this.mPaint = paint;
-        mFontMetrics = mPaint.getFontMetrics();
     }
 
 
@@ -53,12 +50,10 @@ public class FooterElement extends Element {
     }
 
     @Override
-    public void onDraw(Canvas canvas) {
-
+    public boolean onDraw(Canvas canvas) {
         //画进度
         if (!TextUtils.isEmpty(progress)) {
-            mPaint.measureText(progress);
-            float titleHeight = Math.abs(mFontMetrics.descent + mFontMetrics.ascent);
+            float titleHeight = mPaint.getFontSpacing();
             float titleY = mReaderHeight - mFooterHeight / 2 + titleHeight / 2;
             canvas.drawText(progress, mPadding, titleY, mPaint);
         }
@@ -84,13 +79,13 @@ public class FooterElement extends Element {
                 mPaint);
         //画时间
         if (!TextUtils.isEmpty(time)) {
-            mPaint.measureText(time);
             float timeWidth = mPaint.measureText(time, 0, time.length());
             float timeMargin = 20; //与右边电池的偏移量
             float x = mReaderWidth - mPadding - timeWidth - mBatteryWidth - timeMargin;
-            float timeHeight = Math.abs(mFontMetrics.descent + mFontMetrics.ascent);
+            float timeHeight = Math.abs(mPaint.getFontMetrics().descent + mPaint.getFontMetrics().top);
             float timeY = mReaderHeight - mFooterHeight / 2 + timeHeight / 2;
             canvas.drawText(time, x, timeY, mPaint);
         }
+        return true;
     }
 }
