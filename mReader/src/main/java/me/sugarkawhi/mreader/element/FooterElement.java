@@ -36,7 +36,6 @@ public class FooterElement extends Element {
         this.mPaint = paint;
     }
 
-
     public void setProgress(String progress) {
         this.progress = progress;
     }
@@ -53,8 +52,8 @@ public class FooterElement extends Element {
     public boolean onDraw(Canvas canvas) {
         //画进度
         if (!TextUtils.isEmpty(progress)) {
-            float titleHeight = mPaint.getFontSpacing();
-            float titleY = mReaderHeight - mFooterHeight / 2 + titleHeight / 2;
+            Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
+            float titleY = (mReaderHeight + (mReaderHeight - mFooterHeight) - fontMetrics.top - fontMetrics.bottom) / 2;
             canvas.drawText(progress, mPadding, titleY, mPaint);
         }
         //画电池 STEP1: 电池头
@@ -82,10 +81,11 @@ public class FooterElement extends Element {
             float timeWidth = mPaint.measureText(time, 0, time.length());
             float timeMargin = 20; //与右边电池的偏移量
             float x = mReaderWidth - mPadding - timeWidth - mBatteryWidth - timeMargin;
-            float timeHeight = Math.abs(mPaint.getFontMetrics().descent + mPaint.getFontMetrics().top);
-            float timeY = mReaderHeight - mFooterHeight / 2 + timeHeight / 2;
+            Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
+            float timeY = (mReaderHeight + (mReaderHeight - mFooterHeight) - fontMetrics.top - fontMetrics.bottom) / 2;
             canvas.drawText(time, x, timeY, mPaint);
         }
+        canvas.drawLine(0, mReaderHeight - mFooterHeight / 2, mReaderWidth, mReaderHeight - mFooterHeight / 2, mPaint);
         return true;
     }
 }

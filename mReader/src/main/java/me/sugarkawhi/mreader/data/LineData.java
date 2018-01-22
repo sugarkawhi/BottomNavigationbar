@@ -13,18 +13,9 @@ import java.util.List;
 
 public class LineData {
     private List<LetterData> letters;
-    private String line;
     //相对于 内容绘制区域来讲
     private float offsetY;
     private boolean isChapterName;
-
-    public String getLine() {
-        return line;
-    }
-
-    public void setLine(String line) {
-        this.line = line;
-    }
 
     public List<LetterData> getLetters() {
         return letters;

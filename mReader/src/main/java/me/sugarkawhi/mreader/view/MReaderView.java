@@ -25,6 +25,7 @@ import me.sugarkawhi.mreader.anim.CoverAnimController;
 import me.sugarkawhi.mreader.anim.CoverPageAnim;
 import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimation;
+import me.sugarkawhi.mreader.anim.SlideAnimController;
 import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
@@ -66,16 +67,8 @@ public class MReaderView extends View {
     private Paint mContentPaint;
     //头 底 Paint
     private Paint mHeaderPaint;
-
     //分页
     PageManager mPageManager;
-    private boolean isMove;
-    private boolean canTouch = true;
-    private int mStartX, mStartY;
-    private RectF mCenterRect;
-
-    private PageAnimation mPageAnim;
-    private IReaderTouchListener mReaderTouchListener;
 
     private PageAnimController mAnimController;
 
@@ -116,9 +109,7 @@ public class MReaderView extends View {
         mChapterNamePaint.setTextSize(IReaderConfig.DEFAULT_CONTENT_TEXTSIZE * 1.3f);
         mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
         mPageElement = new PageElement(mWidth, mHeight,
-                headerHeight, footerHeight, padding,
-                mLetterSpacing, mLineSpacing, mParagraphSpacing,
-                battery,
+                headerHeight, footerHeight, padding, mLineSpacing, battery,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
                 mLetterSpacing, mLineSpacing, mParagraphSpacing,
@@ -127,18 +118,20 @@ public class MReaderView extends View {
     }
 
     private void init() {
-        setMode(IReaderPageMode.COVER);
-        mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement);
+        setMode(IReaderPageMode.SLIDE);
+
     }
 
     public void setMode(int mode) {
         switch (mode) {
             case IReaderPageMode.COVER:
-                mPageAnim = new CoverPageAnim((int) mWidth, (int) mHeight, this, null);
+                mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement);
+                break;
+            case IReaderPageMode.SLIDE:
+                mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement);
                 break;
         }
     }
-
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -151,25 +144,28 @@ public class MReaderView extends View {
     }
 
     @Override
-    public boolean performClick() {
-        return super.performClick();
+    public void computeScroll() {
+        mAnimController.computeScroll();
+        super.computeScroll();
     }
-
 
     /**
      * set reader touch listener
      */
     public void setReaderTouchListener(IReaderTouchListener readerTouchListener) {
-        mReaderTouchListener = readerTouchListener;
+        mAnimController.setIReaderTouchListener(readerTouchListener);
     }
 
     public void setTime(String time) {
         mPageElement.setTime(time);
+        mAnimController.invalidate();
         invalidate();
+
     }
 
     public void setElectric(float electric) {
         mPageElement.setElectric(electric);
+        mAnimController.invalidate();
         invalidate();
     }
 
@@ -179,14 +175,10 @@ public class MReaderView extends View {
         this.mNextChapter = nextChapter;
     }
 
-    public void setPreChapter(ChapterBean preChapter) {
-        this.mPreChapter = preChapter;
-    }
 
     public void setChapter(ChapterBean curChapter) {
         this.mCurChapter = curChapter;
         chapterHandler(curChapter);
-
     }
 
     private void chapterHandler(ChapterBean chapter) {
@@ -199,11 +191,6 @@ public class MReaderView extends View {
         PageData pageData = pages.get(0);
         mAnimController.setCurrentPageData(pageData);
         mAnimController.setNextPageData(pages.get(1));
-        invalidate();
-    }
-
-    public void setNextChapter(ChapterBean nextChapter) {
-        this.mNextChapter = nextChapter;
     }
 
 }

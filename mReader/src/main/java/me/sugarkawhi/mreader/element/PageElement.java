@@ -4,9 +4,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 
 import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.data.PageData;
+import me.sugarkawhi.mreader.manager.PageSnapshot;
 
 /**
  * 分页模块：功能包括将传入的章节数据分成数个 PageData
@@ -21,7 +23,7 @@ import me.sugarkawhi.mreader.data.PageData;
  * Created by ZhaoZongyao on 2018/1/11.
  */
 
-public class PageElement extends Element {
+public class PageElement {
 
     private HeaderElement mHeaderElement;
     private FooterElement mFooterElement;
@@ -35,19 +37,17 @@ public class PageElement extends Element {
     private String mTime;
     private float mElectric;
 
-    private float mReaderWidth;
-    private float mReaderHeight;
+    private int mReaderWidth;
+    private int mReaderHeight;
 
-    private PageData mPageData;
     //背景Bitmap 有时候纯色 有时候纹理图片
     private Bitmap mBackgroundBitmap;
     private Canvas mBackgroundCanvas;
 
-    public PageElement(float readerWidth, float readerHeight,
+
+    public PageElement(int readerWidth, int readerHeight,
                        float headerHeight, float footerHeight,
-                       float padding, float letterSpacing,
-                       float lineSpacing, float paragraphSpacing,
-                       Battery battery,
+                       float padding, float lineSpacing, Battery battery,
                        Paint headPaint, Paint contentPaint, Paint chapterNamePaint) {
         mReaderWidth = readerWidth;
         mReaderHeight = readerHeight;
@@ -63,41 +63,38 @@ public class PageElement extends Element {
     }
 
     private void init() {
-        mBackgroundBitmap = Bitmap.createBitmap((int) mReaderWidth, (int) mReaderHeight, Bitmap.Config.RGB_565);
+        mBackgroundBitmap = Bitmap.createBitmap(mReaderWidth, mReaderHeight, Bitmap.Config.RGB_565);
         mBackgroundCanvas = new Canvas(mBackgroundBitmap);
         mBackgroundCanvas.drawColor(Color.parseColor("#CEC29C"));
     }
 
-    @Override
-    public boolean onDraw(Canvas canvas) {
-        if (mPageData == null) return false;
+    /**
+     * 根据 PageData 生成对应的bitmap 对象
+     *
+     * @param pageData 页面信息
+     * @param bitmap   绘制的bitmap对象
+     */
+    public void generatePage(PageData pageData, Bitmap bitmap) {
+        Canvas mCanvas = new Canvas(bitmap);
         //draw background
-        canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
+        mCanvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
         //set header
-        mHeaderElement.setChapterName(mPageData.getChapterName());
-        mHeaderElement.onDraw(canvas);
+        mHeaderElement.setChapterName(pageData.getChapterName());
+        mHeaderElement.onDraw(mCanvas);
         //set footer
-        mFooterElement.setProgress(mPageData.getProgress());
-        mFooterElement.setElectric(mElectric);
-        mFooterElement.setTime(mTime);
-        mFooterElement.onDraw(canvas);
+        mFooterElement.setProgress(pageData.getProgress());
+        mFooterElement.onDraw(mCanvas);
         //set line
-        mLineElement.setLineData(mPageData.getLines());
-        mLineElement.onDraw(canvas);
-        return true;
+        mLineElement.setLineData(pageData.getLines());
+        mLineElement.onDraw(mCanvas);
     }
 
     public void setTime(String time) {
-        this.mTime = time;
+        mFooterElement.setTime(time);
     }
 
     public void setElectric(float electric) {
-        mElectric = electric;
+        mFooterElement.setElectric(electric);
     }
-
-    public void setPageData(PageData pageData) {
-        mPageData = pageData;
-    }
-
 
 }

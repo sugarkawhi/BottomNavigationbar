@@ -18,14 +18,14 @@ public interface IReaderConfig {
     //电池内边距
     int DEFAULT_BATTERY_GAP = 3;
     //内容文字大小
-    int DEFAULT_CONTENT_TEXTSIZE = 50;
+    int DEFAULT_CONTENT_TEXTSIZE = 60;
     //头部(包括底部 i.时间 ii.进度 )文字大小
-    int DEFAULT_HEADER_TEXTSIZE = 30;
+    int DEFAULT_HEADER_TEXTSIZE = 35;
     //字间距
-    int DEFAULT_CONTENT_LETTER_SPACING = 3;
+    int DEFAULT_CONTENT_LETTER_SPACING = 0;
     //行间距
     int DEFAULT_CONTENT_LINE_SPACING = 20;
     //段间距
-    int DEFAULT_CONTENT_PARAGRAPH_SPACING = 40;
+    int DEFAULT_CONTENT_PARAGRAPH_SPACING = 50;
 
 }

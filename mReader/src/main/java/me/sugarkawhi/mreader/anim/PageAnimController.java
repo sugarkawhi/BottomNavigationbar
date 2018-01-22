@@ -1,16 +1,19 @@
 package me.sugarkawhi.mreader.anim;
 
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ViewConfiguration;
+import android.view.animation.LinearInterpolator;
+import android.widget.Scroller;
 
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
+import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.view.MReaderView;
 
 /**
@@ -19,25 +22,44 @@ import me.sugarkawhi.mreader.view.MReaderView;
  */
 
 public abstract class PageAnimController {
-    private String TAG = "PageAnimController";
+    public String TAG = getClass().getSimpleName();
 
     protected MReaderView mReaderView;
     protected PageElement mPageElement;
-    public GestureDetector mGestureDetector;
 
+    //阅读器宽高
     public int mReaderWidth, mReaderHeight;
-    private boolean isRunning;
+    //中间区域
+    private Rect mCenterRect;
+    //右侧区域
+    private Rect mRightRect;
+    //左侧区域
+    private Rect mLeftRect;
+    //是否处于滑动状态
+    private boolean isMove;
+    //是否处于滚动状态
+    protected boolean isScroll;
+    //是否取消翻页
+    private boolean isCancel;
     //滑动方向
     protected int mDirection = IReaderDirection.NONE;
+    //View滚动
+    protected Scroller mScroller;
+    //滑动的最小距离
+    protected float mTouchSlop;
 
     public Bitmap mCurrentBitmap;
     public Bitmap mNextBitmap;
 
-    private PageData mCurrentPageData;
-    private PageData mNextPageData;
+    public PageData mCurrentPageData;
+    public PageData mNextPageData;
 
-    //x轴滑动差值
-    protected int mXoffset;
+    //按下开始坐标
+    protected int mStartX, mStartY;
+    //滑动当前坐标
+    protected int mTouchX, mTouchY;
+
+    private IReaderTouchListener mIReaderTouchListener;
 
 
     public PageAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement) {
@@ -45,92 +67,132 @@ public abstract class PageAnimController {
         this.mPageElement = pageElement;
         this.mReaderWidth = readerWidth;
         this.mReaderHeight = readerHeight;
+        mLeftRect = new Rect(0, 0, readerWidth / 3, readerHeight);
+        mRightRect = new Rect(readerWidth / 3 * 2, 0, readerWidth, readerHeight);
+        mCenterRect = new Rect(readerWidth / 3, 0, readerWidth / 3 * 2, readerHeight);
         mCurrentBitmap = Bitmap.createBitmap(readerWidth, readerHeight, Bitmap.Config.RGB_565);
         mNextBitmap = Bitmap.createBitmap(readerWidth, readerHeight, Bitmap.Config.RGB_565);
-        mGestureDetector = new GestureDetector(mReaderView.getContext(), new MyOnGestureListener());
+        mScroller = new Scroller(mReaderView.getContext(), new LinearInterpolator());
+        mTouchSlop = ViewConfiguration.get(readerView.getContext()).getScaledTouchSlop();
     }
+
+    public void setIReaderTouchListener(IReaderTouchListener IReaderTouchListener) {
+        mIReaderTouchListener = IReaderTouchListener;
+    }
+
+    public abstract void computeScroll();
 
     abstract void drawStatic(Canvas canvas);
 
     abstract void drawMove(Canvas canvas);
 
+    abstract void startScroll();
+
+    /**
+     * 刷新重新生成
+     */
+    public void invalidate() {
+        generatePage(mCurrentPageData, mCurrentBitmap);
+        generatePage(mNextPageData, mNextBitmap);
+    }
+
+
+    /**
+     * 设置滑动方向 上页、下页
+     */
+    private void setDirection() {
+        if (mTouchX < mStartX) {
+            mDirection = IReaderDirection.NEXT;
+        } else if (mTouchX > mStartX) {
+            mDirection = IReaderDirection.PRE;
+        } else {
+            mDirection = IReaderDirection.NONE;
+        }
+    }
+
+    /**
+     * 直接设置滚动方向
+     */
+    private void setDirection(int direction) {
+        mDirection = direction;
+    }
+
+    /**
+     * drawPage 绘制页面
+     */
     public void dispatchDrawPage(Canvas canvas) {
-        if (isRunning) {
+        if (isScroll) {
             drawMove(canvas);
         } else {
             drawStatic(canvas);
         }
     }
 
+    /**
+     * 分发事件
+     */
     public boolean dispatchTouchEvent(MotionEvent event) {
-        return mGestureDetector.onTouchEvent(event);
+        int x = (int) event.getX();
+        int y = (int) event.getY();
+        mTouchX = x;
+        mTouchY = y;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mStartX = x;
+                mStartY = y;
+                isMove = false;
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                //如果不在滑动状态 判断是否需要进入滑动状态
+                if (!isMove) isMove = Math.abs(mTouchY - mStartX) > mTouchSlop;
+                if (isMove) {
+                    setDirection();
+                    isScroll = true;
+                    mReaderView.postInvalidate();
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                if (isMove) {//正在滑动，滑动到指定位置
+                    startScroll();
+                    mReaderView.invalidate();
+                } else {//只是点击屏幕 1.中间2.左侧3.右侧
+                    if (mCenterRect.contains(mTouchX, mTouchY)) {
+                        //点击中间区域
+                        if (mIReaderTouchListener != null) mIReaderTouchListener.onTouchCenter();
+                    } else if (mLeftRect.contains(mTouchX, mTouchY)) {
+                        //上一页
+                        Log.e(TAG, "dispatchTouchEvent: 上一页");
+                        setDirection(IReaderDirection.PRE);
+                        startScroll();
+                        mReaderView.postInvalidate();
+                    } else if (mRightRect.contains(mTouchX, mTouchY)) {
+                        //下一页
+                        Log.e(TAG, "dispatchTouchEvent: 下一页");
+                        setDirection(IReaderDirection.NEXT);
+                        startScroll();
+                        mReaderView.postInvalidate();
+                    }
+                }
+                return true;
+
+        }
+        return true;
     }
 
 
     public void setCurrentPageData(PageData currentPageData) {
         mCurrentPageData = currentPageData;
-        Canvas canvas = new Canvas(mCurrentBitmap);
-        mPageElement.setPageData(currentPageData);
-        mPageElement.onDraw(canvas);
+        generatePage(currentPageData, mCurrentBitmap);
     }
 
     public void setNextPageData(PageData nextPageData) {
         mNextPageData = nextPageData;
-        mPageElement.setPageData(mNextPageData);
-        Canvas canvas = new Canvas(mNextBitmap);
-        mPageElement.onDraw(canvas);
+        generatePage(nextPageData, mNextBitmap);
     }
 
-    class MyOnGestureListener implements GestureDetector.OnGestureListener {
-        @Override
-        public boolean onDown(MotionEvent e) {
-            Log.e(TAG, " onDown");
-            return true;
-        }
 
-        @Override
-        public void onShowPress(MotionEvent e) {
-            Log.e(TAG, " onShowPress");
-
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            Log.e(TAG, " onSingleTapUp");
-            return true;
-        }
-
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.e(TAG, " onScroll");
-            isRunning = true;
-            float x1 = e1.getX();
-            float x2 = e2.getX();
-            Log.e(TAG, "x1=" + x1 + ",x2=" + x2 + ",distanceX=" + distanceX);
-            mXoffset = (int) (x1 - x2);
-            if (x2 > x1) { //上一页
-                mDirection = IReaderDirection.PRE;
-            } else if (x2 < x1) {//下一页
-                mDirection = IReaderDirection.NEXT;
-            } else { //没动
-
-            }
-            mReaderView.invalidate();
-            return true;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e) {
-            Log.e(TAG, " onLongPress");
-        }
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            float x1 = e1.getX();
-            float x2 = e2.getX();
-            Log.e(TAG, " onFling");
-            return true;
-        }
+    public void generatePage(PageData pageData, Bitmap bitmap) {
+        if (pageData == null) return;
+        mPageElement.generatePage(pageData, bitmap);
     }
-
 }

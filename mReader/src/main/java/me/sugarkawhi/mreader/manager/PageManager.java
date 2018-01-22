@@ -2,7 +2,6 @@ package me.sugarkawhi.mreader.manager;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.Log;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -15,7 +14,6 @@ import java.util.List;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
-import me.sugarkawhi.mreader.utils.Utils;
 
 /**
  * p m
@@ -121,38 +119,10 @@ public class PageManager {
                         continue;
                     }
                     //测量一行占用的字节数
-                    if (isChapterName) {
-                        wordCount = mChapterNamePaint.breakText(paragraph, true, mContentWidth, null);
-                    } else {
-                        wordCount = mContentPaint.breakText(paragraph, true, mContentWidth, null);
-                    }
-
-                    //最后
-//                    if (ArrayUtils.contains(NO_LINE_TAIL, paragraph.charAt(wordCount - 1))) {
-//                        wordCount--;
-//                    } else {
-//                        if (wordCount < paragraph.length()) {
-//                            char c = paragraph.charAt(wordCount);
-//                            if (ArrayUtils.contains(NO_LINE_HEADER, c)) {
-//                                wordCount++;//往前挪一位
-//                            }
-//                        }
-//                    }
-
-//                    subStr = paragraph.substring(0, wordCount);
-//                    lineData = new LineData();
-//                    lineData.setLine(subStr);
-//                    if (isChapterName) {
-//                        lineData.setChapterName(true);
-//                    }
                     LineData lineData = subLine(isChapterName, paragraph);
                     lineData.setOffsetY(mContentHeight - rHeight);
                     lines.add(lineData);
                     wordCount = lineData.getLetters().size();
-                    //测量每个字在屏幕中的位置
-//                    List<LineData.LetterData> letters = measureLetters(isChapterName, subStr);
-//                    lineData.setLetters(letters);
-
                     //设置行间距
                     if (isChapterName) {
                         rHeight -= mChapterNameSpacing;
@@ -212,7 +182,6 @@ public class PageManager {
         float lineWidth = 0;
         //字体宽度
         float letterWidth;
-        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < paragraph.length(); i++) {
             char letter = paragraph.charAt(i);
             if (isChapterName) {
@@ -222,18 +191,17 @@ public class PageManager {
             }
             //如果还能放得下
             if (mContentWidth - lineWidth > letterWidth) {
-                sb.append(letter);
                 LineData.LetterData data = new LineData.LetterData();
                 data.setLetter(letter);
                 data.setOffsetX(lineWidth);
                 letterList.add(data);
                 lineWidth += (letterWidth + mLetterSpacing);
-            }//当前字符放不下了
+            }
+            //当前字符放不下了
             else {
                 //判断上一个字符能否当末尾 是：处理当前字符、否：删掉
                 char lastLetter = paragraph.charAt(i - 1);
                 if (ArrayUtils.contains(NO_LINE_TAIL, lastLetter)) {
-                    sb.deleteCharAt(i - 1);
                     //之前加上了宽度 要减去
                     if (isChapterName) {
                         letterWidth = mChapterNamePaint.measureText(String.valueOf(lastLetter));
@@ -243,63 +211,51 @@ public class PageManager {
                     lineWidth -= (letterWidth + mLetterSpacing);
                     letterList.remove(letterList.size() - 1);
                 }
-                //判断当前字符能否当下一行开头 否：加到本行  是：
+                //判断当前字符能否当下一行开头 否：  是：
+                //TODO getTextBounds 测量宽度
+                else if (ArrayUtils.contains(NO_LINE_HEADER, letter)) {
+                    LineData.LetterData data = new LineData.LetterData();
+                    data.setLetter(letter);
+                    data.setOffsetX(lineWidth);
+                    letterList.add(data);
+                    Rect rect = new Rect();
+                    mContentPaint.getTextBounds(String.valueOf(letter), 0, 1, rect);
+                    lineWidth += (rect.right - rect.left);
+                    layoutLetters(isChapterName, letterList, lineWidth);
+                }
+                //正常情况 ：减去最后一个字符多余的字间距
                 else {
-                    if (ArrayUtils.contains(NO_LINE_HEADER, letter)) {
-                        sb.append(letter);
-                        LineData.LetterData data = new LineData.LetterData();
-                        data.setLetter(letter);
-                        data.setOffsetX(lineWidth);
-                        letterList.add(data);
-                        lineWidth += letterWidth;
-                    } else {
-                        lineWidth -= mLetterSpacing;
-                    }
+                    lineWidth -= mLetterSpacing;
+                    layoutLetters(isChapterName, letterList, lineWidth);
                 }
                 break;
             }
         }
 
-        String line = sb.toString();
         LineData lineData = new LineData();
         if (isChapterName) lineData.setChapterName(true);
-        lineData.setLine(line);
         lineData.setLetters(letterList);
         return lineData;
     }
 
     /**
-     * 测量每个文字在屏幕中的位置
-     * 空格符 也占一个位置 但是在breakText中它所占的位置不是均分的 所以如果在最后
-     *
-     * @param isChapaterName 是否是标题
-     * @param line           行数据
-     * @return
+     * 重新测量每个字在屏幕中的位置
+     * Notice:不处理标题中出现的这种情况
+     * <p>
+     * 针对两种情况: i： 末尾新增标点 标点要占据位置 让前边的字符间距适度变小
+     * ii：末尾有多余空间
      */
-    private List<LineData.LetterData> measureLetters(boolean isChapaterName, String line) {
-        List<LineData.LetterData> letters = new ArrayList<>();
-        float textLength;
-        if (isChapaterName) {
-            textLength = mChapterNamePaint.measureText(line);
-        } else {
-            textLength = mContentPaint.measureText(line);
+    private void layoutLetters(boolean isChapterName, List<LineData.LetterData> letters, float lineWidth) {
+        if (isChapterName) return;
+        if (lineWidth == mContentWidth) return;
+        float offset = mContentWidth - lineWidth;
+        int letterSize = letters.size();
+        //每个字间距左移或右移
+        float averageSpacing = offset / (letterSize - 1);
+        //从第二个开始
+        for (int i = 1; i < letterSize; i++) {
+            LineData.LetterData letter = letters.get(i);
+            letter.setOffsetX(letter.getOffsetX() + averageSpacing * i);
         }
-        //单个文字平均宽度
-        float singleWidth;
-        if (textLength > mContentWidth || mContentWidth - textLength < (textLength / line.length())) {
-            singleWidth = mContentWidth / line.length();
-        } else {
-            singleWidth = textLength / line.length();
-        }
-        float offsetX = 0;
-        for (int j = 0; j < line.length(); j++) {
-            LineData.LetterData letter = new LineData.LetterData();
-            letter.setLetter(line.charAt(j));
-            letter.setOffsetX(offsetX);
-            offsetX += singleWidth;
-            letters.add(letter);
-        }
-        return letters;
     }
-
 }

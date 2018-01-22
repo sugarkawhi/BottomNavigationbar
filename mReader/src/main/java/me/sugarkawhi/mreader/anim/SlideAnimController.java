@@ -11,36 +11,32 @@ import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.view.MReaderView;
 
 /**
- * page anim controller
+ * Slide page anim controller
  * Created by ZhaoZongyao on 2018/1/11.
  */
 
-public class CoverAnimController extends PageAnimController {
+public class SlideAnimController extends PageAnimController {
 
-    private Rect mSrcRect;
-    private Rect mDstRect;
-    private GradientDrawable mBackShadowDrawableLR;
+    //当前页 图片裁剪区域
+    private Rect mCurSrcRect;
+    //当前页 图片绘制的位置
+    private Rect mCurDstRect;
+    //下一页
+    private Rect mNextSrcRect;
+    private Rect mNextDstRect;
 
-    public CoverAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement) {
+    public SlideAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement) {
         super(readerView, readerWidth, readerHeight, pageElement);
-        mSrcRect = new Rect(0, 0, readerWidth, readerHeight);
-        mDstRect = new Rect(0, 0, readerWidth, readerHeight);
-        int[] mBackShadowColors = new int[]{0x66000000, 0x00000000};
-        mBackShadowDrawableLR = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, mBackShadowColors);
-        mBackShadowDrawableLR.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+        mCurSrcRect = new Rect(0, 0, readerWidth, readerHeight);
+        mCurDstRect = new Rect(0, 0, readerWidth, readerHeight);
+        mNextSrcRect = new Rect(0, 0, readerWidth, readerHeight);
+        mNextDstRect = new Rect(0, 0, readerWidth, readerHeight);
     }
 
 
     @Override
     void drawStatic(Canvas canvas) {
-        generatePage(mCurrentPageData, mCurrentBitmap);
         canvas.drawBitmap(mCurrentBitmap, 0, 0, null);
-    }
-
-    //添加阴影
-    public void addShadow(int left, Canvas canvas) {
-        mBackShadowDrawableLR.setBounds(left, 0, left + 30, mReaderHeight);
-        mBackShadowDrawableLR.draw(canvas);
     }
 
     @Override
@@ -49,23 +45,21 @@ public class CoverAnimController extends PageAnimController {
         int xOffset = Math.abs(mStartX - mTouchX);
         switch (mDirection) {
             case IReaderDirection.NEXT:
-                int dis = mReaderWidth - xOffset;
-                if (dis > mReaderWidth) {
-                    dis = mReaderWidth;
-                }
-                mSrcRect.left = mReaderWidth - dis;
-                mDstRect.right = dis;
-                canvas.drawBitmap(mNextBitmap, 0, 0, null);
-                canvas.drawBitmap(mCurrentBitmap, mSrcRect, mDstRect, null);
-                addShadow(dis, canvas);
+                mCurSrcRect.left = xOffset;
+                mCurDstRect.right = mReaderWidth - xOffset;
+                canvas.drawBitmap(mCurrentBitmap, mCurSrcRect, mCurDstRect, null);
+                mNextSrcRect.right = xOffset;
+                mNextDstRect.left = mReaderWidth - xOffset;
+                canvas.drawBitmap(mNextBitmap, mNextSrcRect, mNextDstRect, null);
                 break;
             case IReaderDirection.PRE:
             case IReaderDirection.NONE:
-                mSrcRect.left = mReaderWidth - xOffset;
-                mDstRect.right = xOffset;
-                canvas.drawBitmap(mNextBitmap, 0, 0, null);
-                canvas.drawBitmap(mCurrentBitmap, mSrcRect, mDstRect, null);
-                addShadow(xOffset, canvas);
+                mCurSrcRect.left = mReaderWidth - xOffset;
+                mCurDstRect.right = xOffset;
+                canvas.drawBitmap(mCurrentBitmap, mCurSrcRect, mCurDstRect, null);
+                mNextSrcRect.right = mReaderWidth - xOffset;
+                mNextDstRect.left = xOffset;
+                canvas.drawBitmap(mNextBitmap, mNextSrcRect, mNextDstRect, null);
                 break;
         }
     }
@@ -89,7 +83,6 @@ public class CoverAnimController extends PageAnimController {
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
     }
 
-
     @Override
     public void computeScroll() {
         boolean mFinished = mScroller.computeScrollOffset();
@@ -104,6 +97,4 @@ public class CoverAnimController extends PageAnimController {
             mReaderView.invalidate();
         }
     }
-
-
 }
