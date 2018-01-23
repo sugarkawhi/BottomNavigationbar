@@ -65,7 +65,15 @@ public class PageElement {
     private void init() {
         mBackgroundBitmap = Bitmap.createBitmap(mReaderWidth, mReaderHeight, Bitmap.Config.RGB_565);
         mBackgroundCanvas = new Canvas(mBackgroundBitmap);
-        mBackgroundCanvas.drawColor(Color.parseColor("#CEC29C"));
+    }
+
+    /**
+     * 设置背景
+     * @param backgroundBitmap
+     */
+    public void setBackgroundBitmap(Bitmap backgroundBitmap) {
+        mBackgroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        mBackgroundCanvas.drawBitmap(backgroundBitmap, 0, 0, null);
     }
 
     /**

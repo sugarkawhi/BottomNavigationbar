@@ -21,8 +21,8 @@ public class CoverAnimController extends PageAnimController {
     private Rect mDstRect;
     private GradientDrawable mBackShadowDrawableLR;
 
-    public CoverAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement) {
-        super(readerView, readerWidth, readerHeight, pageElement);
+    public CoverAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement,IPageChangeListener pageChangeListener) {
+        super(readerView, readerWidth, readerHeight, pageElement,pageChangeListener);
         mSrcRect = new Rect(0, 0, readerWidth, readerHeight);
         mDstRect = new Rect(0, 0, readerWidth, readerHeight);
         int[] mBackShadowColors = new int[]{0x66000000, 0x00000000};
@@ -89,21 +89,6 @@ public class CoverAnimController extends PageAnimController {
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
     }
 
-
-    @Override
-    public void computeScroll() {
-        boolean mFinished = mScroller.computeScrollOffset();
-        Log.e(TAG, "computeScroll  mFinished=" + mFinished);
-        if (mFinished) {
-            mTouchX = mScroller.getCurrX();
-            mTouchY = mScroller.getCurrY();
-            if (mScroller.getFinalX() == mTouchX && mScroller.getFinalY() == mTouchY) {
-                isScroll = false;
-                mCurrentBitmap = mNextBitmap;
-            }
-            mReaderView.invalidate();
-        }
-    }
 
 
 }

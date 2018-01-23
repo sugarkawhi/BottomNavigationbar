@@ -1,6 +1,7 @@
 package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 
 import java.util.List;
@@ -45,7 +46,9 @@ public class LineElement extends Element {
 
     @Override
     public boolean onDraw(Canvas canvas) {
-
+//        mContentPaint.setColor(Color.parseColor("#abcdef"));
+//        canvas.drawRect(mPadding, mHeaderHeight, mPadding + mContentWidth, mHeaderHeight + mContentHeight, mContentPaint);
+//        mContentPaint.setColor(Color.BLACK);
         if (mLineDataList == null) return false;
         for (int i = 0; i < mLineDataList.size(); i++) {
             LineData lineData = mLineDataList.get(i);

@@ -25,8 +25,8 @@ public class SlideAnimController extends PageAnimController {
     private Rect mNextSrcRect;
     private Rect mNextDstRect;
 
-    public SlideAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement) {
-        super(readerView, readerWidth, readerHeight, pageElement);
+    public SlideAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
+        super(readerView, readerWidth, readerHeight, pageElement, pageChangeListener);
         mCurSrcRect = new Rect(0, 0, readerWidth, readerHeight);
         mCurDstRect = new Rect(0, 0, readerWidth, readerHeight);
         mNextSrcRect = new Rect(0, 0, readerWidth, readerHeight);

@@ -59,14 +59,17 @@ public abstract class PageAnimController {
     //滑动当前坐标
     protected int mTouchX, mTouchY;
 
+    private IPageChangeListener mPageChangeListener;
     private IReaderTouchListener mIReaderTouchListener;
 
 
-    public PageAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement) {
+    public PageAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement,IPageChangeListener pageChangeListener) {
         this.mReaderView = readerView;
         this.mPageElement = pageElement;
         this.mReaderWidth = readerWidth;
         this.mReaderHeight = readerHeight;
+        mPageChangeListener = pageChangeListener;
+
         mLeftRect = new Rect(0, 0, readerWidth / 3, readerHeight);
         mRightRect = new Rect(readerWidth / 3 * 2, 0, readerWidth, readerHeight);
         mCenterRect = new Rect(readerWidth / 3, 0, readerWidth / 3 * 2, readerHeight);
@@ -80,7 +83,6 @@ public abstract class PageAnimController {
         mIReaderTouchListener = IReaderTouchListener;
     }
 
-    public abstract void computeScroll();
 
     abstract void drawStatic(Canvas canvas);
 
@@ -179,20 +181,61 @@ public abstract class PageAnimController {
         return true;
     }
 
+    public void computeScroll() {
 
+        boolean mFinished = mScroller.computeScrollOffset();
+        Log.e(TAG, "computeScroll  mFinished=" + mFinished);
+        if (mFinished) {
+            mTouchX = mScroller.getCurrX();
+            mTouchY = mScroller.getCurrY();
+            if (mScroller.getFinalX() == mTouchX && mScroller.getFinalY() == mTouchY) {
+                isScroll = false;
+                if (mDirection == IReaderDirection.NEXT)
+                    mPageChangeListener.onNext();
+                else if (mDirection == IReaderDirection.PRE)
+                    mPageChangeListener.onPre();
+            }
+            mReaderView.invalidate();
+        }
+    }
+
+
+    /**
+     * 设置当前页内容
+     *
+     * @param currentPageData 当前页
+     */
     public void setCurrentPageData(PageData currentPageData) {
         mCurrentPageData = currentPageData;
         generatePage(currentPageData, mCurrentBitmap);
     }
 
+    /**
+     * 设置下一页内容
+     *
+     * @param nextPageData 下一页
+     */
     public void setNextPageData(PageData nextPageData) {
         mNextPageData = nextPageData;
         generatePage(nextPageData, mNextBitmap);
     }
 
-
+    /**
+     * 根据{#PageData}生成页面
+     *
+     * @param pageData 需要生成的页面数据
+     * @param bitmap   要绘制的bitmap
+     */
     public void generatePage(PageData pageData, Bitmap bitmap) {
         if (pageData == null) return;
         mPageElement.generatePage(pageData, bitmap);
+    }
+
+    public interface IPageChangeListener {
+        void onCancel();
+
+        boolean onPre();
+
+        boolean onNext();
     }
 }

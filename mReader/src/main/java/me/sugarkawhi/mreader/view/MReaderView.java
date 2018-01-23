@@ -3,26 +3,24 @@ package me.sugarkawhi.mreader.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import me.sugarkawhi.mreader.R;
 import me.sugarkawhi.mreader.anim.CoverAnimController;
-import me.sugarkawhi.mreader.anim.CoverPageAnim;
 import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimation;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
@@ -34,6 +32,7 @@ import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.manager.PageManager;
+import me.sugarkawhi.mreader.utils.BitmapUtils;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 
 /**
@@ -111,6 +110,8 @@ public class MReaderView extends View {
         mPageElement = new PageElement(mWidth, mHeight,
                 headerHeight, footerHeight, padding, mLineSpacing, battery,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
+        Bitmap bgBitmap = BitmapUtils.sampling(getResources(), R.drawable.reader_bg_blue, mWidth, mHeight);
+        mPageElement.setBackgroundBitmap(bgBitmap);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
                 mLetterSpacing, mLineSpacing, mParagraphSpacing,
                 20, 50, mContentPaint, mChapterNamePaint);
@@ -119,19 +120,35 @@ public class MReaderView extends View {
 
     private void init() {
         setMode(IReaderPageMode.SLIDE);
-
     }
 
     public void setMode(int mode) {
         switch (mode) {
             case IReaderPageMode.COVER:
-                mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement);
+                mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
             case IReaderPageMode.SLIDE:
-                mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement);
+                mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
         }
     }
+
+    private PageAnimController.IPageChangeListener mPageChangeListener = new PageAnimController.IPageChangeListener() {
+        @Override
+        public void onCancel() {
+
+        }
+
+        @Override
+        public boolean onPre() {
+            return false;
+        }
+
+        @Override
+        public boolean onNext() {
+            return false;
+        }
+    };
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -160,7 +177,6 @@ public class MReaderView extends View {
         mPageElement.setTime(time);
         mAnimController.invalidate();
         invalidate();
-
     }
 
     public void setElectric(float electric) {
@@ -181,6 +197,9 @@ public class MReaderView extends View {
         chapterHandler(curChapter);
     }
 
+    //阅读器维护一个页面的队列
+    private List<PageData> mPageDataList = new ArrayList<>();
+
     private void chapterHandler(ChapterBean chapter) {
         if (chapter == null) return;
         // convert String into InputStream
@@ -188,9 +207,8 @@ public class MReaderView extends View {
         // read it with BufferedReader
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         List<PageData> pages = mPageManager.generatePages(chapter, br);
-        PageData pageData = pages.get(0);
-        mAnimController.setCurrentPageData(pageData);
-        mAnimController.setNextPageData(pages.get(1));
+        mPageDataList.addAll(pages);
     }
+
 
 }

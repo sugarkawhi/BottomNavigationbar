@@ -88,8 +88,7 @@ public class PageManager {
                     //手动添加换行符  BufferedReader据'\n'读取一行
                     paragraph = paragraph + "\n";
                 }
-                int wordCount = 0;
-                String subStr = null;
+
                 //段落进行分行
                 while (paragraph.length() > 0) {
                     if (paragraph.equals("\n")) {
@@ -122,7 +121,8 @@ public class PageManager {
                     LineData lineData = subLine(isChapterName, paragraph);
                     lineData.setOffsetY(mContentHeight - rHeight);
                     lines.add(lineData);
-                    wordCount = lineData.getLetters().size();
+
+                    int wordCount = lineData.getLetters().size();
                     //设置行间距
                     if (isChapterName) {
                         rHeight -= mChapterNameSpacing;
@@ -201,33 +201,32 @@ public class PageManager {
             else {
                 //判断上一个字符能否当末尾 是：处理当前字符、否：删掉
                 char lastLetter = paragraph.charAt(i - 1);
+                float lastLetterWidth;
                 if (ArrayUtils.contains(NO_LINE_TAIL, lastLetter)) {
                     //之前加上了宽度 要减去
                     if (isChapterName) {
-                        letterWidth = mChapterNamePaint.measureText(String.valueOf(lastLetter));
+                        lastLetterWidth = mChapterNamePaint.measureText(String.valueOf(lastLetter));
                     } else {
-                        letterWidth = mContentPaint.measureText(String.valueOf(lastLetter));
+                        lastLetterWidth = mContentPaint.measureText(String.valueOf(lastLetter));
                     }
-                    lineWidth -= (letterWidth + mLetterSpacing);
+                    lineWidth -= (lastLetterWidth + mLetterSpacing);
                     letterList.remove(letterList.size() - 1);
                 }
                 //判断当前字符能否当下一行开头 否：  是：
-                //TODO getTextBounds 测量宽度
+                //TODO  getTextBounds 测量宽度比meassureText略微小点。取舍问题？这里选择的是meassureText
                 else if (ArrayUtils.contains(NO_LINE_HEADER, letter)) {
                     LineData.LetterData data = new LineData.LetterData();
                     data.setLetter(letter);
                     data.setOffsetX(lineWidth);
                     letterList.add(data);
-                    Rect rect = new Rect();
-                    mContentPaint.getTextBounds(String.valueOf(letter), 0, 1, rect);
-                    lineWidth += (rect.right - rect.left);
-                    layoutLetters(isChapterName, letterList, lineWidth);
+                    lineWidth += letterWidth;
                 }
                 //正常情况 ：减去最后一个字符多余的字间距
                 else {
                     lineWidth -= mLetterSpacing;
-                    layoutLetters(isChapterName, letterList, lineWidth);
                 }
+                //重新对行内文字布局
+                layoutLetters(isChapterName, letterList, lineWidth);
                 break;
             }
         }
@@ -255,7 +254,8 @@ public class PageManager {
         //从第二个开始
         for (int i = 1; i < letterSize; i++) {
             LineData.LetterData letter = letters.get(i);
-            letter.setOffsetX(letter.getOffsetX() + averageSpacing * i);
+            float newOffsetX = letter.getOffsetX() + averageSpacing * i;
+            letter.setOffsetX(newOffsetX);
         }
     }
 }

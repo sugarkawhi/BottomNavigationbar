@@ -85,7 +85,7 @@ public class FooterElement extends Element {
             float timeY = (mReaderHeight + (mReaderHeight - mFooterHeight) - fontMetrics.top - fontMetrics.bottom) / 2;
             canvas.drawText(time, x, timeY, mPaint);
         }
-        canvas.drawLine(0, mReaderHeight - mFooterHeight / 2, mReaderWidth, mReaderHeight - mFooterHeight / 2, mPaint);
+//        canvas.drawLine(0, mReaderHeight - mFooterHeight / 2, mReaderWidth, mReaderHeight - mFooterHeight / 2, mPaint);
         return true;
     }
 }
