@@ -83,18 +83,4 @@ public class SlideAnimController extends PageAnimController {
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
     }
 
-    @Override
-    public void computeScroll() {
-        boolean mFinished = mScroller.computeScrollOffset();
-        Log.e(TAG, "computeScroll  mFinished=" + mFinished);
-        if (mFinished) {
-            mTouchX = mScroller.getCurrX();
-            mTouchY = mScroller.getCurrY();
-            if (mScroller.getFinalX() == mTouchX && mScroller.getFinalY() == mTouchY) {
-                isScroll = false;
-                mCurrentBitmap = mNextBitmap;
-            }
-            mReaderView.invalidate();
-        }
-    }
 }

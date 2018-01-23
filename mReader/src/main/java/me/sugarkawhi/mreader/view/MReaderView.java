@@ -22,7 +22,6 @@ import java.util.List;
 import me.sugarkawhi.mreader.R;
 import me.sugarkawhi.mreader.anim.CoverAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimController;
-import me.sugarkawhi.mreader.anim.PageAnimation;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
 import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.bean.ChapterBean;
@@ -140,14 +139,40 @@ public class MReaderView extends View {
         }
 
         @Override
-        public boolean onPre() {
-            return false;
+        public boolean hasPre() {
+            return mCurrentIndex == 0;
         }
 
         @Override
-        public boolean onNext() {
-            return false;
+        public boolean hasNext() {
+            return mCurrentIndex + 1 <= mPageDataList.size();
         }
+
+        @Override
+        public PageData getPrePageData() {
+            return mPageDataList.get(mCurrentIndex - 1);
+        }
+
+
+        @Override
+        public void onSelectPre() {
+
+        }
+
+        @Override
+        public PageData getNextPageData() {
+            return mPageDataList.get(mCurrentIndex + 1);
+        }
+
+
+        @Override
+        public void onSelectNext() {
+            mCurrentIndex++;
+            mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
+            invalidate();
+        }
+
+
     };
 
     @Override
@@ -199,6 +224,7 @@ public class MReaderView extends View {
 
     //阅读器维护一个页面的队列
     private List<PageData> mPageDataList = new ArrayList<>();
+    private int mCurrentIndex = 0;
 
     private void chapterHandler(ChapterBean chapter) {
         if (chapter == null) return;
@@ -208,6 +234,7 @@ public class MReaderView extends View {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         List<PageData> pages = mPageManager.generatePages(chapter, br);
         mPageDataList.addAll(pages);
+        mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
     }
 
 

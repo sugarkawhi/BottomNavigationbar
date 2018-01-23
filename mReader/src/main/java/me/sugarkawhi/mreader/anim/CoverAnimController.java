@@ -33,7 +33,6 @@ public class CoverAnimController extends PageAnimController {
 
     @Override
     void drawStatic(Canvas canvas) {
-        generatePage(mCurrentPageData, mCurrentBitmap);
         canvas.drawBitmap(mCurrentBitmap, 0, 0, null);
     }
 

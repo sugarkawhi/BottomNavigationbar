@@ -63,7 +63,7 @@ public abstract class PageAnimController {
     private IReaderTouchListener mIReaderTouchListener;
 
 
-    public PageAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement,IPageChangeListener pageChangeListener) {
+    public PageAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
         this.mReaderView = readerView;
         this.mPageElement = pageElement;
         this.mReaderWidth = readerWidth;
@@ -149,6 +149,13 @@ public abstract class PageAnimController {
                 if (!isMove) isMove = Math.abs(mTouchY - mStartX) > mTouchSlop;
                 if (isMove) {
                     setDirection();
+                    if (mDirection == IReaderDirection.NEXT) {
+                        //开始下一页
+                        if (mPageChangeListener.hasNext()) {
+                            PageData nextPd = mPageChangeListener.getNextPageData();
+                            if (mNextPageData != nextPd) setNextPageData(nextPd);
+                        }
+                    }
                     isScroll = true;
                     mReaderView.postInvalidate();
                 }
@@ -191,9 +198,9 @@ public abstract class PageAnimController {
             if (mScroller.getFinalX() == mTouchX && mScroller.getFinalY() == mTouchY) {
                 isScroll = false;
                 if (mDirection == IReaderDirection.NEXT)
-                    mPageChangeListener.onNext();
+                    mPageChangeListener.onSelectNext();
                 else if (mDirection == IReaderDirection.PRE)
-                    mPageChangeListener.onPre();
+                    mPageChangeListener.onSelectPre();
             }
             mReaderView.invalidate();
         }
@@ -232,10 +239,19 @@ public abstract class PageAnimController {
     }
 
     public interface IPageChangeListener {
+
         void onCancel();
 
-        boolean onPre();
+        boolean hasPre();
 
-        boolean onNext();
+        boolean hasNext();
+
+        PageData getPrePageData();
+
+        void onSelectPre();
+
+        PageData getNextPageData();
+
+        void onSelectNext();
     }
 }
