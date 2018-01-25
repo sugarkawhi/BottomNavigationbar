@@ -85,6 +85,11 @@ public class CbView extends View {
         setMeasuredDimension(mWidth, mHeight);
     }
 
+    @Override
+    public void computeScroll() {
+        super.computeScroll();
+        Log.e(TAG, "computeScroll: ");
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

@@ -41,10 +41,15 @@ public class SlideAnimController extends PageAnimController {
 
     @Override
     void drawMove(Canvas canvas) {
-        Log.e(TAG, "drawMove: ");
+        Log.e(TAG, "drawMove: isCancel=" + isCancel);
         int xOffset = Math.abs(mStartX - mTouchX);
         switch (mDirection) {
             case IReaderDirection.NEXT:
+                // 取消状态下，并且发生越界了
+                if (mTouchX >= mStartX) {
+                    canvas.drawBitmap(mCurrentBitmap, 0, 0, null);
+                    return;
+                }
                 mCurSrcRect.left = xOffset;
                 mCurDstRect.right = mReaderWidth - xOffset;
                 canvas.drawBitmap(mCurrentBitmap, mCurSrcRect, mCurDstRect, null);
@@ -53,7 +58,11 @@ public class SlideAnimController extends PageAnimController {
                 canvas.drawBitmap(mNextBitmap, mNextSrcRect, mNextDstRect, null);
                 break;
             case IReaderDirection.PRE:
-            case IReaderDirection.NONE:
+                // 取消状态下，并且发生越界了
+                if (mStartX >= mTouchX) {
+                    canvas.drawBitmap(mCurrentBitmap, 0, 0, null);
+                    return;
+                }
                 mCurSrcRect.left = mReaderWidth - xOffset;
                 mCurDstRect.right = xOffset;
                 canvas.drawBitmap(mCurrentBitmap, mCurSrcRect, mCurDstRect, null);
@@ -66,21 +75,31 @@ public class SlideAnimController extends PageAnimController {
 
     @Override
     void startScroll() {
-        int dx;
         isScroll = true;
+        int dx = 0;
         switch (mDirection) {
             case IReaderDirection.NEXT:
-                dx = -(mTouchX + (mReaderWidth - mStartX));
+                if (!hasNext()) return;
+                if (isCancel) {
+                    if (mStartX <= mTouchX) return;
+                    dx = mStartX - mTouchX;
+                } else {
+                    dx = -(mReaderWidth - (mStartX - mTouchX));
+                }
                 break;
             case IReaderDirection.PRE:
-                dx = (mReaderWidth - (mTouchX - mStartX));
+                if (!hasPre()) return;
+                if (isCancel) {
+                    if (mStartX >= mTouchX) return;
+                    dx = mStartX - mTouchX;
+                } else {
+                    dx = mReaderWidth - (mTouchX - mStartX);
+                }
                 break;
-            default:
-                dx = 0;
         }
-        Log.e(TAG, "startScroll: dx=" + dx);
-        int duration = ((444 * Math.abs(dx)) / mReaderWidth);
+        int duration = 300 * Math.abs(dx) / mReaderWidth;
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
+        mReaderView.postInvalidate();
     }
 
 }

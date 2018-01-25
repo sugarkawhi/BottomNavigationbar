@@ -140,12 +140,12 @@ public class MReaderView extends View {
 
         @Override
         public boolean hasPre() {
-            return mCurrentIndex == 0;
+            return mCurrentIndex > 0;
         }
 
         @Override
         public boolean hasNext() {
-            return mCurrentIndex + 1 <= mPageDataList.size();
+            return mCurrentIndex < mPageDataList.size() - 1;
         }
 
         @Override
@@ -156,7 +156,9 @@ public class MReaderView extends View {
 
         @Override
         public void onSelectPre() {
-
+            mCurrentIndex--;
+            mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
+            invalidate();
         }
 
         @Override

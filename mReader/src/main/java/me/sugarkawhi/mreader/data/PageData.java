@@ -19,10 +19,6 @@ public class PageData {
     private List<LineData> lines;
     private ImageData imageData;
 
-    public static PageData newInstance() {
-        PageData pageData = new PageData();
-        return pageData;
-    }
 
     public float getIndexOfChapter() {
         return indexOfChapter;
@@ -41,9 +37,7 @@ public class PageData {
     }
 
     public String getProgress() {
-        //TODO 测试
-        return "44%";
-//        return progress;
+        return progress;
     }
 
     public void setProgress(String progress) {

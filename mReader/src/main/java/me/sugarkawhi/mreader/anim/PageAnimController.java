@@ -40,7 +40,7 @@ public abstract class PageAnimController {
     //是否处于滚动状态
     protected boolean isScroll;
     //是否取消翻页
-    private boolean isCancel;
+    protected boolean isCancel;
     //滑动方向
     protected int mDirection = IReaderDirection.NONE;
     //View滚动
@@ -58,6 +58,9 @@ public abstract class PageAnimController {
     protected int mStartX, mStartY;
     //滑动当前坐标
     protected int mTouchX, mTouchY;
+    //判断当前是否取消坐标 - 类似于mTouchX,mTouchY。
+    protected int mMoveX, mMoveY;
+
 
     private IPageChangeListener mPageChangeListener;
     private IReaderTouchListener mIReaderTouchListener;
@@ -100,26 +103,6 @@ public abstract class PageAnimController {
 
 
     /**
-     * 设置滑动方向 上页、下页
-     */
-    private void setDirection() {
-        if (mTouchX < mStartX) {
-            mDirection = IReaderDirection.NEXT;
-        } else if (mTouchX > mStartX) {
-            mDirection = IReaderDirection.PRE;
-        } else {
-            mDirection = IReaderDirection.NONE;
-        }
-    }
-
-    /**
-     * 直接设置滚动方向
-     */
-    private void setDirection(int direction) {
-        mDirection = direction;
-    }
-
-    /**
      * drawPage 绘制页面
      */
     public void dispatchDrawPage(Canvas canvas) {
@@ -140,47 +123,134 @@ public abstract class PageAnimController {
         mTouchY = y;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                abortAnim();
                 mStartX = x;
                 mStartY = y;
+                mMoveX = 0;
+                mMoveY = 0;
+                isScroll = false;
+                isCancel = false;
                 isMove = false;
                 return true;
             case MotionEvent.ACTION_MOVE:
                 //如果不在滑动状态 判断是否需要进入滑动状态
                 if (!isMove) isMove = Math.abs(mTouchY - mStartX) > mTouchSlop;
-                if (isMove) {
-                    setDirection();
-                    if (mDirection == IReaderDirection.NEXT) {
-                        //开始下一页
-                        if (mPageChangeListener.hasNext()) {
-                            PageData nextPd = mPageChangeListener.getNextPageData();
-                            if (mNextPageData != nextPd) setNextPageData(nextPd);
+                //如果不构成滑动 不处理
+                if (!isMove) return true;
+                //构成滑动第一次 处理事件：1.判断方向2.根据方向判断存在上/下页进行回调
+                if (mMoveX == 0 && mMoveY == 0) {
+                    //上一页
+                    if (x - mStartX > 0) {
+                        //处理事件1 判断方向
+                        mDirection = IReaderDirection.PRE;
+                        //处理事件2 判断存在上页
+                        boolean hasPre = hasPre();
+                        if (!hasPre) {//不存在上一页
+                            Log.e(TAG, "不存在上一页");
+                            return true;
+                        } else {//存在上一页
+                            PageData prePage = mPageChangeListener.getPrePageData();
+                            if (prePage != mCurrentPageData) {
+                                mNextPageData = mCurrentPageData;
+                                mCurrentPageData = prePage;
+                                invalidate();
+                            }
+                        }
+                    } else {
+                        //处理事件1 判断方向
+                        mDirection = IReaderDirection.NEXT;
+                        //处理事件2 判断存在下页
+                        boolean hasPre = hasNext();
+                        if (!hasPre) {//不存在下一页
+                            Log.e(TAG, "不存在下一页");
+                            return true;
+                        } else {//存在下一页
+                            PageData nextPage = mPageChangeListener.getNextPageData();
+                            if (nextPage != mNextPageData) {
+                                mNextPageData = nextPage;
+                                invalidate();
+                            }
                         }
                     }
-                    isScroll = true;
-                    mReaderView.postInvalidate();
+
                 }
+                //开始滑动 这时候已经确定了方向
+                // 处理事件：根据翻页方向判断是否取消翻页了
+                else {
+                    switch (mDirection) {
+                        case IReaderDirection.NEXT:
+                            isCancel = (x - mMoveX >= 0);
+                            Log.e(TAG, "下一页：isCancel=" + isCancel);
+                            break;
+                        case IReaderDirection.PRE:
+                            Log.e(TAG, "上一页：isCancel=" + isCancel);
+                            isCancel = (x - mMoveX <= 0);
+                    }
+                }
+                mMoveX = x;
+                mMoveY = y;
+                isScroll = true;
+                mReaderView.postInvalidate();
                 return true;
             case MotionEvent.ACTION_UP:
-                if (isMove) {//正在滑动，滑动到指定位置
-                    startScroll();
-                    mReaderView.invalidate();
-                } else {//只是点击屏幕 1.中间2.左侧3.右侧
+                //i:非滑动状态 点击屏幕 1.中间2.左侧3.右侧
+                if (!isMove) {
                     if (mCenterRect.contains(mTouchX, mTouchY)) {
                         //点击中间区域
                         if (mIReaderTouchListener != null) mIReaderTouchListener.onTouchCenter();
+                        return true;
                     } else if (mLeftRect.contains(mTouchX, mTouchY)) {
                         //上一页
-                        Log.e(TAG, "dispatchTouchEvent: 上一页");
-                        setDirection(IReaderDirection.PRE);
-                        startScroll();
+                        mDirection = IReaderDirection.PRE;
+                        boolean hasPre = hasPre();
+                        if (!hasPre) {
+                            return true;
+                        } else {
+                            PageData prePage = mPageChangeListener.getPrePageData();
+                            if (prePage != mCurrentPageData) {
+                                mNextPageData = mCurrentPageData;
+                                mCurrentPageData = prePage;
+                                invalidate();
+                            }
+                            startScroll();
+                        }
                         mReaderView.postInvalidate();
                     } else if (mRightRect.contains(mTouchX, mTouchY)) {
                         //下一页
-                        Log.e(TAG, "dispatchTouchEvent: 下一页");
-                        setDirection(IReaderDirection.NEXT);
-                        startScroll();
+                        mDirection = IReaderDirection.NEXT;
+                        boolean hasNext = hasNext();
+                        if (!hasNext) {//不存在下一页
+                            return true;
+                        } else {//存在下一页
+                            PageData nextPage = mPageChangeListener.getNextPageData();
+                            if (nextPage != mNextPageData) {
+                                mNextPageData = nextPage;
+                                invalidate();
+                            }
+                            startScroll();
+                        }
                         mReaderView.postInvalidate();
                     }
+                }
+                //ii：滑动状态下
+                // 1.处理是否取消的情况2.有无上下页的情况
+                else {
+                    if (isCancel) {
+                        //TODO 这里需要回调吗？
+                        mPageChangeListener.onCancel();
+                    }
+                    switch (mDirection) {
+                        case IReaderDirection.NEXT:
+                            boolean hasNext = hasNext();
+                            if (!hasNext) return true;
+                            break;
+                        case IReaderDirection.PRE:
+                            boolean hasPre = hasPre();
+                            if (!hasPre) return true;
+                            break;
+                    }
+                    startScroll();
+                    mReaderView.postInvalidate();
                 }
                 return true;
 
@@ -189,18 +259,23 @@ public abstract class PageAnimController {
     }
 
     public void computeScroll() {
-
-        boolean mFinished = mScroller.computeScrollOffset();
-        Log.e(TAG, "computeScroll  mFinished=" + mFinished);
-        if (mFinished) {
+        boolean notFinished = mScroller.computeScrollOffset();
+        Log.e(TAG, "computeScroll  computeScrollOffset -> " + notFinished);
+        if (notFinished) {
             mTouchX = mScroller.getCurrX();
             mTouchY = mScroller.getCurrY();
             if (mScroller.getFinalX() == mTouchX && mScroller.getFinalY() == mTouchY) {
                 isScroll = false;
-                if (mDirection == IReaderDirection.NEXT)
-                    mPageChangeListener.onSelectNext();
-                else if (mDirection == IReaderDirection.PRE)
-                    mPageChangeListener.onSelectPre();
+                if (!isCancel) {
+                    switch (mDirection) {
+                        case IReaderDirection.NEXT:
+                            mPageChangeListener.onSelectNext();
+                            break;
+                        case IReaderDirection.PRE:
+                            mPageChangeListener.onSelectPre();
+                            break;
+                    }
+                }
             }
             mReaderView.invalidate();
         }
@@ -218,24 +293,37 @@ public abstract class PageAnimController {
     }
 
     /**
-     * 设置下一页内容
-     *
-     * @param nextPageData 下一页
-     */
-    public void setNextPageData(PageData nextPageData) {
-        mNextPageData = nextPageData;
-        generatePage(nextPageData, mNextBitmap);
-    }
-
-    /**
      * 根据{#PageData}生成页面
      *
      * @param pageData 需要生成的页面数据
      * @param bitmap   要绘制的bitmap
      */
-    public void generatePage(PageData pageData, Bitmap bitmap) {
+    private void generatePage(PageData pageData, Bitmap bitmap) {
         if (pageData == null) return;
+        Log.e(TAG, "generatePage: " + pageData.getProgress());
         mPageElement.generatePage(pageData, bitmap);
+    }
+
+    /**
+     * 是否有上一页
+     */
+    protected boolean hasPre() {
+        return mPageChangeListener.hasPre();
+    }
+
+    /**
+     * 是否有下一页
+     */
+    protected boolean hasNext() {
+        return mPageChangeListener.hasNext();
+    }
+
+    private void abortAnim() {
+        if (!mScroller.isFinished()) {
+            mScroller.abortAnimation();
+            isScroll = false;
+            mReaderView.postInvalidate();
+        }
     }
 
     public interface IPageChangeListener {

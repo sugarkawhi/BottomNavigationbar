@@ -83,18 +83,19 @@ public class PageElement {
      * @param bitmap   绘制的bitmap对象
      */
     public void generatePage(PageData pageData, Bitmap bitmap) {
-        Canvas mCanvas = new Canvas(bitmap);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         //draw background
-        mCanvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
+//        canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
         //set header
         mHeaderElement.setChapterName(pageData.getChapterName());
-        mHeaderElement.onDraw(mCanvas);
+        mHeaderElement.onDraw(canvas);
         //set footer
         mFooterElement.setProgress(pageData.getProgress());
-        mFooterElement.onDraw(mCanvas);
+        mFooterElement.onDraw(canvas);
         //set line
         mLineElement.setLineData(pageData.getLines());
-        mLineElement.onDraw(mCanvas);
+        mLineElement.onDraw(canvas);
     }
 
     public void setTime(String time) {

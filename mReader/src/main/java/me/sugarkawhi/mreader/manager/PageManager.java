@@ -1,5 +1,6 @@
 package me.sugarkawhi.mreader.manager;
 
+import android.annotation.SuppressLint;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
@@ -68,6 +69,7 @@ public class PageManager {
      * @param br
      * @return
      */
+    @SuppressLint("DefaultLocale")
     public List<PageData> generatePages(ChapterBean chapter, BufferedReader br) {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
@@ -166,6 +168,11 @@ public class PageManager {
             PageData page = new PageData();
             page.setLines(new ArrayList<LineData>(1));
             pages.add(page);
+        }
+        for (int i = 0; i < pages.size(); i++) {
+//            String progress = "本章进度" + (i + 1) * 100 / pages.size() + " %";
+            String progress = (i + 1) + "/" + pages.size();
+            pages.get(i).setProgress(progress);
         }
         return pages;
     }

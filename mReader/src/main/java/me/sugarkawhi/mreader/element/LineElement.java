@@ -1,14 +1,11 @@
 package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 
 import java.util.List;
 
-import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.data.LineData;
-import me.sugarkawhi.mreader.data.PageData;
 
 /**
  * 文字行部分：测量一行文字需要的字数；测量行高；绘制行文字；绘制笔记内容；测量每一个字在屏幕中的位置，用于笔记功能；
