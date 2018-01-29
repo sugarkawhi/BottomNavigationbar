@@ -109,7 +109,7 @@ public class MReaderView extends View {
         mPageElement = new PageElement(mWidth, mHeight,
                 headerHeight, footerHeight, padding, mLineSpacing, battery,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
-        Bitmap bgBitmap = BitmapUtils.sampling(getResources(), R.drawable.reader_bg_blue, mWidth, mHeight);
+        Bitmap bgBitmap = BitmapUtils.sampling(getResources(), R.drawable.reading_bg_fg, mWidth, mHeight);
         mPageElement.setBackgroundBitmap(bgBitmap);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
                 mLetterSpacing, mLineSpacing, mParagraphSpacing,

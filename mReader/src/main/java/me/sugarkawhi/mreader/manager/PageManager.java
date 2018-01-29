@@ -10,6 +10,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import me.sugarkawhi.mreader.bean.ChapterBean;
@@ -237,10 +238,10 @@ public class PageManager {
                 break;
             }
         }
-
         LineData lineData = new LineData();
         if (isChapterName) lineData.setChapterName(true);
         lineData.setLetters(letterList);
+        Log.e(TAG + "-", letterList.toString().replace(",", "").replace(" ", ""));
         return lineData;
     }
 

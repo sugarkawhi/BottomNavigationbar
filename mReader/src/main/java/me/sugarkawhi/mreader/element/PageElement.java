@@ -86,7 +86,7 @@ public class PageElement {
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         //draw background
-//        canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
+        canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
         //set header
         mHeaderElement.setChapterName(pageData.getChapterName());
         mHeaderElement.onDraw(canvas);

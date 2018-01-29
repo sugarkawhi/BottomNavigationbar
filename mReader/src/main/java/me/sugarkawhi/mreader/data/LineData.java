@@ -73,5 +73,9 @@ public class LineData {
             this.offsetY = offsetY;
         }
 
+        @Override
+        public String toString() {
+            return letter + "";
+        }
     }
 }

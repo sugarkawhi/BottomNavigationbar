@@ -97,7 +97,7 @@ public class SlideAnimController extends PageAnimController {
                 }
                 break;
         }
-        int duration = 300 * Math.abs(dx) / mReaderWidth;
+        int duration = 450 * Math.abs(dx) / mReaderWidth;
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
         mReaderView.postInvalidate();
     }
