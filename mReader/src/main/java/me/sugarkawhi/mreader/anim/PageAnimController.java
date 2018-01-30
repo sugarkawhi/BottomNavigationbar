@@ -117,6 +117,11 @@ public abstract class PageAnimController {
      * 分发事件
      */
     public boolean dispatchTouchEvent(MotionEvent event) {
+        if (!mIReaderTouchListener.canTouch()) {
+            if (event.getAction() == MotionEvent.ACTION_UP) mIReaderTouchListener.onTouchCenter();
+            return true;
+        }
+
         int x = (int) event.getX();
         int y = (int) event.getY();
         mTouchX = x;

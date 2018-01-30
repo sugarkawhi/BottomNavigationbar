@@ -285,4 +285,13 @@ public class ReaderActivity extends BaseActivity {
                 break;
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        if (isShow) {
+            hide();
+            return;
+        }
+        super.onBackPressed();
+    }
 }
