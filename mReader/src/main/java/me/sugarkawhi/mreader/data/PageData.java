@@ -10,6 +10,9 @@ import java.util.List;
  */
 
 public class PageData {
+    //是否是封面页
+    private boolean isCover;
+    //在章节中的索引
     private float indexOfChapter;
     //同时包含该页面HeaderData
     private String chapterName;
@@ -17,8 +20,16 @@ public class PageData {
     private String progress;
     //
     private List<LineData> lines;
-    private ImageData imageData;
+    private List<ImageData> images;
 
+
+    public boolean isCover() {
+        return isCover;
+    }
+
+    public void setCover(boolean cover) {
+        isCover = cover;
+    }
 
     public float getIndexOfChapter() {
         return indexOfChapter;
@@ -52,12 +63,11 @@ public class PageData {
         this.lines = lines;
     }
 
-    public ImageData getImageData() {
-        return imageData;
+    public List<ImageData> getImages() {
+        return images;
     }
 
-    public void setImageData(ImageData imageData) {
-        this.imageData = imageData;
+    public void setImages(List<ImageData> images) {
+        this.images = images;
     }
-
 }

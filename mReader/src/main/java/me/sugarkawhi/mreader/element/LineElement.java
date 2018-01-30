@@ -2,6 +2,9 @@ package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.text.TextUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -43,20 +46,28 @@ public class LineElement extends Element {
 
     @Override
     public boolean onDraw(Canvas canvas) {
-//        mContentPaint.setColor(Color.parseColor("#abcdef"));
-//        canvas.drawRect(mPadding, mHeaderHeight, mPadding + mContentWidth, mHeaderHeight + mContentHeight, mContentPaint);
-//        mContentPaint.setColor(Color.BLACK);
         if (mLineDataList == null) return false;
         for (int i = 0; i < mLineDataList.size(); i++) {
             LineData lineData = mLineDataList.get(i);
-            for (LineData.LetterData letter : lineData.getLetters()) {
-                String str = String.valueOf(letter.getLetter());
-                float x = letter.getOffsetX() + mPadding;
-                float y = lineData.getOffsetY() + mHeaderHeight;
-                if (lineData.isChapterName()) {
-                    canvas.drawText(str, x, y, mChapterNamePaint);
-                } else {
-                    canvas.drawText(str, x, y, mContentPaint);
+            if (lineData == null) continue;
+            //画一整行
+            if (!TextUtils.isEmpty(lineData.getLine())) {
+                canvas.drawText(lineData.getLine(), lineData.getOffsetX() + mPadding, lineData.getOffsetY() + mHeaderHeight, mContentPaint);
+                continue;
+            }
+
+            //画单个字符
+            List<LineData.LetterData> letterDataList = lineData.getLetters();
+            if (letterDataList != null) {
+                for (LineData.LetterData letter : letterDataList) {
+                    String str = String.valueOf(letter.getLetter());
+                    float x = letter.getOffsetX() + mPadding;
+                    float y = lineData.getOffsetY() + mHeaderHeight;
+                    if (lineData.isChapterName()) {
+                        canvas.drawText(str, x, y, mChapterNamePaint);
+                    } else {
+                        canvas.drawText(str, x, y, mContentPaint);
+                    }
                 }
             }
         }

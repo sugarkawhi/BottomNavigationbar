@@ -1,20 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <me.sugarkawhi.mreader.view.MReaderView
-        android:id="@+id/readerView"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:mReader_batteryGap="1dp"
-        app:mReader_batteryHead="2dp"
-        app:mReader_batteryHeight="9dp"
-        app:mReader_batteryWidth="18dp"
-        app:mReader_footerHeight="40dp"
-        app:mReader_headerHeight="40dp"
-        app:mReader_padding="20dp" />
+        android:layout_height="match_parent">
 
-</FrameLayout>
+
+        <me.sugarkawhi.mreader.view.ReaderView
+            android:id="@+id/readerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:mReader_footerHeight="40dp"
+            app:mReader_headerHeight="40dp"
+            app:mReader_padding="20dp" />
+
+        <include
+            android:id="@+id/reader_bottom"
+            layout="@layout/layout_reader_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" />
+
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+    </LinearLayout>
+
+</android.support.v4.widget.DrawerLayout>

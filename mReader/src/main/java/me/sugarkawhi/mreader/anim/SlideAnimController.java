@@ -3,12 +3,11 @@ package me.sugarkawhi.mreader.anim;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
 
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.element.PageElement;
-import me.sugarkawhi.mreader.view.MReaderView;
+import me.sugarkawhi.mreader.view.ReaderView;
 
 /**
  * Slide page anim controller
@@ -25,7 +24,7 @@ public class SlideAnimController extends PageAnimController {
     private Rect mNextSrcRect;
     private Rect mNextDstRect;
 
-    public SlideAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
+    public SlideAnimController(ReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
         super(readerView, readerWidth, readerHeight, pageElement, pageChangeListener);
         mCurSrcRect = new Rect(0, 0, readerWidth, readerHeight);
         mCurDstRect = new Rect(0, 0, readerWidth, readerHeight);

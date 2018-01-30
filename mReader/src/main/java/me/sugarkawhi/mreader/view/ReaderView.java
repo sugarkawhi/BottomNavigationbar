@@ -3,7 +3,6 @@ package me.sugarkawhi.mreader.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -24,6 +23,7 @@ import me.sugarkawhi.mreader.anim.CoverAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
 import me.sugarkawhi.mreader.bean.Battery;
+import me.sugarkawhi.mreader.bean.BookBean;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderPageMode;
@@ -31,14 +31,16 @@ import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.manager.PageManager;
+import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.BitmapUtils;
+import me.sugarkawhi.mreader.utils.L;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 
 /**
  * Base
  * Created by ZhaoZongyao on 2018/1/11.
  */
-public class MReaderView extends View {
+public class ReaderView extends View {
 
     private static final String TAG = "MReaderView";
 
@@ -49,8 +51,6 @@ public class MReaderView extends View {
     private int mWidth;
     //View 高 强制全屏
     private int mHeight;
-    //内容文字大小
-    private float mContentSize;
     //字间距
     private float mLetterSpacing;
     //行间距
@@ -59,6 +59,8 @@ public class MReaderView extends View {
     private float mParagraphSpacing;
 
 
+    //封面 Paint
+    private Paint mCoverPaint;
     //章节名 Paint
     private Paint mChapterNamePaint;
     //内容 Paint
@@ -70,51 +72,57 @@ public class MReaderView extends View {
 
     private PageAnimController mAnimController;
 
-    public MReaderView(Context context) {
+    public ReaderView(Context context) {
         this(context, null);
     }
 
-    public MReaderView(Context context, @Nullable AttributeSet attrs) {
+    public ReaderView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public MReaderView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ReaderView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.MReaderView);
-        float headerHeight = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_headerHeight, 50);
-        float footerHeight = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_footerHeight, 50);
-        float padding = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_padding, 8);
-        int batteryWidth = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_batteryWidth, IReaderConfig.DEFAULT_BATTERY_WIDTH);
-        int batteryHeight = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_batteryHeight, IReaderConfig.DEFAULT_BATTERY_HEIGHT);
-        int batteryHead = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_batteryHead, IReaderConfig.DEFAULT_BATTERY_HEAD);
-        int batteryGap = array.getDimensionPixelSize(R.styleable.MReaderView_mReader_batteryGap, IReaderConfig.DEFAULT_BATTERY_GAP);
+        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.ReaderView);
+        float headerHeight = array.getDimensionPixelSize(R.styleable.ReaderView_mReader_headerHeight, 50);
+        float footerHeight = array.getDimensionPixelSize(R.styleable.ReaderView_mReader_footerHeight, 50);
+        float padding = array.getDimensionPixelSize(R.styleable.ReaderView_mReader_padding, 8);
         array.recycle();
-        mContentSize = IReaderConfig.DEFAULT_CONTENT_TEXTSIZE;
-        mLineSpacing = IReaderConfig.DEFAULT_CONTENT_LINE_SPACING;
-        mLetterSpacing = IReaderConfig.DEFAULT_CONTENT_LETTER_SPACING;
-        mParagraphSpacing = IReaderConfig.DEFAULT_CONTENT_PARAGRAPH_SPACING;
-        Battery battery = new Battery(batteryHead, batteryWidth, batteryHeight, batteryGap);
+        int contentFontSize = IReaderPersistence.getFontSize(context);
+        mLineSpacing = IReaderConfig.LineSpacing.DEFAULT;
+        mLetterSpacing = IReaderConfig.LetterSpacing.DEFAULT;
+        mParagraphSpacing = IReaderConfig.ParagraphSpacing.DEFAULT;
+        Battery battery = new Battery(IReaderConfig.Battery.HEAD, IReaderConfig.Battery.WIDTH,
+                IReaderConfig.Battery.HEIGHT, IReaderConfig.Battery.GAP);
         int screenSize[] = ScreenUtils.getScreenSize(context);
         mWidth = screenSize[0];
         mHeight = screenSize[1];
+        //
+        mCoverPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        //内容
         mContentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mContentPaint.setTextSize(IReaderConfig.DEFAULT_CONTENT_TEXTSIZE);
-        mContentPaint.setColor(Color.parseColor("#404040"));
+        mContentPaint.setTextSize(contentFontSize);
+        //头部
         mHeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mHeaderPaint.setTextSize(IReaderConfig.DEFAULT_HEADER_TEXTSIZE);
 
         mChapterNamePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mChapterNamePaint.setTextSize(IReaderConfig.DEFAULT_CONTENT_TEXTSIZE * 1.3f);
+        mChapterNamePaint.setTextSize(contentFontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
         mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
         mPageElement = new PageElement(mWidth, mHeight,
                 headerHeight, footerHeight, padding, mLineSpacing, battery,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
-        Bitmap bgBitmap = BitmapUtils.sampling(getResources(), R.drawable.reading_bg_fg, mWidth, mHeight);
-        mPageElement.setBackgroundBitmap(bgBitmap);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
                 mLetterSpacing, mLineSpacing, mParagraphSpacing,
-                20, 50, mContentPaint, mChapterNamePaint);
+                20, 50,
+                mCoverPaint, mContentPaint, mChapterNamePaint);
         init();
+        Bitmap cover_bly = BitmapUtils.sampling(getResources(), R.drawable.cover_zljts, mWidth, mHeight);
+        Bitmap bitmap = BitmapUtils.scaleBitmap(cover_bly, IReaderConfig.Cover.IMG_WIDTH, IReaderConfig.Cover.IMG_HEIGHT);
+        mPageManager.setCover(bitmap);
+        BookBean book = new BookBean();
+        book.setName("白鹿原");
+        book.setAuthorName("陈忠实 / 作品");
+        mPageManager.setBook(book);
     }
 
     private void init() {
@@ -235,9 +243,107 @@ public class MReaderView extends View {
         // read it with BufferedReader
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         List<PageData> pages = mPageManager.generatePages(chapter, br);
+        mPageDataList.clear();
         mPageDataList.addAll(pages);
+
         mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
     }
 
 
+    /**
+     * @param bitmap 绘制背景bm
+     */
+    public void setReaderBackground(Bitmap bitmap) {
+        mPageElement.setBackgroundBitmap(bitmap);
+        mAnimController.invalidate();
+        invalidate();
+    }
+
+    /**
+     * @param bitmap    绘制背景bitmap
+     * @param fontColor 背景对应字体颜色
+     */
+    public void setReaderBackground(Bitmap bitmap, int fontColor) {
+        mPageElement.setBackgroundBitmap(bitmap);
+        mContentPaint.setColor(fontColor);
+        mHeaderPaint.setColor(fontColor);
+        mAnimController.invalidate();
+        invalidate();
+    }
+
+    /**
+     * @param resId     背景资源id
+     * @param fontColor 背景对应于字体的颜色
+     */
+    public void setReaderBackground(int resId, int fontColor) {
+        Bitmap bitmap = BitmapUtils.sampling(getResources(), resId, mWidth, mHeight);
+        setReaderBackground(bitmap, fontColor);
+    }
+
+    /**
+     * @param color     背景颜色
+     * @param fontColor 背景对应于字体的颜色
+     */
+    public void setReaderBackgroundColor(int color, int fontColor) {
+        Bitmap bitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(color);
+        setReaderBackground(bitmap, fontColor);
+    }
+
+    /**
+     * setReaderBackground with drawable/color
+     */
+    public void setReaderBackground(int resId) {
+        Bitmap bitmap = BitmapUtils.sampling(getResources(), resId, mWidth, mHeight);
+        setReaderBackground(bitmap);
+    }
+
+    /**
+     * setReaderBackground with color
+     */
+    public void setReaderBackgroundColor(int color) {
+        Bitmap bitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(color);
+        setReaderBackground(bitmap);
+    }
+
+
+    /**
+     * 设置当前进度
+     * TODO
+     */
+    public void setProgress(int progress) {
+        //
+    }
+
+    /**
+     * 设置文字大小
+     * TODO 1.需要重新分页2.分页后保持当前进度
+     */
+    public void setFontSize(float fontSize) {
+        if (fontSize < IReaderConfig.FontSize.MIN) {
+            L.w(TAG, "font size is too small");
+            return;
+        }
+        if (fontSize > IReaderConfig.FontSize.MAX) {
+            L.w(TAG, "font size is too large");
+            return;
+        }
+        mContentPaint.setTextSize(fontSize);
+        mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
+        chapterHandler(mCurChapter);
+        mAnimController.invalidate();
+        invalidate();
+    }
+
+    /**
+     * 设置文字颜色
+     */
+    public void setFontColor(int fontColor) {
+        mContentPaint.setColor(fontColor);
+        mAnimController.invalidate();
+        invalidate();
+    }
 }

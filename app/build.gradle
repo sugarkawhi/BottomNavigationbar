@@ -47,6 +47,9 @@ dependencies {
     //RxLifecycle
     compile 'com.trello.rxlifecycle2:rxlifecycle-components:2.1.0'
     compile 'jp.wasabeef:glide-transformations:3.0.1'
+    //ButterKnife
+    compile 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile project(':mReader')
     compile project(':bottomnavigationbar')
 }

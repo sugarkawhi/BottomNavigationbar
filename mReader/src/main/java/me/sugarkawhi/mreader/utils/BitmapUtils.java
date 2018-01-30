@@ -3,6 +3,9 @@ package me.sugarkawhi.mreader.utils;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Rect;
 
 /**
  * Bitmap 二次采样
@@ -38,4 +41,57 @@ public class BitmapUtils {
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         return BitmapFactory.decodeResource(resources, drawableId, options);
     }
+
+    /**
+     * 对Bitmap进行采样
+     *
+     * @param path      x
+     * @param dstWidth  x
+     * @param dstHeight x
+     * @return x采样后的bitmap
+     */
+    public static Bitmap sampling(String path, int dstWidth, int dstHeight) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
+        int originWidth = options.outWidth;
+        int originHeight = options.outHeight;
+
+        int sampleSize = 1;
+        while (originWidth / sampleSize > dstWidth || originHeight / sampleSize > dstHeight) {
+            sampleSize *= 2;
+        }
+        options.inJustDecodeBounds = false;
+        options.inSampleSize = sampleSize;
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        return BitmapFactory.decodeFile(path, options);
+    }
+
+
+    /**
+     * 根据给定的宽和高进行拉伸
+     *
+     * @param origin    原图
+     * @param newWidth  新图的宽
+     * @param newHeight 新图的高
+     * @return new Bitmap
+     */
+    public static Bitmap scaleBitmap(Bitmap origin, int newWidth, int newHeight) {
+        if (origin == null) {
+            return null;
+        }
+        int height = origin.getHeight();
+        int width = origin.getWidth();
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);// 使用后乘
+        Bitmap newBM = Bitmap.createBitmap(origin, 0, 0, width, height, matrix, false);
+        if (!origin.isRecycled()) {
+            origin.recycle();
+        }
+        return newBM;
+    }
+
 }

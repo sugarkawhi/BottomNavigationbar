@@ -1,9 +1,11 @@
 package me.sugarkawhi.mreader.manager;
 
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -13,9 +15,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import me.sugarkawhi.mreader.bean.BookBean;
 import me.sugarkawhi.mreader.bean.ChapterBean;
+import me.sugarkawhi.mreader.config.IReaderConfig;
+import me.sugarkawhi.mreader.data.ImageData;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
+import me.sugarkawhi.mreader.utils.BitmapUtils;
 
 /**
  * p m
@@ -44,14 +50,14 @@ public class PageManager {
     //章节名 顶部、底部 间距
     private float mChapterNameMargin;
 
-
+    private Paint mCoverPaint;
     private Paint mContentPaint;
     private Paint mChapterNamePaint;
 
     public PageManager(float contentWidth, float contentHeight,
                        float letterSpacing, float lineSpacing, float paragraphSpacing,
                        float chapterNameSpacing, float chapterNameMargin,
-                       Paint contentPaint, Paint chapterNamePaint) {
+                       Paint coverPaint, Paint contentPaint, Paint chapterNamePaint) {
         mContentWidth = contentWidth;
         mContentHeight = contentHeight;
         mLetterSpacing = letterSpacing;
@@ -59,8 +65,10 @@ public class PageManager {
         mParagraphSpacing = paragraphSpacing;
         mChapterNameSpacing = chapterNameSpacing;
         mChapterNameMargin = chapterNameMargin;
+        mCoverPaint = coverPaint;
         mContentPaint = contentPaint;
         mChapterNamePaint = chapterNamePaint;
+
     }
 
     /**
@@ -74,9 +82,12 @@ public class PageManager {
     public List<PageData> generatePages(ChapterBean chapter, BufferedReader br) {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
+        //TODO 生成封面
+        if (chapter.isFirstChapter()) {
+            generateCover(pages);
+        }
         //使用流的方式加载
         List<LineData> lines = new ArrayList<>();
-//        LineData lineData;
         float rHeight = mContentHeight;
         boolean isChapterName = true;
         String paragraph = chapter.getChapterName();//默认展示标题
@@ -143,7 +154,7 @@ public class PageManager {
                     isChapterName = false;
                     rHeight = rHeight - mChapterNameMargin;
                 }
-                Log.e(TAG, "rHeight = " + rHeight);
+//                Log.e(TAG, "rHeight = " + rHeight);
             }
             if (lines.size() != 0) {
                 //创建Page
@@ -221,7 +232,6 @@ public class PageManager {
                     letterList.remove(letterList.size() - 1);
                 }
                 //判断当前字符能否当下一行开头 否：  是：
-                //TODO  getTextBounds 测量宽度比meassureText略微小点。取舍问题？这里选择的是meassureText
                 else if (ArrayUtils.contains(NO_LINE_HEADER, letter)) {
                     LineData.LetterData data = new LineData.LetterData();
                     data.setLetter(letter);
@@ -265,5 +275,64 @@ public class PageManager {
             float newOffsetX = letter.getOffsetX() + averageSpacing * i;
             letter.setOffsetX(newOffsetX);
         }
+    }
+
+    private Bitmap mCoverBitmap;
+    private BookBean mBook;
+
+    public void setCover(Bitmap bitmap) {
+        this.mCoverBitmap = bitmap;
+    }
+
+    public void setBook(BookBean book) {
+        mBook = book;
+    }
+
+    /**
+     * 如果是第一章 生成封面
+     * TODO  简单画一张图片
+     */
+    private void generateCover(List<PageData> pages) {
+        if (mBook == null) return;
+        PageData pageData = new PageData();
+        List<ImageData> images = new ArrayList<>();
+        List<LineData> lines = new ArrayList<>();
+        //设置为封面页
+        pageData.setCover(true);
+        //封面
+        ImageData coverImg = new ImageData();
+        coverImg.setBitmap(mCoverBitmap);
+        float bookImgX = mContentWidth / 2 - mCoverBitmap.getWidth() / 2;
+        coverImg.setX(bookImgX);
+        coverImg.setY(100);
+        images.add(coverImg);
+        //书名
+        LineData nameLine = new LineData();
+        mCoverPaint.setTextSize(IReaderConfig.Cover.FONT_SIZE_BOOKNAME);
+        String bookName = mBook.getName();
+        nameLine.setLine(bookName);
+        float bookNameWidth = mCoverPaint.measureText(bookName);
+        float bookNameHeight = mCoverPaint.getFontSpacing();
+        float bookNameX = mContentWidth / 2 - bookNameWidth / 2;
+        nameLine.setOffsetX(bookNameX);
+        nameLine.setOffsetY(coverImg.getY() + coverImg.getBitmap().getHeight() + 30 + bookNameHeight);
+        lines.add(nameLine);
+        //作者名
+        LineData authorLine = new LineData();
+        mCoverPaint.setTextSize(IReaderConfig.Cover.FONT_SIZE_AUTHOR);
+        String authorName = mBook.getAuthorName();
+        authorLine.setLine(authorName);
+        float authorNameWidth = mCoverPaint.measureText(authorName);
+        float authorNameHeight = mCoverPaint.getFontSpacing();
+        float authorNameX = mContentWidth / 2 - authorNameWidth / 2;
+        authorLine.setOffsetX(authorNameX);
+        authorLine.setOffsetY(nameLine.getOffsetY() + 20 + authorNameHeight);
+        lines.add(authorLine);
+        //logo TODO
+
+
+        pageData.setImages(images);
+        pageData.setLines(lines);
+        pages.add(pageData);
     }
 }

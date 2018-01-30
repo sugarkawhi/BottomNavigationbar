@@ -6,9 +6,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 
+import java.util.List;
+
 import me.sugarkawhi.mreader.bean.Battery;
+import me.sugarkawhi.mreader.data.ImageData;
 import me.sugarkawhi.mreader.data.PageData;
-import me.sugarkawhi.mreader.manager.PageSnapshot;
 
 /**
  * 分页模块：功能包括将传入的章节数据分成数个 PageData
@@ -28,6 +30,7 @@ public class PageElement {
     private HeaderElement mHeaderElement;
     private FooterElement mFooterElement;
     private LineElement mLineElement;
+    private ImageElement mImageElement;
 
 
     //内容 宽。高
@@ -59,6 +62,7 @@ public class PageElement {
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight,
                 padding, lineSpacing, contentPaint, chapterNamePaint);
+        mImageElement = new ImageElement(headerHeight, footerHeight, padding);
         init();
     }
 
@@ -69,9 +73,11 @@ public class PageElement {
 
     /**
      * 设置背景
+     *
      * @param backgroundBitmap
      */
     public void setBackgroundBitmap(Bitmap backgroundBitmap) {
+        if (backgroundBitmap == null) return;
         mBackgroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         mBackgroundCanvas.drawBitmap(backgroundBitmap, 0, 0, null);
     }
@@ -87,15 +93,21 @@ public class PageElement {
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         //draw background
         canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
-        //set header
-        mHeaderElement.setChapterName(pageData.getChapterName());
-        mHeaderElement.onDraw(canvas);
-        //set footer
-        mFooterElement.setProgress(pageData.getProgress());
-        mFooterElement.onDraw(canvas);
+        //封面页 不画顶部和底部
+        if (!pageData.isCover()) {
+            //set header
+            mHeaderElement.setChapterName(pageData.getChapterName());
+            mHeaderElement.onDraw(canvas);
+            //set footer
+            mFooterElement.setProgress(pageData.getProgress());
+            mFooterElement.onDraw(canvas);
+        }
         //set line
         mLineElement.setLineData(pageData.getLines());
         mLineElement.onDraw(canvas);
+        List<ImageData> images = pageData.getImages();
+        mImageElement.setImageDataList(images);
+        mImageElement.onDraw(canvas);
     }
 
     public void setTime(String time) {

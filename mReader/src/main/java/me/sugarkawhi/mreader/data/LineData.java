@@ -12,10 +12,17 @@ import java.util.List;
  */
 
 public class LineData {
+    //本行的字符-单个抽取出来
     private List<LetterData> letters;
     //相对于 内容绘制区域来讲
+    private float offsetX;
+    //相对于 内容绘制区域来讲
     private float offsetY;
+    //是否是章节名  章节第一页
     private boolean isChapterName;
+    //本行的字符串 区别于letters
+    private String line;
+
 
     public List<LetterData> getLetters() {
         return letters;
@@ -23,6 +30,14 @@ public class LineData {
 
     public void setLetters(List<LetterData> letters) {
         this.letters = letters;
+    }
+
+    public float getOffsetX() {
+        return offsetX;
+    }
+
+    public void setOffsetX(float offsetX) {
+        this.offsetX = offsetX;
     }
 
     public float getOffsetY() {
@@ -39,6 +54,14 @@ public class LineData {
 
     public void setChapterName(boolean chapterName) {
         isChapterName = chapterName;
+    }
+
+    public String getLine() {
+        return line;
+    }
+
+    public void setLine(String line) {
+        this.line = line;
     }
 
     /**

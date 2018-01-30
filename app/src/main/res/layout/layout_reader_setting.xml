@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#2c2c2c"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/reader_font_small"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:text="A-"
+            android:textColor="@color/letter_color4"
+            android:textSize="22sp" />
+
+        <TextView
+            android:id="@+id/reader_fontSize"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/letter_color4"
+            android:textSize="18sp"
+            tools:text="50" />
+
+        <TextView
+            android:id="@+id/reader_font_big"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:text="A+"
+            android:textColor="@color/letter_color4"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <RadioGroup
+        android:id="@+id/reader_bg"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp">
+
+        <RadioButton
+            android:id="@+id/reader_bg_purple"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#D5BBF6"
+            android:button="@null"
+            android:gravity="center" />
+
+        <RadioButton
+            android:id="@+id/reader_bg_blue"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1"
+            android:background="#6AC9DE"
+            android:button="@null"
+            android:gravity="center" />
+
+        <RadioButton
+            android:id="@+id/reader_bg_default"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="20dp"
+            android:layout_weight="1"
+            android:background="#CEC29C"
+            android:button="@null"
+            android:gravity="center" />
+
+        <RadioButton
+            android:id="@+id/reader_bg_matcha"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#CCEBCC"
+            android:button="@null"
+            android:gravity="center" />
+
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/reader_mode"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/reader_mode_cover"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:checked="true"
+            android:gravity="center"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:text="覆盖"
+            android:textColor="@color/white" />
+
+        <RadioButton
+            android:id="@+id/reader_mode_slide"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:checked="false"
+            android:gravity="center"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:text="平移"
+            android:textColor="@color/white" />
+
+        <RadioButton
+            android:id="@+id/reader_mode_simulation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:checked="false"
+            android:gravity="center"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:text="仿真"
+            android:textColor="@color/white" />
+
+        <RadioButton
+            android:id="@+id/reader_mode_none"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:checked="false"
+            android:gravity="center"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:text="无"
+            android:textColor="@color/white" />
+
+    </RadioGroup>
+
+</LinearLayout>

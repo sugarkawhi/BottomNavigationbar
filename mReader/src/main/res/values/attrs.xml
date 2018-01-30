@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="MReaderView">
+    <declare-styleable name="ReaderView">
         <attr name="mReader_padding" format="dimension" />
         <attr name="mReader_headerHeight" format="dimension" />
         <attr name="mReader_footerHeight" format="dimension" />
-        <attr name="mReader_batteryWidth" format="dimension" />
-        <attr name="mReader_batteryHeight" format="dimension" />
-        <attr name="mReader_batteryHead" format="dimension" />
-        <attr name="mReader_batteryGap" format="dimension" />
     </declare-styleable>
 </resources>

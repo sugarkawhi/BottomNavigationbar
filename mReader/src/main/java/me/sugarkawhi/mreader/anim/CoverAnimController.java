@@ -8,7 +8,7 @@ import android.util.Log;
 
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.element.PageElement;
-import me.sugarkawhi.mreader.view.MReaderView;
+import me.sugarkawhi.mreader.view.ReaderView;
 
 /**
  * page anim controller
@@ -21,7 +21,7 @@ public class CoverAnimController extends PageAnimController {
     private Rect mDstRect;
     private GradientDrawable mBackShadowDrawableLR;
 
-    public CoverAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement,IPageChangeListener pageChangeListener) {
+    public CoverAnimController(ReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
         super(readerView, readerWidth, readerHeight, pageElement,pageChangeListener);
         mSrcRect = new Rect(0, 0, readerWidth, readerHeight);
         mDstRect = new Rect(0, 0, readerWidth, readerHeight);

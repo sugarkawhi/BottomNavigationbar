@@ -14,7 +14,7 @@ import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
-import me.sugarkawhi.mreader.view.MReaderView;
+import me.sugarkawhi.mreader.view.ReaderView;
 
 /**
  * page anim controller
@@ -24,7 +24,7 @@ import me.sugarkawhi.mreader.view.MReaderView;
 public abstract class PageAnimController {
     public String TAG = getClass().getSimpleName();
 
-    protected MReaderView mReaderView;
+    protected ReaderView mReaderView;
     protected PageElement mPageElement;
 
     //阅读器宽高
@@ -66,7 +66,7 @@ public abstract class PageAnimController {
     private IReaderTouchListener mIReaderTouchListener;
 
 
-    public PageAnimController(MReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
+    public PageAnimController(ReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
         this.mReaderView = readerView;
         this.mPageElement = pageElement;
         this.mReaderWidth = readerWidth;
@@ -79,7 +79,7 @@ public abstract class PageAnimController {
         mCurrentBitmap = Bitmap.createBitmap(readerWidth, readerHeight, Bitmap.Config.RGB_565);
         mNextBitmap = Bitmap.createBitmap(readerWidth, readerHeight, Bitmap.Config.RGB_565);
         mScroller = new Scroller(mReaderView.getContext(), new LinearInterpolator());
-        mTouchSlop = ViewConfiguration.get(readerView.getContext()).getScaledTouchSlop();
+        mTouchSlop = ViewConfiguration.get(readerView.getContext()).getScaledPagingTouchSlop();
     }
 
     public void setIReaderTouchListener(IReaderTouchListener IReaderTouchListener) {

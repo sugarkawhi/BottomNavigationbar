@@ -9,6 +9,7 @@ import java.io.Serializable;
 
 public class ChapterBean implements Serializable {
     private String bookName;
+    private String bookCover;
     private String chapterName;
     private String chapterContent;
     //是否是第一章
@@ -21,6 +22,14 @@ public class ChapterBean implements Serializable {
 
     public void setBookName(String bookName) {
         this.bookName = bookName;
+    }
+
+    public String getBookCover() {
+        return bookCover;
+    }
+
+    public void setBookCover(String bookCover) {
+        this.bookCover = bookCover;
     }
 
     public String getChapterName() {
@@ -37,5 +46,21 @@ public class ChapterBean implements Serializable {
 
     public void setChapterContent(String chapterContent) {
         this.chapterContent = chapterContent;
+    }
+
+    public boolean isFirstChapter() {
+        return isFirstChapter;
+    }
+
+    public void setFirstChapter(boolean firstChapter) {
+        isFirstChapter = firstChapter;
+    }
+
+    public boolean isLastChapter() {
+        return isLastChapter;
+    }
+
+    public void setLastChapter(boolean lastChapter) {
+        isLastChapter = lastChapter;
     }
 }
