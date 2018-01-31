@@ -4,7 +4,6 @@ package me.sugarkawhi.mreader.anim;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.animation.LinearInterpolator;
@@ -14,6 +13,7 @@ import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
+import me.sugarkawhi.mreader.utils.L;
 import me.sugarkawhi.mreader.view.ReaderView;
 
 /**
@@ -151,7 +151,7 @@ public abstract class PageAnimController {
                         //处理事件2 判断存在上页
                         boolean hasPre = hasPre();
                         if (!hasPre) {//不存在上一页
-                            Log.e(TAG, "不存在上一页");
+                            L.e(TAG, "不存在上一页");
                             return true;
                         } else {//存在上一页
                             PageData prePage = mPageChangeListener.getPrePageData();
@@ -167,7 +167,7 @@ public abstract class PageAnimController {
                         //处理事件2 判断存在下页
                         boolean hasPre = hasNext();
                         if (!hasPre) {//不存在下一页
-                            Log.e(TAG, "不存在下一页");
+                            L.e(TAG, "不存在下一页");
                             return true;
                         } else {//存在下一页
                             PageData nextPage = mPageChangeListener.getNextPageData();
@@ -177,7 +177,6 @@ public abstract class PageAnimController {
                             }
                         }
                     }
-
                 }
                 //开始滑动 这时候已经确定了方向
                 // 处理事件：根据翻页方向判断是否取消翻页了
@@ -185,10 +184,10 @@ public abstract class PageAnimController {
                     switch (mDirection) {
                         case IReaderDirection.NEXT:
                             isCancel = (x - mMoveX >= 0);
-                            Log.e(TAG, "下一页：isCancel=" + isCancel);
+                            L.e(TAG, "下一页：isCancel=" + isCancel);
                             break;
                         case IReaderDirection.PRE:
-                            Log.e(TAG, "上一页：isCancel=" + isCancel);
+                            L.e(TAG, "上一页：isCancel=" + isCancel);
                             isCancel = (x - mMoveX <= 0);
                     }
                 }
@@ -242,7 +241,7 @@ public abstract class PageAnimController {
                 else {
                     if (isCancel) {
                         //TODO 这里需要回调吗？
-                        mPageChangeListener.onCancel();
+
                     }
                     switch (mDirection) {
                         case IReaderDirection.NEXT:
@@ -265,7 +264,7 @@ public abstract class PageAnimController {
 
     public void computeScroll() {
         boolean notFinished = mScroller.computeScrollOffset();
-        Log.e(TAG, "computeScroll  computeScrollOffset -> " + notFinished);
+        L.e(TAG, "computeScroll  computeScrollOffset -> " + notFinished);
         if (notFinished) {
             mTouchX = mScroller.getCurrX();
             mTouchY = mScroller.getCurrY();
@@ -305,7 +304,7 @@ public abstract class PageAnimController {
      */
     private void generatePage(PageData pageData, Bitmap bitmap) {
         if (pageData == null) return;
-        Log.e(TAG, "generatePage: " + pageData.getProgress());
+        L.e(TAG, "generatePage: " + pageData.getProgress());
         mPageElement.generatePage(pageData, bitmap);
     }
 
@@ -327,6 +326,8 @@ public abstract class PageAnimController {
         if (!mScroller.isFinished()) {
             mScroller.abortAnimation();
             isScroll = false;
+            mTouchX = mScroller.getFinalX();
+            mTouchY = mScroller.getFinalY();
             mReaderView.postInvalidate();
         }
     }
@@ -334,6 +335,10 @@ public abstract class PageAnimController {
     public interface IPageChangeListener {
 
         void onCancel();
+
+        void cancelPre();
+
+        void cancelNext();
 
         boolean hasPre();
 

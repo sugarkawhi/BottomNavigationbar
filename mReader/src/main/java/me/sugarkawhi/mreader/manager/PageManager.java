@@ -5,7 +5,11 @@ import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -22,6 +26,7 @@ import me.sugarkawhi.mreader.data.ImageData;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.utils.BitmapUtils;
+import me.sugarkawhi.mreader.utils.ScreenUtils;
 
 /**
  * p m
@@ -335,4 +340,5 @@ public class PageManager {
         pageData.setLines(lines);
         pages.add(pageData);
     }
+
 }

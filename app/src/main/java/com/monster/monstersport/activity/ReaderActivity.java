@@ -1,13 +1,22 @@
 package com.monster.monstersport.activity;
 
-import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -16,13 +25,23 @@ import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.persistence.HyReaderPersistence;
 import com.monster.monstersport.util.Constant;
 
+import org.apache.commons.lang3.BitField;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
+import me.sugarkawhi.mreader.bean.BookBean;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
+import me.sugarkawhi.mreader.utils.BitmapUtils;
+import me.sugarkawhi.mreader.utils.ScreenUtils;
 import me.sugarkawhi.mreader.view.ReaderView;
 
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.COLOR_MATCHA;
@@ -37,6 +56,10 @@ import static com.monster.monstersport.persistence.HyReaderPersistence.Backgroun
 
 public class ReaderActivity extends BaseActivity {
 
+    @BindView(R.id.drawer_layout)
+    DrawerLayout drawer_layout;
+    @BindView(R.id.iv_drawer)
+    ImageView ivDrawer;
     @BindView(R.id.readerView)
     ReaderView readerView;
     @BindView(R.id.reader_seekBar)
@@ -48,6 +71,8 @@ public class ReaderActivity extends BaseActivity {
     TextView readerFontSize;
     private int readerBottomHeight;
     private boolean isShow;
+
+    private int mScreenWidth, mScreenHeight;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,7 +88,7 @@ public class ReaderActivity extends BaseActivity {
         chapter.setChapterContent(Constant.TEST_CONTENT);
         readerView.setChapter(chapter);
         readerView.setElectric(0.6f);
-        readerView.setTime("BJ TIME：19:20");
+        readerView.setTime("当前时间 00:20");
         readerView.setReaderTouchListener(new IReaderTouchListener() {
             @Override
             public boolean canTouch() {
@@ -72,10 +97,8 @@ public class ReaderActivity extends BaseActivity {
 
             @Override
             public void onTouchCenter() {
-                if (isShow)
-                    hide();
-                else
-                    show();
+                if (isShow) hide();
+                else show();
             }
 
             @Override
@@ -98,11 +121,9 @@ public class ReaderActivity extends BaseActivity {
         //当前文字大小
         int fontSize = HyReaderPersistence.getFontSize(this);
         readerFontSize.setText(String.valueOf(fontSize));
-        //设置背景颜色
+        //设置背景颜色(ps:也设置对应字体颜色)
         int background = HyReaderPersistence.getBackground(this);
         initReaderBackground(background);
-        //设置字体颜色
-
     }
 
     /**
@@ -111,28 +132,46 @@ public class ReaderActivity extends BaseActivity {
      * @param background 背景
      */
     private void initReaderBackground(int background) {
-        switch (background) {
-            case DEFAULT:
-                int fontDefault = ContextCompat.getColor(this, R.color.reader_font_default);
-                readerView.setReaderBackground(R.drawable.reader_bg_default, fontDefault);
-                break;
-            case IMAGE_BLUE:
-                int fontBlue = ContextCompat.getColor(this, R.color.reader_font_blue);
-                readerView.setReaderBackground(R.drawable.reader_bg_blue, fontBlue);
-                break;
-            case IMAGE_PURPLE:
-                int fontPurple = ContextCompat.getColor(this, R.color.reader_font_purple);
-                readerView.setReaderBackground(R.drawable.reader_bg_purple, fontPurple);
-                break;
-            case COLOR_MATCHA:
-                int bgMatcha = ContextCompat.getColor(this, R.color.reader_bg_matcha);
-                int fontMatcha = ContextCompat.getColor(this, R.color.reader_font_matcha);
-                readerView.setReaderBackgroundColor(bgMatcha, fontMatcha);
+        try {
+            Bitmap bitmap = null;
+            InputStream is = null;
+            int fontColor = Color.BLACK;
+            int bgColor;
+            switch (background) {
+                case DEFAULT:
+                    fontColor = ContextCompat.getColor(this, R.color.reader_font_default);
+                    is = getAssets().open("background/kraft_paper_new.jpg");
+                    break;
+                case IMAGE_BLUE:
+                    fontColor = ContextCompat.getColor(this, R.color.reader_font_blue);
+                    is = getAssets().open("background/dandelion.jpg");
+                    break;
+                case IMAGE_PURPLE:
+                    fontColor = ContextCompat.getColor(this, R.color.reader_font_purple);
+                    is = getAssets().open("background/butterfly.jpg");
+                    break;
+                case COLOR_MATCHA:
+                    fontColor = ContextCompat.getColor(this, R.color.reader_font_matcha);
+                    bgColor = ContextCompat.getColor(this, R.color.reader_bg_matcha);
+                    bitmap = Bitmap.createBitmap(mScreenWidth, mScreenHeight, Bitmap.Config.RGB_565);
+                    Canvas canvas = new Canvas(bitmap);
+                    canvas.drawColor(bgColor);
+            }
+            if (is != null) {
+                bitmap = BitmapFactory.decodeStream(is);
+            }
+            readerView.setReaderBackground(bitmap, fontColor);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     private void init() {
+        mScreenWidth = ScreenUtils.getScreenWidth(this);
+        mScreenHeight = ScreenUtils.getScreenHeight(this);
         initReaderView();
+        generateCover();
+        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         readerBottomView.measure(0, 0);
         readerBottomHeight = readerBottomView.getMeasuredHeight();
         readerBottomView.setTranslationY(readerBottomHeight);
@@ -265,6 +304,12 @@ public class ReaderActivity extends BaseActivity {
         }
     }
 
+    @OnClick(R.id.tv_catalog)
+    public void openDrawer() {
+        hide();
+        drawer_layout.openDrawer(Gravity.START);
+    }
+
     /**
      * 选择翻页模式
      */
@@ -294,4 +339,45 @@ public class ReaderActivity extends BaseActivity {
         }
         super.onBackPressed();
     }
+
+    public void generateCover() {
+        BookBean bookBean = new BookBean();
+        bookBean.setName("战略级天使");
+        bookBean.setAuthorName("白伯欢");
+        generateCover(bookBean);
+    }
+
+
+    /**
+     * 如果是第一章 生成封面
+     */
+    public void generateCover(BookBean book) {
+        View view = getLayoutInflater().inflate(R.layout.layout_reader_cover, null);
+        ImageView cover_img = view.findViewById(R.id.reader_cover_img);
+        TextView cover_bookName = view.findViewById(R.id.reader_cover_bookName);
+        TextView cover_authorName = view.findViewById(R.id.reader_cover_authorName);
+        cover_img.setImageResource(R.drawable.cover_zljts);
+        cover_bookName.setText(book.getName());
+        cover_authorName.setText(book.getAuthorName());
+
+        int width = ScreenUtils.getScreenWidth(this);
+        int height = ScreenUtils.getScreenHeight(this);
+        view.layout(0, 0, width, height);
+
+        int measuredWidth = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
+
+        int measuredHeight = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.AT_MOST);
+
+        /** 当然，measure完后，并不会实际改变View的尺寸，需要调用View.layout方法去进行布局。
+
+         * 按示例调用layout函数后，View的大小将会变成你想要设置成的大小。
+
+         */
+        view.measure(measuredWidth, measuredHeight);
+        view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+
+        readerView.setCoverView(view);
+
+    }
+
 }

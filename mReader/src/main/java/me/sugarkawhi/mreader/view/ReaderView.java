@@ -8,8 +8,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -47,6 +51,9 @@ public class ReaderView extends View {
     public PageElement mPageElement;
     public ChapterBean mCurChapter, mPreChapter, mNextChapter;
 
+    //背景图
+    private Bitmap mReaderBackgroundBitmap;
+
     //View 宽 强制全屏
     private int mWidth;
     //View 高 强制全屏
@@ -69,6 +76,9 @@ public class ReaderView extends View {
     private Paint mHeaderPaint;
     //分页
     PageManager mPageManager;
+
+    //承载封面内容的View
+    private View mCoverView;
 
     private PageAnimController mAnimController;
 
@@ -120,8 +130,8 @@ public class ReaderView extends View {
         Bitmap bitmap = BitmapUtils.scaleBitmap(cover_bly, IReaderConfig.Cover.IMG_WIDTH, IReaderConfig.Cover.IMG_HEIGHT);
         mPageManager.setCover(bitmap);
         BookBean book = new BookBean();
-        book.setName("白鹿原");
-        book.setAuthorName("陈忠实 / 作品");
+        book.setName("战略级天使");
+        book.setAuthorName("白伯欢 / 作品");
         mPageManager.setBook(book);
     }
 
@@ -143,6 +153,18 @@ public class ReaderView extends View {
     private PageAnimController.IPageChangeListener mPageChangeListener = new PageAnimController.IPageChangeListener() {
         @Override
         public void onCancel() {
+
+        }
+
+        @Override
+        public void cancelPre() {
+            mCurrentIndex--;
+            mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
+            invalidate();
+        }
+
+        @Override
+        public void cancelNext() {
 
         }
 
@@ -208,6 +230,7 @@ public class ReaderView extends View {
         mAnimController.setIReaderTouchListener(readerTouchListener);
     }
 
+
     public void setTime(String time) {
         mPageElement.setTime(time);
         mAnimController.invalidate();
@@ -249,64 +272,25 @@ public class ReaderView extends View {
         mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
     }
 
-
-    /**
-     * @param bitmap 绘制背景bm
-     */
-    public void setReaderBackground(Bitmap bitmap) {
-        mPageElement.setBackgroundBitmap(bitmap);
-        mAnimController.invalidate();
-        invalidate();
+    public Bitmap getReaderBackgroundBitmap() {
+        return mReaderBackgroundBitmap;
     }
 
+
     /**
+     * 背景与文字颜色 1对1
+     *
      * @param bitmap    绘制背景bitmap
      * @param fontColor 背景对应字体颜色
      */
     public void setReaderBackground(Bitmap bitmap, int fontColor) {
-        mPageElement.setBackgroundBitmap(bitmap);
+        mReaderBackgroundBitmap = BitmapUtils.scaleBitmap(bitmap, mWidth, mHeight);
+        mPageElement.setBackgroundBitmap(mReaderBackgroundBitmap);
         mContentPaint.setColor(fontColor);
         mHeaderPaint.setColor(fontColor);
+        generateCover();
         mAnimController.invalidate();
         invalidate();
-    }
-
-    /**
-     * @param resId     背景资源id
-     * @param fontColor 背景对应于字体的颜色
-     */
-    public void setReaderBackground(int resId, int fontColor) {
-        Bitmap bitmap = BitmapUtils.sampling(getResources(), resId, mWidth, mHeight);
-        setReaderBackground(bitmap, fontColor);
-    }
-
-    /**
-     * @param color     背景颜色
-     * @param fontColor 背景对应于字体的颜色
-     */
-    public void setReaderBackgroundColor(int color, int fontColor) {
-        Bitmap bitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(color);
-        setReaderBackground(bitmap, fontColor);
-    }
-
-    /**
-     * setReaderBackground with drawable/color
-     */
-    public void setReaderBackground(int resId) {
-        Bitmap bitmap = BitmapUtils.sampling(getResources(), resId, mWidth, mHeight);
-        setReaderBackground(bitmap);
-    }
-
-    /**
-     * setReaderBackground with color
-     */
-    public void setReaderBackgroundColor(int color) {
-        Bitmap bitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.RGB_565);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(color);
-        setReaderBackground(bitmap);
     }
 
 
@@ -339,11 +323,24 @@ public class ReaderView extends View {
     }
 
     /**
-     * 设置文字颜色
+     * 如果是第一章 生成封面
      */
-    public void setFontColor(int fontColor) {
-        mContentPaint.setColor(fontColor);
+    private void generateCover() {
+        if (mCoverView == null) return;
+        Bitmap coverBitmap = BitmapUtils.getCoverBitmap(mCoverView, getReaderBackgroundBitmap());
+        mPageElement.setCoverBitmap(coverBitmap);
         mAnimController.invalidate();
         invalidate();
     }
+
+    /**
+     * 封面View
+     *
+     * @param coverView
+     */
+    public void setCoverView(View coverView) {
+        mCoverView = coverView;
+        generateCover();
+    }
+
 }

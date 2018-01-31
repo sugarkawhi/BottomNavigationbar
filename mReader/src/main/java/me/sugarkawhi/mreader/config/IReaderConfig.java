@@ -10,6 +10,8 @@ public interface IReaderConfig {
 
     boolean DEBUG = true;
 
+    //翻页动画时长
+    int DURATION_PAGE_SWITCH = 388;
     //标题和内容文字大小比例
     float RATIO_CHAPTER_CONTENT = 1.3f;
     //头部(包括底部 i.时间 ii.进度 )文字大小
@@ -29,9 +31,9 @@ public interface IReaderConfig {
 
     //关于电池的配置
     interface Battery {
-        int WIDTH = 60;
-        int HEIGHT = 30;
-        int HEAD = 6;
+        int WIDTH = 55;
+        int HEIGHT = 26;
+        int HEAD = 5;
         int GAP = 3;
     }
 

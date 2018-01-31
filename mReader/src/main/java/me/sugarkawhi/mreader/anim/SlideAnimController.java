@@ -9,6 +9,8 @@ import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.view.ReaderView;
 
+import static me.sugarkawhi.mreader.config.IReaderConfig.DURATION_PAGE_SWITCH;
+
 /**
  * Slide page anim controller
  * Created by ZhaoZongyao on 2018/1/11.
@@ -96,7 +98,7 @@ public class SlideAnimController extends PageAnimController {
                 }
                 break;
         }
-        int duration = 450 * Math.abs(dx) / mReaderWidth;
+        int duration = DURATION_PAGE_SWITCH * Math.abs(dx) / mReaderWidth;
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
         mReaderView.postInvalidate();
     }

@@ -4,8 +4,12 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.view.View;
 
 /**
  * Bitmap 二次采样
@@ -92,6 +96,20 @@ public class BitmapUtils {
             origin.recycle();
         }
         return newBM;
+    }
+
+    /**
+     *
+     */
+    public static Bitmap getCoverBitmap(View view, Bitmap backgroundBitmap) {
+        int width = ScreenUtils.getScreenWidth(view.getContext());
+        int height = ScreenUtils.getScreenHeight(view.getContext());
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        Canvas canvas = new Canvas(bitmap);
+        if (backgroundBitmap == null) canvas.drawColor(Color.WHITE);
+        else canvas.drawBitmap(backgroundBitmap, 0, 0, null);
+        view.draw(canvas);
+        return bitmap;
     }
 
 }

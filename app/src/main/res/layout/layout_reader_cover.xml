@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/reader_cover_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="50dp"
+    android:paddingTop="80dp">
+
+    <ImageView
+        android:id="@+id/reader_cover_img"
+        android:layout_width="120dp"
+        android:layout_height="172dp"
+        android:layout_centerHorizontal="true"
+        tools:background="#ddd" />
+
+    <TextView
+        android:id="@+id/reader_cover_bookName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/reader_cover_img"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="20dp"
+        android:textColor="#000"
+        android:textSize="20sp"
+        tools:text="白鹿原" />
+
+    <TextView
+        android:id="@+id/reader_cover_authorName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/reader_cover_bookName"
+        android:layout_centerHorizontal="true"
+        android:textColor="#999"
+        android:textSize="12sp"
+        tools:text="陈忠实" />
+
+
+    <TextView
+        android:id="@+id/reader_cover_copyright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="版权所有·侵权必究"
+        android:textColor="#888"
+        android:textSize="12sp" />
+
+
+    <TextView
+        android:id="@+id/reader_cover_company"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/reader_cover_copyright"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="5dp"
+        android:gravity="center"
+        android:text="北京红阅科技有限公司"
+        android:textColor="#777"
+        android:textSize="15sp" />
+
+</RelativeLayout>

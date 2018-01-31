@@ -22,4 +22,20 @@ public class ScreenUtils {
         return arr;
 
     }
+
+    public static int getScreenWidth(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics dm = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(dm);
+        int[] arr = new int[2];
+        return dm.widthPixels;
+    }
+
+    public static int getScreenHeight(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics dm = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(dm);
+        int[] arr = new int[2];
+        return dm.heightPixels;
+    }
 }

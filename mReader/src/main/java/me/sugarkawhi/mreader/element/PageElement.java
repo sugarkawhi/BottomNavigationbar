@@ -46,7 +46,8 @@ public class PageElement {
     //背景Bitmap 有时候纯色 有时候纹理图片
     private Bitmap mBackgroundBitmap;
     private Canvas mBackgroundCanvas;
-
+    //扉页 Bitmap
+    private Bitmap mCoverBitmap;
 
     public PageElement(int readerWidth, int readerHeight,
                        float headerHeight, float footerHeight,
@@ -91,23 +92,29 @@ public class PageElement {
     public void generatePage(PageData pageData, Bitmap bitmap) {
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        //draw background
-        canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
-        //封面页 不画顶部和底部
+        //非封面页
         if (!pageData.isCover()) {
+            //draw background
+            canvas.drawBitmap(mBackgroundBitmap, 0, 0, null);
             //set header
             mHeaderElement.setChapterName(pageData.getChapterName());
             mHeaderElement.onDraw(canvas);
             //set footer
             mFooterElement.setProgress(pageData.getProgress());
             mFooterElement.onDraw(canvas);
+            //set line
+            mLineElement.setLineData(pageData.getLines());
+            mLineElement.onDraw(canvas);
+            List<ImageData> images = pageData.getImages();
+            mImageElement.setImageDataList(images);
+            mImageElement.onDraw(canvas);
         }
-        //set line
-        mLineElement.setLineData(pageData.getLines());
-        mLineElement.onDraw(canvas);
-        List<ImageData> images = pageData.getImages();
-        mImageElement.setImageDataList(images);
-        mImageElement.onDraw(canvas);
+        //封面页
+        else {
+            if (mCoverBitmap == null) return;
+            canvas.drawBitmap(mCoverBitmap, 0, 0, null);
+        }
+
     }
 
     public void setTime(String time) {
@@ -118,4 +125,7 @@ public class PageElement {
         mFooterElement.setElectric(electric);
     }
 
+    public void setCoverBitmap(Bitmap bitmap) {
+        this.mCoverBitmap = bitmap;
+    }
 }
