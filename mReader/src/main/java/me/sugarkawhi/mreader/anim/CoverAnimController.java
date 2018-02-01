@@ -22,7 +22,7 @@ public class CoverAnimController extends PageAnimController {
     private GradientDrawable mBackShadowDrawableLR;
 
     public CoverAnimController(ReaderView readerView, int readerWidth, int readerHeight, PageElement pageElement, IPageChangeListener pageChangeListener) {
-        super(readerView, readerWidth, readerHeight, pageElement,pageChangeListener);
+        super(readerView, readerWidth, readerHeight, pageElement, pageChangeListener);
         mSrcRect = new Rect(0, 0, readerWidth, readerHeight);
         mDstRect = new Rect(0, 0, readerWidth, readerHeight);
         int[] mBackShadowColors = new int[]{0x66000000, 0x00000000};
@@ -70,7 +70,7 @@ public class CoverAnimController extends PageAnimController {
     }
 
     @Override
-    void startScroll() {
+    protected void startScroll() {
         int dx;
         isScroll = true;
         switch (mDirection) {
@@ -87,7 +87,6 @@ public class CoverAnimController extends PageAnimController {
         int duration = ((444 * Math.abs(dx)) / mReaderWidth);
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
     }
-
 
 
 }

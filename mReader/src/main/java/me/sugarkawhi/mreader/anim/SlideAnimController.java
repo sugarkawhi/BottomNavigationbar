@@ -61,7 +61,7 @@ public class SlideAnimController extends PageAnimController {
             case IReaderDirection.PRE:
                 // 取消状态下，并且发生越界了
                 if (mStartX >= mTouchX) {
-                    canvas.drawBitmap(mCurrentBitmap, 0, 0, null);
+                    canvas.drawBitmap(mNextBitmap, 0, 0, null);
                     return;
                 }
                 mCurSrcRect.left = mReaderWidth - xOffset;
@@ -72,35 +72,6 @@ public class SlideAnimController extends PageAnimController {
                 canvas.drawBitmap(mNextBitmap, mNextSrcRect, mNextDstRect, null);
                 break;
         }
-    }
-
-    @Override
-    void startScroll() {
-        isScroll = true;
-        int dx = 0;
-        switch (mDirection) {
-            case IReaderDirection.NEXT:
-                if (!hasNext()) return;
-                if (isCancel) {
-                    if (mStartX <= mTouchX) return;
-                    dx = mStartX - mTouchX;
-                } else {
-                    dx = -(mReaderWidth - (mStartX - mTouchX));
-                }
-                break;
-            case IReaderDirection.PRE:
-                if (!hasPre()) return;
-                if (isCancel) {
-                    if (mStartX >= mTouchX) return;
-                    dx = mStartX - mTouchX;
-                } else {
-                    dx = mReaderWidth - (mTouchX - mStartX);
-                }
-                break;
-        }
-        int duration = DURATION_PAGE_SWITCH * Math.abs(dx) / mReaderWidth;
-        mScroller.startScroll(mTouchX, 0, dx, 0, duration);
-        mReaderView.postInvalidate();
     }
 
 }

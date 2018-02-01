@@ -87,7 +87,7 @@ public class PageManager {
     public List<PageData> generatePages(ChapterBean chapter, BufferedReader br) {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
-        //TODO 生成封面
+
         if (chapter.isFirstChapter()) {
             generateCover(pages);
         }
@@ -282,62 +282,14 @@ public class PageManager {
         }
     }
 
-    private Bitmap mCoverBitmap;
-    private BookBean mBook;
 
-    public void setCover(Bitmap bitmap) {
-        this.mCoverBitmap = bitmap;
-    }
-
-    public void setBook(BookBean book) {
-        mBook = book;
-    }
 
     /**
      * 如果是第一章 生成封面
-     * TODO  简单画一张图片
      */
     private void generateCover(List<PageData> pages) {
-        if (mBook == null) return;
         PageData pageData = new PageData();
-        List<ImageData> images = new ArrayList<>();
-        List<LineData> lines = new ArrayList<>();
-        //设置为封面页
         pageData.setCover(true);
-        //封面
-        ImageData coverImg = new ImageData();
-        coverImg.setBitmap(mCoverBitmap);
-        float bookImgX = mContentWidth / 2 - mCoverBitmap.getWidth() / 2;
-        coverImg.setX(bookImgX);
-        coverImg.setY(100);
-        images.add(coverImg);
-        //书名
-        LineData nameLine = new LineData();
-        mCoverPaint.setTextSize(IReaderConfig.Cover.FONT_SIZE_BOOKNAME);
-        String bookName = mBook.getName();
-        nameLine.setLine(bookName);
-        float bookNameWidth = mCoverPaint.measureText(bookName);
-        float bookNameHeight = mCoverPaint.getFontSpacing();
-        float bookNameX = mContentWidth / 2 - bookNameWidth / 2;
-        nameLine.setOffsetX(bookNameX);
-        nameLine.setOffsetY(coverImg.getY() + coverImg.getBitmap().getHeight() + 30 + bookNameHeight);
-        lines.add(nameLine);
-        //作者名
-        LineData authorLine = new LineData();
-        mCoverPaint.setTextSize(IReaderConfig.Cover.FONT_SIZE_AUTHOR);
-        String authorName = mBook.getAuthorName();
-        authorLine.setLine(authorName);
-        float authorNameWidth = mCoverPaint.measureText(authorName);
-        float authorNameHeight = mCoverPaint.getFontSpacing();
-        float authorNameX = mContentWidth / 2 - authorNameWidth / 2;
-        authorLine.setOffsetX(authorNameX);
-        authorLine.setOffsetY(nameLine.getOffsetY() + 20 + authorNameHeight);
-        lines.add(authorLine);
-        //logo TODO
-
-
-        pageData.setImages(images);
-        pageData.setLines(lines);
         pages.add(pageData);
     }
 

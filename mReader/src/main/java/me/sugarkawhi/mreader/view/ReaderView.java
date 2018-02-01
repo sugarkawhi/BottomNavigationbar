@@ -34,7 +34,9 @@ import me.sugarkawhi.mreader.config.IReaderPageMode;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
+import me.sugarkawhi.mreader.manager.PageGenerater;
 import me.sugarkawhi.mreader.manager.PageManager;
+import me.sugarkawhi.mreader.manager.PageRespository;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.BitmapUtils;
 import me.sugarkawhi.mreader.utils.L;
@@ -82,6 +84,8 @@ public class ReaderView extends View {
 
     private PageAnimController mAnimController;
 
+    private PageRespository mRespository;
+
     public ReaderView(Context context) {
         this(context, null);
     }
@@ -126,16 +130,13 @@ public class ReaderView extends View {
                 20, 50,
                 mCoverPaint, mContentPaint, mChapterNamePaint);
         init();
-        Bitmap cover_bly = BitmapUtils.sampling(getResources(), R.drawable.cover_zljts, mWidth, mHeight);
-        Bitmap bitmap = BitmapUtils.scaleBitmap(cover_bly, IReaderConfig.Cover.IMG_WIDTH, IReaderConfig.Cover.IMG_HEIGHT);
-        mPageManager.setCover(bitmap);
-        BookBean book = new BookBean();
-        book.setName("战略级天使");
-        book.setAuthorName("白伯欢 / 作品");
-        mPageManager.setBook(book);
     }
 
+    /**
+     * 初始化
+     */
     private void init() {
+        mRespository = new PageRespository();
         setMode(IReaderPageMode.SLIDE);
     }
 
@@ -158,9 +159,6 @@ public class ReaderView extends View {
 
         @Override
         public void cancelPre() {
-            mCurrentIndex--;
-            mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
-            invalidate();
         }
 
         @Override
@@ -170,41 +168,15 @@ public class ReaderView extends View {
 
         @Override
         public boolean hasPre() {
-            return mCurrentIndex > 0;
+            return false;
         }
 
         @Override
         public boolean hasNext() {
-            return mCurrentIndex < mPageDataList.size() - 1;
+            PageData pageData = mRespository.getNextPage();
+            PageGenerater.generate(mPageElement, pageData, mAnimController.getNextBitmap());
+            return pageData != null;
         }
-
-        @Override
-        public PageData getPrePageData() {
-            return mPageDataList.get(mCurrentIndex - 1);
-        }
-
-
-        @Override
-        public void onSelectPre() {
-            mCurrentIndex--;
-            mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
-            invalidate();
-        }
-
-        @Override
-        public PageData getNextPageData() {
-            return mPageDataList.get(mCurrentIndex + 1);
-        }
-
-
-        @Override
-        public void onSelectNext() {
-            mCurrentIndex++;
-            mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
-            invalidate();
-        }
-
-
     };
 
     @Override
@@ -233,13 +205,13 @@ public class ReaderView extends View {
 
     public void setTime(String time) {
         mPageElement.setTime(time);
-        mAnimController.invalidate();
+
         invalidate();
     }
 
     public void setElectric(float electric) {
         mPageElement.setElectric(electric);
-        mAnimController.invalidate();
+
         invalidate();
     }
 
@@ -256,8 +228,7 @@ public class ReaderView extends View {
     }
 
     //阅读器维护一个页面的队列
-    private List<PageData> mPageDataList = new ArrayList<>();
-    private int mCurrentIndex = 0;
+
 
     private void chapterHandler(ChapterBean chapter) {
         if (chapter == null) return;
@@ -266,16 +237,21 @@ public class ReaderView extends View {
         // read it with BufferedReader
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         List<PageData> pages = mPageManager.generatePages(chapter, br);
-        mPageDataList.clear();
-        mPageDataList.addAll(pages);
-
-        mAnimController.setCurrentPageData(mPageDataList.get(mCurrentIndex));
+        mRespository.setCurPageList(pages);
+        drawCurrentPage(mRespository.getCurPage());
     }
 
     public Bitmap getReaderBackgroundBitmap() {
         return mReaderBackgroundBitmap;
     }
 
+    /**
+     * 绘制当前页面
+     */
+    public void drawCurrentPage(PageData pageData) {
+        PageGenerater.generate(mPageElement, pageData, mAnimController.getNextBitmap());
+        invalidate();
+    }
 
     /**
      * 背景与文字颜色 1对1
@@ -289,7 +265,6 @@ public class ReaderView extends View {
         mContentPaint.setColor(fontColor);
         mHeaderPaint.setColor(fontColor);
         generateCover();
-        mAnimController.invalidate();
         invalidate();
     }
 
@@ -318,7 +293,7 @@ public class ReaderView extends View {
         mContentPaint.setTextSize(fontSize);
         mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
         chapterHandler(mCurChapter);
-        mAnimController.invalidate();
+
         invalidate();
     }
 
@@ -329,7 +304,6 @@ public class ReaderView extends View {
         if (mCoverView == null) return;
         Bitmap coverBitmap = BitmapUtils.getCoverBitmap(mCoverView, getReaderBackgroundBitmap());
         mPageElement.setCoverBitmap(coverBitmap);
-        mAnimController.invalidate();
         invalidate();
     }
 

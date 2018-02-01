@@ -90,6 +90,7 @@ public class PageElement {
      * @param bitmap   绘制的bitmap对象
      */
     public void generatePage(PageData pageData, Bitmap bitmap) {
+        if (pageData == null || bitmap == null) return;
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         //非封面页
