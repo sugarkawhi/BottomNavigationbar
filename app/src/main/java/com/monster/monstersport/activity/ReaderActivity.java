@@ -9,26 +9,19 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
+import com.monster.monstersport.dialog.BottomSheetDialog;
 import com.monster.monstersport.persistence.HyReaderPersistence;
 import com.monster.monstersport.util.Constant;
 
-import org.apache.commons.lang3.BitField;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -40,7 +33,6 @@ import me.sugarkawhi.mreader.bean.BookBean;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
-import me.sugarkawhi.mreader.utils.BitmapUtils;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 import me.sugarkawhi.mreader.view.ReaderView;
 
@@ -81,14 +73,7 @@ public class ReaderActivity extends BaseActivity {
         setContentView(R.layout.activity_reader);
         ButterKnife.bind(this);
         init();
-        ChapterBean chapter = new ChapterBean();
-        chapter.setBookName("《白鹿原》");
-        chapter.setFirstChapter(true);
-        chapter.setChapterName("第1章 一波未平 一波又起");
-        chapter.setChapterContent(Constant.TEST_CONTENT);
-        readerView.setChapter(chapter);
-        readerView.setElectric(0.6f);
-        readerView.setTime("当前时间 00:20");
+
         readerView.setReaderTouchListener(new IReaderTouchListener() {
             @Override
             public boolean canTouch() {
@@ -191,6 +176,7 @@ public class ReaderActivity extends BaseActivity {
 
             }
         });
+        setChapter();
     }
 
     private void show() {
@@ -207,6 +193,7 @@ public class ReaderActivity extends BaseActivity {
                 .translationY(readerBottomHeight)
                 .setDuration(200)
                 .start();
+        hideSystemUI();
     }
 
 
@@ -264,6 +251,11 @@ public class ReaderActivity extends BaseActivity {
         IReaderPersistence.saveFontSize(this, currentFont);
         readerView.setFontSize(currentFont);
         readerFontSize.setText(String.valueOf(currentFont));
+    }
+
+    @OnClick(R.id.tv_setting)
+    public void setting() {
+        hide();
     }
 
     /**
@@ -359,24 +351,42 @@ public class ReaderActivity extends BaseActivity {
         cover_img.setImageResource(R.drawable.cover_zljts);
         cover_bookName.setText(book.getName());
         cover_authorName.setText(book.getAuthorName());
-
         int width = ScreenUtils.getScreenWidth(this);
         int height = ScreenUtils.getScreenHeight(this);
         view.layout(0, 0, width, height);
-
         int measuredWidth = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
-
         int measuredHeight = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.AT_MOST);
-
         /** 当然，measure完后，并不会实际改变View的尺寸，需要调用View.layout方法去进行布局。
-
          * 按示例调用layout函数后，View的大小将会变成你想要设置成的大小。
-
          */
         view.measure(measuredWidth, measuredHeight);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
-
         readerView.setCoverView(view);
+    }
+
+    private void setChapter() {
+        readerView.setElectric(1f);
+        readerView.setTime("PM 3:20");
+
+        ChapterBean chapter1 = new ChapterBean();
+        chapter1.setBookName("《绝代双骄》");
+        chapter1.setFirstChapter(true);
+        chapter1.setChapterName("正文 第一章 名剑香花");
+        chapter1.setChapterContent(Constant.TEST1);
+
+        ChapterBean chapter2 = new ChapterBean();
+        chapter2.setBookName("《绝代双骄》");
+        chapter2.setFirstChapter(false);
+        chapter2.setChapterName("正文 第二章 刀下遗孤");
+        chapter2.setChapterContent(Constant.TEST2);
+
+        ChapterBean chapter3 = new ChapterBean();
+        chapter3.setBookName("《绝代双骄》");
+        chapter3.setFirstChapter(false);
+        chapter3.setChapterName("正文 第三章 第一神剑");
+        chapter3.setChapterContent(Constant.TEST2);
+
+        readerView.setChapters(chapter1, chapter2, chapter3);
 
     }
 

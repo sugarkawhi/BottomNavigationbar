@@ -8,18 +8,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 
 import me.sugarkawhi.mreader.R;
@@ -27,9 +22,9 @@ import me.sugarkawhi.mreader.anim.CoverAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
 import me.sugarkawhi.mreader.bean.Battery;
-import me.sugarkawhi.mreader.bean.BookBean;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
+import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.config.IReaderPageMode;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
@@ -51,7 +46,6 @@ public class ReaderView extends View {
     private static final String TAG = "MReaderView";
 
     public PageElement mPageElement;
-    public ChapterBean mCurChapter, mPreChapter, mNextChapter;
 
     //背景图
     private Bitmap mReaderBackgroundBitmap;
@@ -68,8 +62,6 @@ public class ReaderView extends View {
     private float mParagraphSpacing;
 
 
-    //封面 Paint
-    private Paint mCoverPaint;
     //章节名 Paint
     private Paint mChapterNamePaint;
     //内容 Paint
@@ -105,13 +97,8 @@ public class ReaderView extends View {
         mLineSpacing = IReaderConfig.LineSpacing.DEFAULT;
         mLetterSpacing = IReaderConfig.LetterSpacing.DEFAULT;
         mParagraphSpacing = IReaderConfig.ParagraphSpacing.DEFAULT;
-        Battery battery = new Battery(IReaderConfig.Battery.HEAD, IReaderConfig.Battery.WIDTH,
-                IReaderConfig.Battery.HEIGHT, IReaderConfig.Battery.GAP);
-        int screenSize[] = ScreenUtils.getScreenSize(context);
-        mWidth = screenSize[0];
-        mHeight = screenSize[1];
-        //
-        mCoverPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mWidth = ScreenUtils.getScreenWidth(context);
+        mHeight = ScreenUtils.getScreenHeight(context);
         //内容
         mContentPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mContentPaint.setTextSize(contentFontSize);
@@ -123,12 +110,11 @@ public class ReaderView extends View {
         mChapterNamePaint.setTextSize(contentFontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
         mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
         mPageElement = new PageElement(mWidth, mHeight,
-                headerHeight, footerHeight, padding, mLineSpacing, battery,
+                headerHeight, footerHeight, padding, mLineSpacing,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
                 mLetterSpacing, mLineSpacing, mParagraphSpacing,
-                20, 50,
-                mCoverPaint, mContentPaint, mChapterNamePaint);
+                20, mContentPaint, mChapterNamePaint);
         init();
     }
 
@@ -136,7 +122,7 @@ public class ReaderView extends View {
      * 初始化
      */
     private void init() {
-        mRespository = new PageRespository();
+        mRespository = new PageRespository(mPageElement);
         setMode(IReaderPageMode.SLIDE);
     }
 
@@ -152,30 +138,33 @@ public class ReaderView extends View {
     }
 
     private PageAnimController.IPageChangeListener mPageChangeListener = new PageAnimController.IPageChangeListener() {
-        @Override
-        public void onCancel() {
 
+        @Override
+        public void onCancel(int direction) {
+            mRespository.cancel(direction);
         }
 
         @Override
-        public void cancelPre() {
-        }
-
-        @Override
-        public void cancelNext() {
-
+        public void onSelectPage(int direction, boolean isCancel) {
+            if (direction == IReaderDirection.NEXT) {
+                if (!isCancel) {
+                    PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
+                } else {
+                    PageGenerater.generate(mPageElement, mRespository.getCancelPage(), mAnimController.getCurrentBitmap());
+                }
+            }
         }
 
         @Override
         public boolean hasPre() {
-            return false;
+            boolean hasPre = mRespository.pre(mAnimController.getCurrentBitmap(), mAnimController.getNextBitmap());
+            return hasPre;
         }
 
         @Override
         public boolean hasNext() {
-            PageData pageData = mRespository.getNextPage();
-            PageGenerater.generate(mPageElement, pageData, mAnimController.getNextBitmap());
-            return pageData != null;
+            boolean hasNext = mRespository.next(mAnimController.getCurrentBitmap(), mAnimController.getNextBitmap());
+            return hasNext;
         }
     };
 
@@ -215,30 +204,20 @@ public class ReaderView extends View {
         invalidate();
     }
 
+    /**
+     * 设置当前章节
+     * 阅读器维护一个页面的队列
+     *
+     * @param preChapter
+     * @param curChapter
+     * @param nextChapter
+     */
     public void setChapters(ChapterBean preChapter, ChapterBean curChapter, ChapterBean nextChapter) {
-        this.mPreChapter = preChapter;
-        this.mCurChapter = curChapter;
-        this.mNextChapter = nextChapter;
-    }
-
-
-    public void setChapter(ChapterBean curChapter) {
-        this.mCurChapter = curChapter;
-        chapterHandler(curChapter);
-    }
-
-    //阅读器维护一个页面的队列
-
-
-    private void chapterHandler(ChapterBean chapter) {
-        if (chapter == null) return;
-        // convert String into InputStream
-        InputStream is = new ByteArrayInputStream(chapter.getChapterContent().getBytes());
-        // read it with BufferedReader
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        List<PageData> pages = mPageManager.generatePages(chapter, br);
-        mRespository.setCurPageList(pages);
-        drawCurrentPage(mRespository.getCurPage());
+        mRespository.setCurPageList(mPageManager.generatePages(curChapter));
+        mRespository.setPrePageList(mPageManager.generatePages(preChapter));
+        mRespository.setNextPageList(mPageManager.generatePages(nextChapter));
+        drawCurrentPage();
+        invalidate();
     }
 
     public Bitmap getReaderBackgroundBitmap() {
@@ -248,8 +227,8 @@ public class ReaderView extends View {
     /**
      * 绘制当前页面
      */
-    public void drawCurrentPage(PageData pageData) {
-        PageGenerater.generate(mPageElement, pageData, mAnimController.getNextBitmap());
+    public void drawCurrentPage() {
+        PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
         invalidate();
     }
 
@@ -264,10 +243,11 @@ public class ReaderView extends View {
         mPageElement.setBackgroundBitmap(mReaderBackgroundBitmap);
         mContentPaint.setColor(fontColor);
         mHeaderPaint.setColor(fontColor);
-        generateCover();
+        createCover();
+        //需要重绘当前页面
+        PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
         invalidate();
     }
-
 
     /**
      * 设置当前进度
@@ -292,7 +272,6 @@ public class ReaderView extends View {
         }
         mContentPaint.setTextSize(fontSize);
         mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
-        chapterHandler(mCurChapter);
 
         invalidate();
     }
@@ -300,7 +279,7 @@ public class ReaderView extends View {
     /**
      * 如果是第一章 生成封面
      */
-    private void generateCover() {
+    private void createCover() {
         if (mCoverView == null) return;
         Bitmap coverBitmap = BitmapUtils.getCoverBitmap(mCoverView, getReaderBackgroundBitmap());
         mPageElement.setCoverBitmap(coverBitmap);
@@ -314,7 +293,7 @@ public class ReaderView extends View {
      */
     public void setCoverView(View coverView) {
         mCoverView = coverView;
-        generateCover();
+        createCover();
     }
 
 }

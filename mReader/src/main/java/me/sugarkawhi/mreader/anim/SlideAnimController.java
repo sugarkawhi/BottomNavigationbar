@@ -7,6 +7,7 @@ import android.util.Log;
 
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.element.PageElement;
+import me.sugarkawhi.mreader.utils.L;
 import me.sugarkawhi.mreader.view.ReaderView;
 
 import static me.sugarkawhi.mreader.config.IReaderConfig.DURATION_PAGE_SWITCH;
@@ -42,7 +43,7 @@ public class SlideAnimController extends PageAnimController {
 
     @Override
     void drawMove(Canvas canvas) {
-        Log.e(TAG, "drawMove: isCancel=" + isCancel);
+        L.e(TAG, "drawMove: isCancel=" + isCancel);
         int xOffset = Math.abs(mStartX - mTouchX);
         switch (mDirection) {
             case IReaderDirection.NEXT:

@@ -61,6 +61,7 @@
             android:textColor="@color/white" />
 
         <TextView
+            android:id="@+id/tv_setting"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

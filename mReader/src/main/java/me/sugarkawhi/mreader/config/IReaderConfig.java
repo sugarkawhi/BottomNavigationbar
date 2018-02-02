@@ -11,30 +11,19 @@ public interface IReaderConfig {
     boolean DEBUG = true;
 
     //翻页动画时长
-    int DURATION_PAGE_SWITCH = 388;
+    int DURATION_PAGE_SWITCH = 369;
     //标题和内容文字大小比例
     float RATIO_CHAPTER_CONTENT = 1.3f;
     //头部(包括底部 i.时间 ii.进度 )文字大小
     int DEFAULT_HEADER_TEXTSIZE = 35;
 
-    interface Cover {
-        //封面图片 宽高
-        int IMG_WIDTH = 400;
-        int IMG_HEIGHT = (int) (IMG_WIDTH * 1.43f);
-        //书名 大小
-        int FONT_SIZE_BOOKNAME = 60;
-        //作者名大小
-        int FONT_SIZE_AUTHOR = 60;
-
-
-    }
-
     //关于电池的配置
     interface Battery {
-        int WIDTH = 55;
-        int HEIGHT = 26;
-        int HEAD = 5;
-        int GAP = 3;
+        int WIDTH = 59;
+        int HEIGHT = 29;
+        float HEAD = 5.5f;
+        float GAP = 4f;
+        float RADIUS = 3.5f;
     }
 
     //字间距

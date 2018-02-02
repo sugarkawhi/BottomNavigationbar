@@ -1,11 +1,14 @@
 package me.sugarkawhi.mreader.element;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.text.TextUtils;
 
 import me.sugarkawhi.mreader.bean.Battery;
+import me.sugarkawhi.mreader.config.IReaderConfig;
+
+import static me.sugarkawhi.mreader.config.IReaderConfig.Battery.RADIUS;
 
 /**
  * 页尾部分：绘制每一页的页尾,包括进度，时间和电量。
@@ -22,18 +25,29 @@ public class FooterElement extends Element {
     private String time;
     private float electric;
     private Paint mPaint;
-    private float mBatteryWidth, mBatteryHeight, mBatteryHeadSize, mBatteryGap;
+    private float mBatteryWidth, mBatteryInWidth;
+    private float mBatteryGap;
+    private RectF mBatteryRectF, mBatteryHeadRectF;
 
-    public FooterElement(float readerWidth, float readerHeight, float footerHeight, float padding, Battery battery, Paint paint) {
+    public FooterElement(float readerWidth, float readerHeight, float footerHeight, float padding, Paint paint) {
         this.mReaderWidth = readerWidth;
         this.mReaderHeight = readerHeight;
         this.mFooterHeight = footerHeight;
         this.mPadding = padding;
-        this.mBatteryWidth = battery.getWidth();
-        this.mBatteryHeight = battery.getHeight();
-        this.mBatteryHeadSize = battery.getHead();
-        this.mBatteryGap = battery.getGap();
+        this.mBatteryWidth = IReaderConfig.Battery.WIDTH;
+        float batteryHeight = IReaderConfig.Battery.HEIGHT;
+        float batteryHeadSize = IReaderConfig.Battery.HEAD;
+        this.mBatteryGap = IReaderConfig.Battery.GAP;
+        mBatteryInWidth = mBatteryWidth - 2 * mBatteryGap;
         this.mPaint = paint;
+        mBatteryHeadRectF = new RectF(mReaderWidth - mPadding - batteryHeadSize,
+                (mReaderHeight - mFooterHeight / 2 - batteryHeadSize / 2),
+                (mReaderWidth - mPadding),
+                (mReaderHeight - mFooterHeight / 2 + batteryHeadSize / 2));
+        mBatteryRectF = new RectF(mReaderWidth - mPadding - batteryHeadSize - mBatteryWidth,
+                mReaderHeight - mFooterHeight / 2 - batteryHeight / 2,
+                mReaderWidth - mPadding - batteryHeadSize,
+                mReaderHeight - mFooterHeight / 2 + batteryHeight / 2);
     }
 
     public void setProgress(String progress) {
@@ -57,24 +71,16 @@ public class FooterElement extends Element {
             canvas.drawText(progress, mPadding, titleY, mPaint);
         }
         //画电池 STEP1: 电池头
-        canvas.drawRect(mReaderWidth - mPadding - mBatteryHeadSize,
-                mReaderHeight - mFooterHeight / 2 - mBatteryHeadSize / 2,
-                mReaderWidth - mPadding,
-                mReaderHeight - mFooterHeight / 2 + mBatteryHeadSize / 2,
-                mPaint);
+        canvas.drawRoundRect(mBatteryHeadRectF, RADIUS, RADIUS, mPaint);
         //画电池 STEP2: 电池外壳
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(2);
-        canvas.drawRect(mReaderWidth - mPadding - mBatteryHeadSize - mBatteryWidth,
-                mReaderHeight - mFooterHeight / 2 - mBatteryHeight / 2,
-                mReaderWidth - mPadding - mBatteryHeadSize,
-                mReaderHeight - mFooterHeight / 2 + mBatteryHeight / 2,
-                mPaint);
+        canvas.drawRoundRect(mBatteryRectF, RADIUS, RADIUS, mPaint);
         mPaint.setStyle(Paint.Style.FILL);
-        canvas.drawRect(mReaderWidth - mPadding - mBatteryHeadSize - mBatteryWidth + mBatteryGap,
-                mReaderHeight - mFooterHeight / 2 - mBatteryHeight / 2 + mBatteryGap,
-                mReaderWidth - mPadding - mBatteryHeadSize - mBatteryGap - (mBatteryWidth * (1 - electric)),
-                mReaderHeight - mFooterHeight / 2 + mBatteryHeight / 2 - mBatteryGap,
+        canvas.drawRect(mBatteryRectF.left + mBatteryGap,
+                mBatteryRectF.top + mBatteryGap,
+                mBatteryRectF.left + mBatteryGap + (mBatteryInWidth * electric),
+                mBatteryRectF.bottom - mBatteryGap,
                 mPaint);
         //画时间
         if (!TextUtils.isEmpty(time)) {

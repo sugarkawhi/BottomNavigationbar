@@ -24,6 +24,6 @@
     <!--字体颜色-->
     <color name="reader_font_default">#424242</color>
     <color name="reader_font_matcha">#454545</color>
-    <color name="reader_font_purple">#212121</color>
-    <color name="reader_font_blue">#363636</color>
+    <color name="reader_font_purple">#454545</color>
+    <color name="reader_font_blue">#454545</color>
 </resources>

@@ -51,7 +51,7 @@ public class PageElement {
 
     public PageElement(int readerWidth, int readerHeight,
                        float headerHeight, float footerHeight,
-                       float padding, float lineSpacing, Battery battery,
+                       float padding, float lineSpacing,
                        Paint headPaint, Paint contentPaint, Paint chapterNamePaint) {
         mReaderWidth = readerWidth;
         mReaderHeight = readerHeight;
@@ -59,7 +59,7 @@ public class PageElement {
         mContentHeight = readerHeight - headerHeight - footerHeight;
 
         mHeaderElement = new HeaderElement(headerHeight, padding, headPaint);
-        mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, battery, headPaint);
+        mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, headPaint);
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight,
                 padding, lineSpacing, contentPaint, chapterNamePaint);

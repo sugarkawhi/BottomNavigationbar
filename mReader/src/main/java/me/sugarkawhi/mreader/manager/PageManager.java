@@ -14,7 +14,10 @@ import android.widget.TextView;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,22 +58,20 @@ public class PageManager {
     //章节名 顶部、底部 间距
     private float mChapterNameMargin;
 
-    private Paint mCoverPaint;
     private Paint mContentPaint;
     private Paint mChapterNamePaint;
 
     public PageManager(float contentWidth, float contentHeight,
                        float letterSpacing, float lineSpacing, float paragraphSpacing,
-                       float chapterNameSpacing, float chapterNameMargin,
-                       Paint coverPaint, Paint contentPaint, Paint chapterNamePaint) {
+                       float chapterNameSpacing,
+                       Paint contentPaint, Paint chapterNamePaint) {
         mContentWidth = contentWidth;
         mContentHeight = contentHeight;
         mLetterSpacing = letterSpacing;
         mLineSpacing = lineSpacing;
         mParagraphSpacing = paragraphSpacing;
         mChapterNameSpacing = chapterNameSpacing;
-        mChapterNameMargin = chapterNameMargin;
-        mCoverPaint = coverPaint;
+        mChapterNameMargin = 70;
         mContentPaint = contentPaint;
         mChapterNamePaint = chapterNamePaint;
 
@@ -80,14 +81,17 @@ public class PageManager {
      * 分页 比较耗时
      *
      * @param chapter
-     * @param br
      * @return
      */
     @SuppressLint("DefaultLocale")
-    public List<PageData> generatePages(ChapterBean chapter, BufferedReader br) {
+    public List<PageData> generatePages(ChapterBean chapter) {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
 
+        if (chapter == null) return pages;
+        InputStream is = new ByteArrayInputStream(chapter.getChapterContent().getBytes());
+        // read it with BufferedReader
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
         if (chapter.isFirstChapter()) {
             generateCover(pages);
         }
@@ -281,7 +285,6 @@ public class PageManager {
             letter.setOffsetX(newOffsetX);
         }
     }
-
 
 
     /**
