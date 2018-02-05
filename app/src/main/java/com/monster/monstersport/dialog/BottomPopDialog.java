@@ -3,36 +3,25 @@ package com.monster.monstersport.dialog;
 import android.animation.Animator;
 import android.app.Dialog;
 import android.content.Context;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.widget.FrameLayout;
-import android.widget.PopupWindow;
-
-import com.monster.monstersport.R;
-
-import me.sugarkawhi.mreader.utils.ScreenUtils;
-import okhttp3.Interceptor;
 
 /**
  * 底部弹出Dialog
  * Created by ZhaoZongyao on 2018/1/30.
  */
 
-public abstract class BottomSheetDialog extends Dialog {
+public abstract class BottomPopDialog extends Dialog {
 
     private Interpolator mInterceptor;
     private View mContentView;
     private int mContentHeight;
 
-    public BottomSheetDialog(Context context) {
+    public BottomPopDialog(Context context) {
         super(context);
         mInterceptor = new LinearInterpolator();
         init();
@@ -62,6 +51,10 @@ public abstract class BottomSheetDialog extends Dialog {
 
     public abstract int getLayoutId();
 
+    public View getContentView() {
+        return mContentView;
+    }
+
     @Override
     public void show() {
         super.show();
@@ -90,7 +83,7 @@ public abstract class BottomSheetDialog extends Dialog {
 
         @Override
         public void onAnimationEnd(Animator animation) {
-            BottomSheetDialog.super.dismiss();
+            BottomPopDialog.super.dismiss();
         }
 
         @Override

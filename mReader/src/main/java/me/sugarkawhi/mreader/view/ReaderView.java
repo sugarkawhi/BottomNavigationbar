@@ -6,22 +6,20 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import me.sugarkawhi.mreader.R;
 import me.sugarkawhi.mreader.anim.CoverAnimController;
+import me.sugarkawhi.mreader.anim.NoneAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
-import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.bean.ChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
@@ -43,6 +41,14 @@ import me.sugarkawhi.mreader.utils.ScreenUtils;
  */
 public class ReaderView extends View {
 
+    //加载中
+    private static final int STATE_LOADING = 1;
+    //打开书籍成功
+    private static final int STATE_OPEN = 2;
+
+    //当前状态
+    private int mCurrentState = STATE_LOADING;
+
     private static final String TAG = "MReaderView";
 
     public PageElement mPageElement;
@@ -54,12 +60,6 @@ public class ReaderView extends View {
     private int mWidth;
     //View 高 强制全屏
     private int mHeight;
-    //字间距
-    private float mLetterSpacing;
-    //行间距
-    private float mLineSpacing;
-    //段落间距
-    private float mParagraphSpacing;
 
 
     //章节名 Paint
@@ -74,6 +74,7 @@ public class ReaderView extends View {
     //承载封面内容的View
     private View mCoverView;
 
+    private IReaderTouchListener mReaderTouchListener;
     private PageAnimController mAnimController;
 
     private PageRespository mRespository;
@@ -94,9 +95,9 @@ public class ReaderView extends View {
         float padding = array.getDimensionPixelSize(R.styleable.ReaderView_mReader_padding, 8);
         array.recycle();
         int contentFontSize = IReaderPersistence.getFontSize(context);
-        mLineSpacing = IReaderConfig.LineSpacing.DEFAULT;
-        mLetterSpacing = IReaderConfig.LetterSpacing.DEFAULT;
-        mParagraphSpacing = IReaderConfig.ParagraphSpacing.DEFAULT;
+        int lineSpacing = IReaderConfig.LineSpacing.DEFAULT;
+        int letterSpacing = IReaderConfig.LetterSpacing.DEFAULT;
+        int paragraphSpacing = IReaderConfig.ParagraphSpacing.DEFAULT;
         mWidth = ScreenUtils.getScreenWidth(context);
         mHeight = ScreenUtils.getScreenHeight(context);
         //内容
@@ -110,10 +111,10 @@ public class ReaderView extends View {
         mChapterNamePaint.setTextSize(contentFontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
         mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
         mPageElement = new PageElement(mWidth, mHeight,
-                headerHeight, footerHeight, padding, mLineSpacing,
+                headerHeight, footerHeight, padding,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
-                mLetterSpacing, mLineSpacing, mParagraphSpacing,
+                letterSpacing, lineSpacing, paragraphSpacing,
                 20, mContentPaint, mChapterNamePaint);
         init();
     }
@@ -123,10 +124,19 @@ public class ReaderView extends View {
      */
     private void init() {
         mRespository = new PageRespository(mPageElement);
-        setMode(IReaderPageMode.SLIDE);
+        setPageMode(IReaderPageMode.COVER);
     }
 
-    public void setMode(int mode) {
+    /**
+     * 设置翻页模式
+     * {@link #(IReaderPageMode.COVER)} 覆盖模式
+     * {@link #(IReaderPageMode.SLIDE)}  平移模式
+     * {@link #(IReaderPageMode.NONE)}  无动画
+     * {@link #(IReaderPageMode.SIMULATION)} 仿真
+     *
+     * @param mode 翻页模式
+     */
+    public void setPageMode(int mode) {
         switch (mode) {
             case IReaderPageMode.COVER:
                 mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
@@ -134,7 +144,11 @@ public class ReaderView extends View {
             case IReaderPageMode.SLIDE:
                 mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
+            case IReaderPageMode.NONE:
+                mAnimController = new NoneAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
+                break;
         }
+        mAnimController.setIReaderTouchListener(mReaderTouchListener);
     }
 
     private PageAnimController.IPageChangeListener mPageChangeListener = new PageAnimController.IPageChangeListener() {
@@ -170,7 +184,12 @@ public class ReaderView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        mAnimController.dispatchDrawPage(canvas);
+        if (mCurrentState == STATE_LOADING) {
+            if (mReaderBackgroundBitmap != null)
+                canvas.drawBitmap(mReaderBackgroundBitmap, 0, 0, null);
+        } else {
+            mAnimController.dispatchDrawPage(canvas);
+        }
     }
 
     @Override
@@ -188,7 +207,8 @@ public class ReaderView extends View {
      * set reader touch listener
      */
     public void setReaderTouchListener(IReaderTouchListener readerTouchListener) {
-        mAnimController.setIReaderTouchListener(readerTouchListener);
+        this.mReaderTouchListener = readerTouchListener;
+        mAnimController.setIReaderTouchListener(mReaderTouchListener);
     }
 
 
@@ -204,6 +224,9 @@ public class ReaderView extends View {
         invalidate();
     }
 
+
+    private ChapterBean mCurChapter, mPreChapter, mNextChapter;
+
     /**
      * 设置当前章节
      * 阅读器维护一个页面的队列
@@ -213,11 +236,26 @@ public class ReaderView extends View {
      * @param nextChapter
      */
     public void setChapters(ChapterBean preChapter, ChapterBean curChapter, ChapterBean nextChapter) {
-        mRespository.setCurPageList(mPageManager.generatePages(curChapter));
-        mRespository.setPrePageList(mPageManager.generatePages(preChapter));
-        mRespository.setNextPageList(mPageManager.generatePages(nextChapter));
-        drawCurrentPage();
-        invalidate();
+        mPreChapter = preChapter;
+        mCurChapter = curChapter;
+        mNextChapter = nextChapter;
+        new AsyncTask<ChapterBean, Void, List<List<PageData>>>() {
+            @Override
+            protected List<List<PageData>> doInBackground(ChapterBean... chapters) {
+                List<List<PageData>> lists = new ArrayList<>();
+                lists.add(mPageManager.generatePages(chapters[0]));
+                return lists;
+            }
+
+            @Override
+            protected void onPostExecute(List<List<PageData>> lists) {
+                super.onPostExecute(lists);
+                mCurrentState = STATE_OPEN;
+                mRespository.setCurPageList(lists.get(0));
+                drawCurrentPage();
+                invalidate();
+            }
+        }.execute(curChapter, preChapter, curChapter);
     }
 
     public Bitmap getReaderBackgroundBitmap() {
@@ -243,6 +281,7 @@ public class ReaderView extends View {
         mPageElement.setBackgroundBitmap(mReaderBackgroundBitmap);
         mContentPaint.setColor(fontColor);
         mHeaderPaint.setColor(fontColor);
+        //重新绘制封面扉页
         createCover();
         //需要重绘当前页面
         PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
@@ -273,6 +312,23 @@ public class ReaderView extends View {
         mContentPaint.setTextSize(fontSize);
         mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
 
+        new AsyncTask<ChapterBean, Void, List<List<PageData>>>() {
+            @Override
+            protected List<List<PageData>> doInBackground(ChapterBean... chapters) {
+                List<List<PageData>> lists = new ArrayList<>();
+                lists.add(mPageManager.generatePages(chapters[0]));
+                return lists;
+            }
+
+            @Override
+            protected void onPostExecute(List<List<PageData>> lists) {
+                super.onPostExecute(lists);
+                mRespository.setCurPageList(lists.get(0));
+                drawCurrentPage();
+                invalidate();
+            }
+        }.execute(mCurChapter);
+
         invalidate();
     }
 
@@ -296,4 +352,68 @@ public class ReaderView extends View {
         createCover();
     }
 
+
+    /**
+     * 设置文字间距 TODO 需要重新分页
+     *
+     * @param letterSpacing 文字间距
+     */
+    public void setLetterSpacing(int letterSpacing) {
+        if (letterSpacing > IReaderConfig.LetterSpacing.MAX)
+            letterSpacing = IReaderConfig.LetterSpacing.MAX;
+        else if (letterSpacing < IReaderConfig.LetterSpacing.MIN)
+            letterSpacing = IReaderConfig.LetterSpacing.MIN;
+        mPageManager.setLetterSpacing(letterSpacing);
+        dispose();
+    }
+
+    /**
+     * 设置行间距 TODO 需要重新分页
+     *
+     * @param lineSpacing 行间距
+     */
+    public void setLineSpacing(int lineSpacing) {
+        if (lineSpacing > IReaderConfig.LineSpacing.MAX)
+            lineSpacing = IReaderConfig.LineSpacing.MAX;
+        else if (lineSpacing < IReaderConfig.LineSpacing.MIN)
+            lineSpacing = IReaderConfig.LineSpacing.MIN;
+        mPageManager.setLineSpacing(lineSpacing);
+        dispose();
+    }
+
+    /**
+     * 设置文字间距 TODO 需要重新分页
+     *
+     * @param paragraphSpacing 段间距
+     */
+    public void setParagraphSpacing(int paragraphSpacing) {
+        if (paragraphSpacing > IReaderConfig.ParagraphSpacing.MAX)
+            paragraphSpacing = IReaderConfig.ParagraphSpacing.MAX;
+        else if (paragraphSpacing < IReaderConfig.ParagraphSpacing.MIN)
+            paragraphSpacing = IReaderConfig.ParagraphSpacing.MIN;
+        mPageManager.setParagraphSpacing(paragraphSpacing);
+        dispose();
+    }
+
+    private void dispose() {
+        new AsyncTask<ChapterBean, Void, List<List<PageData>>>() {
+            @Override
+            protected List<List<PageData>> doInBackground(ChapterBean... chapters) {
+                List<List<PageData>> lists = new ArrayList<>();
+                lists.add(mPageManager.generatePages(chapters[0]));
+//                lists.add(mPageManager.generatePages(chapters[1]));
+//                lists.add(mPageManager.generatePages(chapters[2]));
+                return lists;
+            }
+
+            @Override
+            protected void onPostExecute(List<List<PageData>> lists) {
+                super.onPostExecute(lists);
+                mRespository.setCurPageList(lists.get(0));
+                drawCurrentPage();
+                invalidate();
+            }
+        }.execute(mCurChapter, mPreChapter, mNextChapter);
+
+    }
 }

@@ -15,6 +15,8 @@
     <color name="letter_color3">#FABC76</color>
     <color name="letter_color4">#959595</color>
 
+
+    <color name="reader_setting_bg">#F22c2c2c</color>
     <!--背景颜色-->
     <color name="reader_bg_matcha">#CCEBCC</color>
     <color name="reader_bg_purple">#D5BBF6</color>

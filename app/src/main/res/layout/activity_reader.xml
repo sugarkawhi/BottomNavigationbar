@@ -17,7 +17,7 @@
             android:layout_height="match_parent"
             app:mReader_footerHeight="40dp"
             app:mReader_headerHeight="40dp"
-            app:mReader_padding="20dp" />
+            app:mReader_padding="18dp" />
 
         <include
             android:id="@+id/reader_bottom"

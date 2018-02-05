@@ -88,8 +88,8 @@ public abstract class PageAnimController {
         mTouchSlop = ViewConfiguration.get(readerView.getContext()).getScaledTouchSlop();
     }
 
-    public void setIReaderTouchListener(IReaderTouchListener IReaderTouchListener) {
-        mIReaderTouchListener = IReaderTouchListener;
+    public void setIReaderTouchListener(IReaderTouchListener listener) {
+        mIReaderTouchListener = listener;
     }
 
 
@@ -140,7 +140,7 @@ public abstract class PageAnimController {
      */
     public boolean dispatchTouchEvent(MotionEvent event) {
 
-        if (!mIReaderTouchListener.canTouch()) {
+        if (mIReaderTouchListener != null && !mIReaderTouchListener.canTouch()) {
             if (event.getAction() == MotionEvent.ACTION_UP) mIReaderTouchListener.onTouchCenter();
             return true;
         }
@@ -282,7 +282,7 @@ public abstract class PageAnimController {
     /**
      * 是否有下一页
      */
-    protected boolean hasNext() {
+    private boolean hasNext() {
         return mPageChangeListener.hasNext();
     }
 
@@ -311,12 +311,6 @@ public abstract class PageAnimController {
         return mCurrentBitmap;
     }
 
-    /**
-     * 请求重绘
-     * 在重新设置了字体大小、背景登操作后
-     */
-    public void requestInvalidate() {
-    }
 
     public interface IPageChangeListener {
 

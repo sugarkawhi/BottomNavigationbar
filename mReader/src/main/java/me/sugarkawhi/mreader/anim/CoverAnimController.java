@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
 
+import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.view.ReaderView;
@@ -44,10 +45,14 @@ public class CoverAnimController extends PageAnimController {
 
     @Override
     void drawMove(Canvas canvas) {
-        Log.e(TAG, "drawMove: ");
         int xOffset = Math.abs(mStartX - mTouchX);
         switch (mDirection) {
             case IReaderDirection.NEXT:
+                // 取消状态下，并且发生越界了
+                if (mTouchX >= mStartX) {
+                    canvas.drawBitmap(mCurrentBitmap, 0, 0, null);
+                    return;
+                }
                 int dis = mReaderWidth - xOffset;
                 if (dis > mReaderWidth) {
                     dis = mReaderWidth;
@@ -59,7 +64,11 @@ public class CoverAnimController extends PageAnimController {
                 addShadow(dis, canvas);
                 break;
             case IReaderDirection.PRE:
-            case IReaderDirection.NONE:
+                // 取消状态下，并且发生越界了
+                if (mStartX >= mTouchX) {
+                    canvas.drawBitmap(mNextBitmap, 0, 0, null);
+                    return;
+                }
                 mSrcRect.left = mReaderWidth - xOffset;
                 mDstRect.right = xOffset;
                 canvas.drawBitmap(mNextBitmap, 0, 0, null);
@@ -68,25 +77,5 @@ public class CoverAnimController extends PageAnimController {
                 break;
         }
     }
-
-    @Override
-    protected void startScroll() {
-        int dx;
-        isScroll = true;
-        switch (mDirection) {
-            case IReaderDirection.NEXT:
-                dx = -(mTouchX + (mReaderWidth - mStartX));
-                break;
-            case IReaderDirection.PRE:
-                dx = (mReaderWidth - (mTouchX - mStartX));
-                break;
-            default:
-                dx = 0;
-        }
-        Log.e(TAG, "startScroll: dx=" + dx);
-        int duration = ((444 * Math.abs(dx)) / mReaderWidth);
-        mScroller.startScroll(mTouchX, 0, dx, 0, duration);
-    }
-
 
 }

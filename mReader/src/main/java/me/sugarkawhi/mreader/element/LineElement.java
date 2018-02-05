@@ -28,8 +28,7 @@ public class LineElement extends Element {
     private List<LineData> mLineDataList;
 
     public LineElement(float contentWidth, float contentHeight,
-                       float headerHeight, float footerHeight,
-                       float padding, float lineSpacing,
+                       float headerHeight, float footerHeight, float padding,
                        Paint contentPaint, Paint chapterNamePaint) {
         this.mHeaderHeight = headerHeight;
         this.mFooterHeight = footerHeight;

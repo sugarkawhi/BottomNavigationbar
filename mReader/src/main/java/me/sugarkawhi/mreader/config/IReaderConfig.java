@@ -11,7 +11,7 @@ public interface IReaderConfig {
     boolean DEBUG = true;
 
     //翻页动画时长
-    int DURATION_PAGE_SWITCH = 369;
+    int DURATION_PAGE_SWITCH = 300;
     //标题和内容文字大小比例
     float RATIO_CHAPTER_CONTENT = 1.3f;
     //头部(包括底部 i.时间 ii.进度 )文字大小
@@ -29,17 +29,17 @@ public interface IReaderConfig {
     //字间距
     interface LetterSpacing {
         //最大
-        int MAX = 10;
+        int MAX = 15;
         //默认
-        int DEFAULT = 5;
+        int DEFAULT = 8;
         //最小
-        int MIN = 0;
+        int MIN = 5;
     }
 
     //行间距
     interface LineSpacing {
         //最大
-        int MAX = 40;
+        int MAX = 50;
         //默认
         int DEFAULT = 20;
         //最小
@@ -51,9 +51,9 @@ public interface IReaderConfig {
         //最大
         int MAX = 100;
         //默认
-        int DEFAULT = 60;
+        int DEFAULT = 50;
         //最小
-        int MIN = 20;
+        int MIN = 0;
     }
 
 

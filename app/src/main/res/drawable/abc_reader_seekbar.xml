@@ -16,8 +16,8 @@
                 <size android:height="3dp" />
 
                 <gradient
-                    android:endColor="@color/reader_bg_blue"
-                    android:startColor="@color/reader_bg_blue" />
+                    android:endColor="@color/colorAccent"
+                    android:startColor="@color/colorAccent" />
             </shape>
         </clip>
     </item>

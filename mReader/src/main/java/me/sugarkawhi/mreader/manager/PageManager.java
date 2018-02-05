@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -77,16 +78,38 @@ public class PageManager {
 
     }
 
+    public void setLetterSpacing(float letterSpacing) {
+        mLetterSpacing = letterSpacing;
+    }
+
+    public void setLineSpacing(float lineSpacing) {
+        mLineSpacing = lineSpacing;
+    }
+
+    public void setParagraphSpacing(float paragraphSpacing) {
+        mParagraphSpacing = paragraphSpacing;
+    }
+
     /**
-     * 分页 比较耗时
+     * 耗时操作 放到子线程去做
      *
-     * @param chapter
+     * @param chapter 章节数据
      * @return
      */
     @SuppressLint("DefaultLocale")
     public List<PageData> generatePages(ChapterBean chapter) {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
+
+        //在子线程做这些操作 否则抛异常
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            try {
+                throw new Exception("PageManager method generatePages must run in child thread");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return pages;
+        }
 
         if (chapter == null) return pages;
         InputStream is = new ByteArrayInputStream(chapter.getChapterContent().getBytes());

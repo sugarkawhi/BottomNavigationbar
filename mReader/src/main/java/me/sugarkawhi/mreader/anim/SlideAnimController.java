@@ -43,7 +43,6 @@ public class SlideAnimController extends PageAnimController {
 
     @Override
     void drawMove(Canvas canvas) {
-        L.e(TAG, "drawMove: isCancel=" + isCancel);
         int xOffset = Math.abs(mStartX - mTouchX);
         switch (mDirection) {
             case IReaderDirection.NEXT:

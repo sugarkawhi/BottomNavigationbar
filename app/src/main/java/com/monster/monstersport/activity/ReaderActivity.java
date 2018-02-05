@@ -1,5 +1,6 @@
 package com.monster.monstersport.activity;
 
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,7 +19,6 @@ import android.widget.TextView;
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
-import com.monster.monstersport.dialog.BottomSheetDialog;
 import com.monster.monstersport.dialog.SpacingSettingDialog;
 import com.monster.monstersport.persistence.HyReaderPersistence;
 import com.monster.monstersport.util.Constant;
@@ -32,6 +32,8 @@ import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import me.sugarkawhi.mreader.bean.BookBean;
 import me.sugarkawhi.mreader.bean.ChapterBean;
+import me.sugarkawhi.mreader.config.IReaderConfig;
+import me.sugarkawhi.mreader.config.IReaderPageMode;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
@@ -257,7 +259,36 @@ public class ReaderActivity extends BaseActivity {
     @OnClick(R.id.tv_setting)
     public void setting() {
         hide();
-        new SpacingSettingDialog(this).show();
+        SpacingSettingDialog dialog = new SpacingSettingDialog(this);
+        dialog.setLetterSpacing(10)
+                .setLineSpacing(20)
+                .setParagraphSpacing(30)
+                .setSpacingChangeListener(new SpacingSettingDialog.IReaderSpacingChangeListener() {
+                    @Override
+                    public void onLetterSpacingChange(int progress) {
+                        int offset = IReaderConfig.LetterSpacing.MAX - IReaderConfig.LetterSpacing.MIN;
+                        readerView.setLetterSpacing((int) (IReaderConfig.LetterSpacing.MIN + offset * progress / 100f));
+                    }
+
+                    @Override
+                    public void onLineSpacingChange(int progress) {
+                        int offset = IReaderConfig.LineSpacing.MAX - IReaderConfig.LineSpacing.MIN;
+                        readerView.setLineSpacing((int) (IReaderConfig.LineSpacing.MIN + offset * progress / 100f));
+                    }
+
+                    @Override
+                    public void onParagraphSpacingChange(int progress) {
+                        int offset = IReaderConfig.ParagraphSpacing.MAX - IReaderConfig.ParagraphSpacing.MIN;
+                        readerView.setParagraphSpacing((int) (IReaderConfig.ParagraphSpacing.MIN + offset * progress / 100f));
+                    }
+                })
+                .show();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                hideSystemUI();
+            }
+        });
     }
 
     /**
@@ -309,18 +340,19 @@ public class ReaderActivity extends BaseActivity {
      */
     @OnCheckedChanged({R.id.reader_mode_cover, R.id.reader_mode_slide, R.id.reader_mode_simulation, R.id.reader_mode_none})
     public void selectMode(CompoundButton view, boolean isChecked) {
+        if (!isChecked) return;
         switch (view.getId()) {
             case R.id.reader_mode_cover:
-                if (isChecked) showToast("reader_mode_cover");
+                readerView.setPageMode(IReaderPageMode.COVER);
                 break;
             case R.id.reader_mode_slide:
-                if (isChecked) showToast("reader_mode_slide");
+                readerView.setPageMode(IReaderPageMode.SLIDE);
                 break;
             case R.id.reader_mode_simulation:
-                if (isChecked) showToast("reader_mode_simulation");
+                readerView.setPageMode(IReaderPageMode.SIMULATION);
                 break;
             case R.id.reader_mode_none:
-                if (isChecked) showToast("reader_mode_none");
+                readerView.setPageMode(IReaderPageMode.NONE);
                 break;
         }
     }
