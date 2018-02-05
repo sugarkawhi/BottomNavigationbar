@@ -1,8 +1,6 @@
 package com.monster.monstersport.dialog;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import com.monster.monstersport.R;
 
@@ -12,6 +10,7 @@ import com.monster.monstersport.R;
  */
 
 public class SpacingSettingDialog extends BottomSheetDialog {
+
     public SpacingSettingDialog(Context context) {
         super(context);
     }
@@ -20,4 +19,5 @@ public class SpacingSettingDialog extends BottomSheetDialog {
     public int getLayoutId() {
         return R.layout.dialog_reader_spacing;
     }
+
 }

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow;
@@ -18,6 +19,7 @@ import android.widget.PopupWindow;
 import com.monster.monstersport.R;
 
 import me.sugarkawhi.mreader.utils.ScreenUtils;
+import okhttp3.Interceptor;
 
 /**
  * 底部弹出Dialog
@@ -25,35 +27,80 @@ import me.sugarkawhi.mreader.utils.ScreenUtils;
  */
 
 public abstract class BottomSheetDialog extends Dialog {
-    private static final int DURATION = 200;
+
+    private Interpolator mInterceptor;
     private View mContentView;
     private int mContentHeight;
 
-    PopupWindow mPopupWindow;
-
     public BottomSheetDialog(Context context) {
         super(context);
-
+        mInterceptor = new LinearInterpolator();
+        init();
     }
 
-    private void createView() {
-        FrameLayout frameLayout = new FrameLayout(getContext());
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        frameLayout.setLayoutParams(params);
-        inflateContentView();
-        FrameLayout.LayoutParams contentParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        contentParams.gravity = Gravity.BOTTOM;
-        frameLayout.addView(mContentView);
-
+    private void init() {
+        Window window = getWindow();
+        if (window != null) {
+            window.requestFeature(Window.FEATURE_NO_TITLE);
+            mContentView = getLayoutInflater().inflate(getLayoutId(), null);
+            mContentView.measure(0, 0);
+            mContentHeight = mContentView.getMeasuredHeight();
+            setContentView(mContentView);
+            mContentView.setTranslationY(mContentHeight);
+            window.getDecorView().setPadding(0, 0, 0, 0);
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            lp.windowAnimations = -1;
+            lp.gravity = Gravity.BOTTOM;
+            lp.dimAmount = 0f;
+            window.setAttributes(lp);
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+        }
     }
 
-    private void inflateContentView() {
-
-    }
-
-    public void show() {
-    }
 
     public abstract int getLayoutId();
 
+    @Override
+    public void show() {
+        super.show();
+        translateContentView(0, null);
+    }
+
+    @Override
+    public void dismiss() {
+        translateContentView(mContentHeight, mAnimatorListener);
+    }
+
+    private void translateContentView(int y, Animator.AnimatorListener listener) {
+        mContentView.animate()
+                .setDuration(200)
+                .translationY(y)
+                .setInterpolator(mInterceptor)
+                .setListener(listener)
+                .start();
+    }
+
+    private Animator.AnimatorListener mAnimatorListener = new Animator.AnimatorListener() {
+        @Override
+        public void onAnimationStart(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            BottomSheetDialog.super.dismiss();
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animation) {
+
+        }
+    };
 }

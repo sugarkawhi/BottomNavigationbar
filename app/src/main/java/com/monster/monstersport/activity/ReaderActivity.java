@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.dialog.BottomSheetDialog;
+import com.monster.monstersport.dialog.SpacingSettingDialog;
 import com.monster.monstersport.persistence.HyReaderPersistence;
 import com.monster.monstersport.util.Constant;
 
@@ -256,6 +257,7 @@ public class ReaderActivity extends BaseActivity {
     @OnClick(R.id.tv_setting)
     public void setting() {
         hide();
+        new SpacingSettingDialog(this).show();
     }
 
     /**
