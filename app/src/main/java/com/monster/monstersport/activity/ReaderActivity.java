@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -19,25 +20,36 @@ import android.widget.TextView;
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
+import com.monster.monstersport.bean.ChapterBean;
+import com.monster.monstersport.bean.ChapterListBean;
+import com.monster.monstersport.dao.bean.BookRecordBean;
 import com.monster.monstersport.dialog.SpacingSettingDialog;
+import com.monster.monstersport.http.BaseHttpResult;
+import com.monster.monstersport.http.HttpUtils;
+import com.monster.monstersport.http.RxUtils;
+import com.monster.monstersport.http.observer.DefaultObserver;
 import com.monster.monstersport.persistence.HyReaderPersistence;
 import com.monster.monstersport.util.Constant;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import me.sugarkawhi.mreader.bean.BookBean;
-import me.sugarkawhi.mreader.bean.ChapterBean;
+import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderPageMode;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 import me.sugarkawhi.mreader.view.ReaderView;
+import okhttp3.ResponseBody;
 
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.COLOR_MATCHA;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.DEFAULT;
@@ -50,6 +62,8 @@ import static com.monster.monstersport.persistence.HyReaderPersistence.Backgroun
  */
 
 public class ReaderActivity extends BaseActivity {
+
+    private static final String STORY_ID = "";
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer_layout;
@@ -179,7 +193,58 @@ public class ReaderActivity extends BaseActivity {
 
             }
         });
-        setChapter();
+
+        getChapterList();
+    }
+
+    /**
+     * 获取章节
+     */
+    private void getChapterList() {
+        HttpUtils.getApiInstance()
+                .searchChapterListVO()
+                .compose(RxUtils.<BaseHttpResult<ChapterListBean>>defaultSchedulers())
+                .subscribe(new DefaultObserver<ChapterListBean>() {
+                    @Override
+                    protected void onSuccess(ChapterListBean chapterListBean) {
+                        ChapterBean chapterBean = chapterListBean.getDatas().get(3);
+                        String chapterId = chapterBean.getChapterid();
+                        getChapterById(chapterId);
+                    }
+                });
+
+    }
+
+    /**
+     * 根据chapter id 来 获取章节内容
+     *
+     * @param chapterId
+     */
+    private void getChapterById(String chapterId) {
+        HttpUtils.getApiInstance()
+                .getChapterReadById(chapterId)
+                .compose(RxUtils.<ChapterBean>defaultSchedulers())
+                .subscribe(new Observer<ChapterBean>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(ChapterBean chapterBean) {
+                        readerView.setChapter(chapterBean, 0);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private void show() {
@@ -363,6 +428,7 @@ public class ReaderActivity extends BaseActivity {
             hide();
             return;
         }
+        HyReaderPersistence.saveBookRecord("111", "xxx", 1, 0.5f);
         super.onBackPressed();
     }
 
@@ -396,32 +462,6 @@ public class ReaderActivity extends BaseActivity {
         view.measure(measuredWidth, measuredHeight);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
         readerView.setCoverView(view);
-    }
-
-    private void setChapter() {
-        readerView.setElectric(1f);
-        readerView.setTime("PM 3:20");
-
-        ChapterBean chapter1 = new ChapterBean();
-        chapter1.setBookName("《绝代双骄》");
-        chapter1.setFirstChapter(true);
-        chapter1.setChapterName("正文 第一章 名剑香花");
-        chapter1.setChapterContent(Constant.TEST1);
-
-        ChapterBean chapter2 = new ChapterBean();
-        chapter2.setBookName("《绝代双骄》");
-        chapter2.setFirstChapter(false);
-        chapter2.setChapterName("正文 第二章 刀下遗孤");
-        chapter2.setChapterContent(Constant.TEST2);
-
-        ChapterBean chapter3 = new ChapterBean();
-        chapter3.setBookName("《绝代双骄》");
-        chapter3.setFirstChapter(false);
-        chapter3.setChapterName("正文 第三章 第一神剑");
-        chapter3.setChapterContent(Constant.TEST2);
-
-        readerView.setChapters(chapter1, chapter2, chapter3);
-
     }
 
 }

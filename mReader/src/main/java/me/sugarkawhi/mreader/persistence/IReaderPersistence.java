@@ -11,6 +11,8 @@ import me.sugarkawhi.mreader.config.IReaderConfig;
  */
 
 public class IReaderPersistence {
+    public static final String TAG = "IReaderPersistence";
+
     private static final String SP_NAME = "me.sugarkawhi.mreader.persistence.IReaderPersistence";
     //文字大小
     private static final String READER_FONT_SIZE = "READER_FONT_SIZE";
@@ -20,8 +22,7 @@ public class IReaderPersistence {
     protected static final String READER_BACKGROUND = "READER_BACKGROUND";
     //字体颜色
     protected static final String READER_FONT_COLOR = "READER_FONT_COLOR";
-    //阅读进度 哪一章节/和位置
-    protected static final String READER_PROGRESS = "READER_PROGRESS_CHAPTER";
+
 
     protected static SharedPreferences getSP(Context context) {
         return context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);

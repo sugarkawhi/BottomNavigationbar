@@ -1,16 +1,9 @@
 package me.sugarkawhi.mreader.manager;
 
 import android.annotation.SuppressLint;
-import android.graphics.Bitmap;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Looper;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -20,17 +13,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import me.sugarkawhi.mreader.bean.BookBean;
-import me.sugarkawhi.mreader.bean.ChapterBean;
-import me.sugarkawhi.mreader.config.IReaderConfig;
-import me.sugarkawhi.mreader.data.ImageData;
+import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
-import me.sugarkawhi.mreader.utils.BitmapUtils;
-import me.sugarkawhi.mreader.utils.ScreenUtils;
 
 /**
  * p m
@@ -97,7 +84,7 @@ public class PageManager {
      * @return
      */
     @SuppressLint("DefaultLocale")
-    public List<PageData> generatePages(ChapterBean chapter) {
+    public List<PageData> generatePages(BaseChapterBean chapter) {
         //生成的页面
         List<PageData> pages = new ArrayList<>();
 
@@ -112,7 +99,7 @@ public class PageManager {
         }
 
         if (chapter == null) return pages;
-        InputStream is = new ByteArrayInputStream(chapter.getChapterContent().getBytes());
+        InputStream is = new ByteArrayInputStream(chapter.getContent().getBytes());
         // read it with BufferedReader
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         if (chapter.isFirstChapter()) {
@@ -122,7 +109,7 @@ public class PageManager {
         List<LineData> lines = new ArrayList<>();
         float rHeight = mContentHeight;
         boolean isChapterName = true;
-        String paragraph = chapter.getChapterName();//默认展示标题
+        String paragraph = chapter.getName();//默认展示标题
         try {
             while (isChapterName || (paragraph = br.readLine()) != null) {
                 //重置段落
@@ -154,9 +141,9 @@ public class PageManager {
                         page.setLines(new ArrayList<>(lines));
                         pages.add(page);
                         if (pages.size() == 1) {
-                            page.setChapterName(chapter.getBookName());
+                            page.setChapterName("");
                         } else {
-                            page.setChapterName(chapter.getChapterName());
+                            page.setChapterName(chapter.getName());
                         }
                         //重置Lines
                         lines.clear();
@@ -192,7 +179,7 @@ public class PageManager {
                 //创建Page
                 PageData page = new PageData();
                 page.setIndexOfChapter(pages.size());
-                page.setChapterName(chapter.getChapterName());
+                page.setChapterName(chapter.getName());
                 page.setLines(new ArrayList<>(lines));
                 pages.add(page);
                 //重置Lines

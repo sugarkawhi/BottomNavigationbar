@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.greenrobot.greendao'
 
 android {
     compileSdkVersion 27
@@ -10,6 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -22,6 +24,17 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'src/main/java-gen']
+    }
+}
+
+greendao {
+    schemaVersion 1000
+
 }
 
 dependencies {
@@ -52,4 +65,7 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile project(':mReader')
     compile project(':bottomnavigationbar')
+    //数据库 greenDAO
+    compile 'org.greenrobot:greendao:3.2.2' // add library
+    compile 'net.zetetic:android-database-sqlcipher:3.5.6'
 }

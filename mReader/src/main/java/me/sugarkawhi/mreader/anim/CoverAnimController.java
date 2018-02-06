@@ -39,7 +39,7 @@ public class CoverAnimController extends PageAnimController {
 
     //添加阴影
     public void addShadow(int left, Canvas canvas) {
-        mBackShadowDrawableLR.setBounds(left, 0, left + 30, mReaderHeight);
+        mBackShadowDrawableLR.setBounds(left, 0, left + 20, mReaderHeight);
         mBackShadowDrawableLR.draw(canvas);
     }
 

@@ -28,6 +28,8 @@ public class PageRespository {
     private PageData mCancelPage;
     private int mCurIndex;
 
+    //当前章节的浏览位置 为一个百分数
+    private float position;
 
     public PageRespository(PageElement pageElement) {
         mPageElement = pageElement;
@@ -143,11 +145,19 @@ public class PageRespository {
     }
 
 
+    public float getPosition() {
+        return position;
+    }
+
     public void setCurPageList(List<PageData> curPageList) {
         if (curPageList == null) return;
         mCurPageList = curPageList;
-        if (mCurPageList.size() == 0) return;
-        mCurPage = mCurPageList.get(0);
+    }
+
+    public void setCurPage(float progress) {
+        if (mCurPageList == null || mCurPageList.size() == 0) return;
+        mCurIndex = (int) ((mCurPageList.size() - 1) * progress);
+        mCurPage = mCurPageList.get(mCurIndex);
     }
 
     public void setPrePageList(List<PageData> prePageList) {

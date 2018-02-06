@@ -20,7 +20,7 @@ import me.sugarkawhi.mreader.anim.CoverAnimController;
 import me.sugarkawhi.mreader.anim.NoneAnimController;
 import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
-import me.sugarkawhi.mreader.bean.ChapterBean;
+import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.config.IReaderPageMode;
@@ -225,7 +225,7 @@ public class ReaderView extends View {
     }
 
 
-    private ChapterBean mCurChapter, mPreChapter, mNextChapter;
+    private BaseChapterBean mCurChapter, mPreChapter, mNextChapter;
 
     /**
      * 设置当前章节
@@ -235,13 +235,13 @@ public class ReaderView extends View {
      * @param curChapter
      * @param nextChapter
      */
-    public void setChapters(ChapterBean preChapter, ChapterBean curChapter, ChapterBean nextChapter) {
+    public void setChapters(BaseChapterBean preChapter, BaseChapterBean curChapter, BaseChapterBean nextChapter) {
         mPreChapter = preChapter;
         mCurChapter = curChapter;
         mNextChapter = nextChapter;
-        new AsyncTask<ChapterBean, Void, List<List<PageData>>>() {
+        new AsyncTask<BaseChapterBean, Void, List<List<PageData>>>() {
             @Override
-            protected List<List<PageData>> doInBackground(ChapterBean... chapters) {
+            protected List<List<PageData>> doInBackground(BaseChapterBean... chapters) {
                 List<List<PageData>> lists = new ArrayList<>();
                 lists.add(mPageManager.generatePages(chapters[0]));
                 return lists;
@@ -256,6 +256,35 @@ public class ReaderView extends View {
                 invalidate();
             }
         }.execute(curChapter, preChapter, curChapter);
+    }
+
+    /**
+     * 设置当前章节
+     * 阅读器维护一个页面的队列
+     *
+     * @param preChapter
+     * @param curChapter
+     * @param nextChapter
+     */
+    public void setChapter(BaseChapterBean curChapter, final float progress) {
+        mCurChapter = curChapter;
+        new AsyncTask<BaseChapterBean, Void, List<PageData>>() {
+
+            @Override
+            protected List<PageData> doInBackground(BaseChapterBean... chapterBeans) {
+                return mPageManager.generatePages(chapterBeans[0]);
+            }
+
+            @Override
+            protected void onPostExecute(List<PageData> list) {
+                super.onPostExecute(list);
+                mCurrentState = STATE_OPEN;
+                mRespository.setCurPageList(list);
+                mRespository.setCurPage(progress);
+                drawCurrentPage();
+                invalidate();
+            }
+        }.execute(curChapter);
     }
 
     public Bitmap getReaderBackgroundBitmap() {
@@ -312,9 +341,9 @@ public class ReaderView extends View {
         mContentPaint.setTextSize(fontSize);
         mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
 
-        new AsyncTask<ChapterBean, Void, List<List<PageData>>>() {
+        new AsyncTask<BaseChapterBean, Void, List<List<PageData>>>() {
             @Override
-            protected List<List<PageData>> doInBackground(ChapterBean... chapters) {
+            protected List<List<PageData>> doInBackground(BaseChapterBean... chapters) {
                 List<List<PageData>> lists = new ArrayList<>();
                 lists.add(mPageManager.generatePages(chapters[0]));
                 return lists;
@@ -396,9 +425,9 @@ public class ReaderView extends View {
     }
 
     private void dispose() {
-        new AsyncTask<ChapterBean, Void, List<List<PageData>>>() {
+        new AsyncTask<BaseChapterBean, Void, List<List<PageData>>>() {
             @Override
-            protected List<List<PageData>> doInBackground(ChapterBean... chapters) {
+            protected List<List<PageData>> doInBackground(BaseChapterBean... chapters) {
                 List<List<PageData>> lists = new ArrayList<>();
                 lists.add(mPageManager.generatePages(chapters[0]));
 //                lists.add(mPageManager.generatePages(chapters[1]));
