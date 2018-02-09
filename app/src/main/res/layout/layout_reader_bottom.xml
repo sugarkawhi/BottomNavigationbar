@@ -3,12 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/reader_setting_bg"
+    android:clickable="true"
+    android:focusable="true"
     android:orientation="vertical"
     android:paddingBottom="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="50dp"
         android:gravity="center">
 
         <TextView
@@ -16,80 +18,68 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:text="上一章"
-            android:textColor="@color/letter_color4"
+            android:textColor="@color/white"
             android:textSize="16sp" />
 
         <SeekBar
-            android:id="@+id/reader_seekBar"
+            android:id="@+id/reader_seekBar_chapter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:maxHeight="1dp"
+            android:minHeight="1dp"
+            android:progressDrawable="@drawable/abc_reader_seekbar"
+            android:thumb="@drawable/abc_reader_seekbar_thumb" />
 
         <TextView
             android:id="@+id/reader_next"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:text="下一章"
-            android:textColor="@color/letter_color4"
+            android:textColor="@color/white"
             android:textSize="16sp" />
     </LinearLayout>
 
-
-    <include layout="@layout/layout_reader_setting" />
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
         android:orientation="horizontal"
         android:visibility="visible">
 
-        <TextView
+        <ImageView
             android:id="@+id/tv_catalog"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawablePadding="5dp"
-            android:drawableTop="@drawable/reading_menu_ml"
-            android:gravity="center"
-            android:text="目录"
-            android:textColor="@color/white" />
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:src="@drawable/reading_menu_ml" />
 
-        <TextView
+        <ImageView
             android:id="@+id/tv_setting"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawablePadding="5dp"
-            android:drawableTop="@drawable/reading_menu_sz"
-            android:gravity="center"
-            android:text="设置"
-            android:textColor="@color/white" />
+            android:src="@drawable/reading_menu_sz" />
 
-        <TextView
+        <ImageView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawablePadding="5dp"
-            android:drawableTop="@drawable/reading_menu_xzl"
-            android:gravity="center"
-            android:text="下载"
-            android:textColor="@color/white" />
+            android:src="@drawable/reading_menu_xzl" />
 
-        <TextView
-            android:layout_width="0dp"
+        <ImageView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawablePadding="5dp"
-            android:drawableTop="@drawable/reading_menu_pl"
-            android:gravity="center"
-            android:text="朗读"
-            android:textColor="@color/white" />
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:src="@drawable/reading_menu_pl" />
 
     </LinearLayout>
 </LinearLayout>

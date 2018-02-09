@@ -5,16 +5,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.view.WindowManager;
 
 
 import com.monster.monstersport.R;
+import com.monster.monstersport.fragment.BookListFragment;
 import com.monster.monstersport.fragment.CbFragment;
-import com.monster.monstersport.fragment.ReaderFragment;
 import com.monster.monstersport.fragment.TtsFragment;
-import com.monster.monstersport.fragment.ZwFragment;
+import com.monster.monstersport.fragment.ZwHistoryFragment;
 import com.monster.monstersport.view.SViewPager;
-import com.squareup.haha.perflib.Main;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         setContentView(R.layout.activity_main);
         mSViewPager = findViewById(R.id.viewPager);
         mSViewPager.setCanScroll(false);
@@ -41,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
         mEntities = new ArrayList<>();
         mFragments = new ArrayList<>();
-        mFragments.add(ZwFragment.newInstance());
+        mFragments.add(BookListFragment.newInstance());
+        mFragments.add(ZwHistoryFragment.newInstance());
         mFragments.add(TtsFragment.newInstance());
         mFragments.add(CbFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(

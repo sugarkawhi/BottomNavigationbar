@@ -9,11 +9,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -23,38 +21,43 @@ import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.bean.ChapterBean;
 import com.monster.monstersport.bean.ChapterListBean;
 import com.monster.monstersport.dao.bean.BookRecordBean;
+import com.monster.monstersport.dialog.ReaderSettingDialog;
 import com.monster.monstersport.dialog.SpacingSettingDialog;
+import com.monster.monstersport.fragment.CatalogueFragment;
 import com.monster.monstersport.http.BaseHttpResult;
 import com.monster.monstersport.http.HttpUtils;
 import com.monster.monstersport.http.RxUtils;
+import com.monster.monstersport.http.api.IHyangApi;
 import com.monster.monstersport.http.observer.DefaultObserver;
 import com.monster.monstersport.persistence.HyReaderPersistence;
-import com.monster.monstersport.util.Constant;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
+import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import me.sugarkawhi.mreader.bean.BookBean;
+import io.reactivex.functions.Function3;
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
+
+import com.monster.monstersport.bean.BookBean;
+
 import me.sugarkawhi.mreader.config.IReaderConfig;
-import me.sugarkawhi.mreader.config.IReaderPageMode;
+import me.sugarkawhi.mreader.config.IReaderDirection;
+import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
-import me.sugarkawhi.mreader.persistence.IReaderPersistence;
+import me.sugarkawhi.mreader.utils.L;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 import me.sugarkawhi.mreader.view.ReaderView;
-import okhttp3.ResponseBody;
 
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.COLOR_MATCHA;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.DEFAULT;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.IMAGE_BLUE;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.IMAGE_PURPLE;
+import static com.monster.monstersport.persistence.HyReaderPersistence.Background.NIGHT;
 
 /**
  * 阅读页
@@ -63,21 +66,21 @@ import static com.monster.monstersport.persistence.HyReaderPersistence.Backgroun
 
 public class ReaderActivity extends BaseActivity {
 
-    private static final String STORY_ID = "";
+    public static final String PARAM_STORY_ID = "PARAM_STORY_ID";
+
+    private String mStoryId;
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer_layout;
-    @BindView(R.id.iv_drawer)
-    ImageView ivDrawer;
     @BindView(R.id.readerView)
     ReaderView readerView;
-    @BindView(R.id.reader_seekBar)
-    SeekBar readerSeekBar;
+    @BindView(R.id.reader_seekBar_chapter)
+    SeekBar readerSeekBarChapter;
     @BindView(R.id.reader_bottom)
     View readerBottomView;
+    @BindView(R.id.tv_progress)
+    TextView readerProgress;
 
-    @BindView(R.id.reader_fontSize)
-    TextView readerFontSize;
     private int readerBottomHeight;
     private boolean isShow;
 
@@ -89,7 +92,9 @@ public class ReaderActivity extends BaseActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         setContentView(R.layout.activity_reader);
         ButterKnife.bind(this);
+        mStoryId = getIntent().getStringExtra("storyid");
         init();
+        readerView.setBookName("主播的致命诱惑");
 
         readerView.setReaderTouchListener(new IReaderTouchListener() {
             @Override
@@ -103,26 +108,66 @@ public class ReaderActivity extends BaseActivity {
                 else show();
             }
 
+        });
+
+        readerView.setReaderChapterChangeListener(new IReaderChapterChangeListener() {
             @Override
-            public boolean onTouchRight() {
-                return false;
+            public void onChapterChange(BaseChapterBean curChapter, int direction) {
+                switch (direction) {
+                    case IReaderDirection.NEXT:
+                        getNextChapter(curChapter.getChapterid());
+                        break;
+                    case IReaderDirection.PRE:
+                        getPreChapter(curChapter.getChapterid());
+                        break;
+                }
             }
 
             @Override
-            public boolean onTouchLeft() {
-                return false;
+            public void onNoPrePage(BaseChapterBean curChapter) {
+                showToast("网络问题，没有上一页了，稍后重试");
+
+            }
+
+            @Override
+            public void onNoNextPage(BaseChapterBean curChapter) {
+                showToast("网络问题，没有下一页了，稍后重试");
+            }
+
+            @Override
+            public void onReachFirstChapter() {
+                showToast("已经是第一章了");
+            }
+
+            @Override
+            public void onReachLastChapter() {
+                showToast("已经是最后一章了");
+            }
+
+            @Override
+            public void onProgressChange(float progress) {
+                L.e("TAG", "onProgressChange > " + progress);
+                readerSeekBarChapter.setProgress((int) (progress * 100));
             }
         });
         hideSystemUI();
+        addCatalog();
+    }
+
+    private void addCatalog() {
+        CatalogueFragment catalogueFragment = CatalogueFragment.newInstance();
+        Bundle bundle = new Bundle();
+        bundle.putString("storyid", mStoryId);
+        catalogueFragment.setArguments(bundle);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, catalogueFragment)
+                .commit();
     }
 
     /**
      * 初始化readerView
      */
     private void initReaderView() {
-        //当前文字大小
-        int fontSize = HyReaderPersistence.getFontSize(this);
-        readerFontSize.setText(String.valueOf(fontSize));
         //设置背景颜色(ps:也设置对应字体颜色)
         int background = HyReaderPersistence.getBackground(this);
         initReaderBackground(background);
@@ -152,6 +197,10 @@ public class ReaderActivity extends BaseActivity {
                     fontColor = ContextCompat.getColor(this, R.color.reader_font_purple);
                     is = getAssets().open("background/butterfly.jpg");
                     break;
+                case NIGHT:
+                    fontColor = ContextCompat.getColor(this, R.color.reader_font_night);
+                    is = getAssets().open("background/alone.jpg");
+                    break;
                 case COLOR_MATCHA:
                     fontColor = ContextCompat.getColor(this, R.color.reader_font_matcha);
                     bgColor = ContextCompat.getColor(this, R.color.reader_bg_matcha);
@@ -177,23 +226,24 @@ public class ReaderActivity extends BaseActivity {
         readerBottomView.measure(0, 0);
         readerBottomHeight = readerBottomView.getMeasuredHeight();
         readerBottomView.setTranslationY(readerBottomHeight);
-        readerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        readerSeekBarChapter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                readerView.setProgress(progress);
+                readerProgress.setText(progress + "%");
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                readerProgress.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                float progress = seekBar.getProgress() / 100f;
+                readerView.setChapterProgress(progress);
+                readerProgress.setVisibility(View.GONE);
             }
         });
-
         getChapterList();
     }
 
@@ -202,14 +252,17 @@ public class ReaderActivity extends BaseActivity {
      */
     private void getChapterList() {
         HttpUtils.getApiInstance()
-                .searchChapterListVO()
+                .searchChapterListVO(mStoryId)
                 .compose(RxUtils.<BaseHttpResult<ChapterListBean>>defaultSchedulers())
                 .subscribe(new DefaultObserver<ChapterListBean>() {
                     @Override
                     protected void onSuccess(ChapterListBean chapterListBean) {
-                        ChapterBean chapterBean = chapterListBean.getDatas().get(3);
-                        String chapterId = chapterBean.getChapterid();
-                        getChapterById(chapterId);
+                        BookRecordBean record = HyReaderPersistence.queryBookRecord(mStoryId);
+                        if (record != null) {
+                            getChapterById(record.getChapterId(), record.getProgress());
+                        } else {
+                            getChapterById(chapterListBean.getDatas().get(0).getChapterid(), 0);
+                        }
                     }
                 });
 
@@ -220,9 +273,50 @@ public class ReaderActivity extends BaseActivity {
      *
      * @param chapterId
      */
-    private void getChapterById(String chapterId) {
+    private void getChapterById(String chapterId, final float progress) {
+        IHyangApi api = HttpUtils.getApiInstance();
+        Observable<ChapterBean> cur = api.getChapterReadById(chapterId);
+        Observable<ChapterBean> pre = api.getPreChapterReadById(chapterId);
+        Observable<ChapterBean> next = api.getNextChapterReadById(chapterId);
+        Observable.zip(cur, pre, next, new Function3<ChapterBean, ChapterBean, ChapterBean, ZipChapter>() {
+            @Override
+            public ZipChapter apply(ChapterBean cur, ChapterBean pre, ChapterBean next) throws Exception {
+                ZipChapter zipChapter = new ZipChapter();
+                zipChapter.cur = cur;
+                zipChapter.pre = pre;
+                zipChapter.next = next;
+                return zipChapter;
+            }
+        })
+                .compose(RxUtils.<ZipChapter>defaultSchedulers())
+                .subscribe(new Observer<ZipChapter>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(ZipChapter zipChapter) {
+                        readerView.setCurrentChapter(zipChapter.cur, progress);
+                        readerView.setNextChapter(zipChapter.next);
+                        readerView.setPreChapter(zipChapter.pre);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    private void getNextChapter(String chapterId) {
         HttpUtils.getApiInstance()
-                .getChapterReadById(chapterId)
+                .getNextChapterReadById(chapterId)
                 .compose(RxUtils.<ChapterBean>defaultSchedulers())
                 .subscribe(new Observer<ChapterBean>() {
                     @Override
@@ -232,7 +326,34 @@ public class ReaderActivity extends BaseActivity {
 
                     @Override
                     public void onNext(ChapterBean chapterBean) {
-                        readerView.setChapter(chapterBean, 0);
+                        readerView.setNextChapter(chapterBean);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    private void getPreChapter(String chapterId) {
+        HttpUtils.getApiInstance()
+                .getPreChapterReadById(chapterId)
+                .compose(RxUtils.<ChapterBean>defaultSchedulers())
+                .subscribe(new Observer<ChapterBean>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(ChapterBean chapterBean) {
+                        readerView.setPreChapter(chapterBean);
                     }
 
                     @Override
@@ -292,38 +413,54 @@ public class ReaderActivity extends BaseActivity {
 
     /**
      * 上一章
-     * <p>
-     * TODO 章节划分
      */
     @OnClick(R.id.reader_pre)
     public void preChapter() {
-
+        readerView.directPreChapter();
     }
 
     /**
      * 下一章
-     * TODO 章节划分
      */
     @OnClick(R.id.reader_next)
     public void nextChapter() {
-
+        readerView.directNextChapter();
     }
 
     /**
-     * 文字变大
+     * 点击设置 弹框
      */
-    @OnClick(R.id.reader_font_big)
-    public void fontBig() {
-        int currentFont = IReaderPersistence.getFontSize(this);
-        currentFont++;
-        IReaderPersistence.saveFontSize(this, currentFont);
-        readerView.setFontSize(currentFont);
-        readerFontSize.setText(String.valueOf(currentFont));
-    }
-
     @OnClick(R.id.tv_setting)
     public void setting() {
         hide();
+        ReaderSettingDialog dialog = new ReaderSettingDialog(this);
+        dialog.setSettingListener(new ReaderSettingDialog.IReaderSettingListener() {
+            @Override
+            public void onFontSizeChange(int fontSize) {
+                readerView.setFontSize(fontSize);
+            }
+
+            @Override
+            public void onBackgroundChange(int background) {
+                initReaderBackground(background);
+            }
+
+            @Override
+            public void onPageModeChange(int pageMode) {
+                readerView.setPageMode(pageMode);
+            }
+        })
+                .show();
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                hideSystemUI();
+            }
+        });
+    }
+
+
+    private void showSpacingDialog() {
         SpacingSettingDialog dialog = new SpacingSettingDialog(this);
         dialog.setLetterSpacing(10)
                 .setLineSpacing(20)
@@ -356,43 +493,6 @@ public class ReaderActivity extends BaseActivity {
         });
     }
 
-    /**
-     * 文字变小
-     */
-    @OnClick(R.id.reader_font_small)
-    public void fontSmall() {
-        int currentFont = IReaderPersistence.getFontSize(this);
-        currentFont--;
-        IReaderPersistence.saveFontSize(this, currentFont);
-        readerView.setFontSize(currentFont);
-        readerFontSize.setText(String.valueOf(currentFont));
-    }
-
-    /**
-     * 选择背景
-     */
-    @OnCheckedChanged({R.id.reader_bg_blue, R.id.reader_bg_purple, R.id.reader_bg_default, R.id.reader_bg_matcha})
-    public void selectBg(CompoundButton view, boolean isChecked) {
-        if (!isChecked) return;
-        switch (view.getId()) {
-            case R.id.reader_bg_blue:
-                initReaderBackground(IMAGE_BLUE);
-                HyReaderPersistence.saveBackground(this, IMAGE_BLUE);
-                break;
-            case R.id.reader_bg_purple:
-                initReaderBackground(IMAGE_PURPLE);
-                HyReaderPersistence.saveBackground(this, IMAGE_PURPLE);
-                break;
-            case R.id.reader_bg_default:
-                initReaderBackground(DEFAULT);
-                HyReaderPersistence.saveBackground(this, DEFAULT);
-                break;
-            case R.id.reader_bg_matcha:
-                initReaderBackground(COLOR_MATCHA);
-                HyReaderPersistence.saveBackground(this, COLOR_MATCHA);
-                break;
-        }
-    }
 
     @OnClick(R.id.tv_catalog)
     public void openDrawer() {
@@ -400,27 +500,6 @@ public class ReaderActivity extends BaseActivity {
         drawer_layout.openDrawer(Gravity.START);
     }
 
-    /**
-     * 选择翻页模式
-     */
-    @OnCheckedChanged({R.id.reader_mode_cover, R.id.reader_mode_slide, R.id.reader_mode_simulation, R.id.reader_mode_none})
-    public void selectMode(CompoundButton view, boolean isChecked) {
-        if (!isChecked) return;
-        switch (view.getId()) {
-            case R.id.reader_mode_cover:
-                readerView.setPageMode(IReaderPageMode.COVER);
-                break;
-            case R.id.reader_mode_slide:
-                readerView.setPageMode(IReaderPageMode.SLIDE);
-                break;
-            case R.id.reader_mode_simulation:
-                readerView.setPageMode(IReaderPageMode.SIMULATION);
-                break;
-            case R.id.reader_mode_none:
-                readerView.setPageMode(IReaderPageMode.NONE);
-                break;
-        }
-    }
 
     @Override
     public void onBackPressed() {
@@ -428,7 +507,7 @@ public class ReaderActivity extends BaseActivity {
             hide();
             return;
         }
-        HyReaderPersistence.saveBookRecord("111", "xxx", 1, 0.5f);
+        saveReadingProgress();
         super.onBackPressed();
     }
 
@@ -462,6 +541,21 @@ public class ReaderActivity extends BaseActivity {
         view.measure(measuredWidth, measuredHeight);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
         readerView.setCoverView(view);
+    }
+
+    private class ZipChapter {
+        ChapterBean cur;
+        ChapterBean pre;
+        ChapterBean next;
+    }
+
+    /**
+     * 保存阅读进度
+     */
+    private void saveReadingProgress() {
+        BaseChapterBean chapter = readerView.getCurrentChapter();
+        if (chapter == null) return;
+        HyReaderPersistence.saveBookRecord(mStoryId, chapter.getChapterid(), readerView.getReadingProgress());
     }
 
 }

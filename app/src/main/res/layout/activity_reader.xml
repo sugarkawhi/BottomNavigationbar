@@ -15,8 +15,8 @@
             android:id="@+id/readerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:mReader_footerHeight="40dp"
-            app:mReader_headerHeight="40dp"
+            app:mReader_footerHeight="35dp"
+            app:mReader_headerHeight="35dp"
             app:mReader_padding="18dp" />
 
         <include
@@ -25,6 +25,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true" />
+
+        <TextView
+            android:id="@+id/tv_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/reader_bottom"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="10dp"
+            android:background="@color/reader_setting_bg"
+            android:paddingBottom="10dp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:paddingTop="10dp"
+            android:textColor="@color/white"
+            android:visibility="gone" />
 
     </RelativeLayout>
 
@@ -36,13 +51,21 @@
         android:background="@color/white"
         android:orientation="vertical">
 
-        <include layout="@layout/layout_reader_cover" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:text="目录" />
 
-        <ImageView
-            android:id="@+id/iv_drawer"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@color/colorPrimary" />
+
+        <FrameLayout
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-
 
     </LinearLayout>
 

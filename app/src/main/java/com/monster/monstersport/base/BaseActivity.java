@@ -1,6 +1,5 @@
 package com.monster.monstersport.base;
 
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
@@ -11,8 +10,13 @@ import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 
 public class BaseActivity extends RxAppCompatActivity {
 
+    Toast mToast;
+
     public void showToast(String toast) {
-        Toast.makeText(this, toast, Toast.LENGTH_SHORT).show();
+        if (mToast == null)
+            mToast =  Toast.makeText(this, "", Toast.LENGTH_SHORT);
+        mToast.setText(toast);
+        mToast.show();
     }
 
 }

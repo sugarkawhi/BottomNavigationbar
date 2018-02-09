@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 
 import com.monster.monstersport.R;
 
+import butterknife.ButterKnife;
+
 /**
  * Created by ZhaoZongyao on 2017/12/22.
  */
@@ -19,6 +21,7 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(getLayoutId(), container, false);
+        ButterKnife.bind(this, view);
         init(view);
         loadData();
         return view;
@@ -26,8 +29,8 @@ public abstract class BaseFragment extends Fragment {
 
     protected abstract int getLayoutId();
 
-    protected  abstract void init(View view);
+    protected abstract void init(View view);
 
-    protected  abstract void loadData();
+    protected abstract void loadData();
 
 }

@@ -15,16 +15,12 @@ public class BookRecordBean {
     private String bookId;
     //当前章节的id
     private String chapterId;
-    //当前读到第几章
-    private int chapterIndex;
     //当前章节进度
     private float progress;
-    @Generated(hash = 2026153042)
-    public BookRecordBean(String bookId, String chapterId, int chapterIndex,
-            float progress) {
+    @Generated(hash = 1119842043)
+    public BookRecordBean(String bookId, String chapterId, float progress) {
         this.bookId = bookId;
         this.chapterId = chapterId;
-        this.chapterIndex = chapterIndex;
         this.progress = progress;
     }
     @Generated(hash = 398068002)
@@ -42,18 +38,13 @@ public class BookRecordBean {
     public void setChapterId(String chapterId) {
         this.chapterId = chapterId;
     }
-    public int getChapterIndex() {
-        return this.chapterIndex;
-    }
-    public void setChapterIndex(int chapterIndex) {
-        this.chapterIndex = chapterIndex;
-    }
     public float getProgress() {
         return this.progress;
     }
     public void setProgress(float progress) {
         this.progress = progress;
     }
+
 
 
 }

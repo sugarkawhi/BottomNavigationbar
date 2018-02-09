@@ -3,6 +3,7 @@ package me.sugarkawhi.mreader.manager;
 import android.annotation.SuppressLint;
 import android.graphics.Paint;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,6 +20,8 @@ import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
 
+import static me.sugarkawhi.mreader.config.IReaderConfig.CHAPTER_NAME_MARGIN;
+
 /**
  * p m
  * Created by ZhaoZongyao on 2018/1/12.
@@ -29,7 +32,7 @@ public class PageManager {
     private static final String TAG = "PageManager";
     private static final char PARAGRAPH = '\n';
     private static final char[] NO_LINE_HEADER_FULLCHAR = {'，', '；', '：', '、', '。', '！', '？', '》', ']', '）'};
-    public static final char[] NO_LINE_HEADER = {',', '，', ';', '；', ':', '：', '、', '.', '。', '!', '！', '?', '？', '”', '>', '》', ']', ')', '）', '}'};
+    public static final char[] NO_LINE_HEADER = {',', '，', ';', '；', ':', '：', '、', '.', '。', '!', '！', '?', '？', '”', '>', '》', ']', ')', '）', '}', '…'};
     public static final char[] NO_LINE_TAIL = {'“', '<', '《', '[', '(', '（', '{'};
 
     //内容宽高
@@ -48,6 +51,7 @@ public class PageManager {
 
     private Paint mContentPaint;
     private Paint mChapterNamePaint;
+    private String mBookName;
 
     public PageManager(float contentWidth, float contentHeight,
                        float letterSpacing, float lineSpacing, float paragraphSpacing,
@@ -59,7 +63,7 @@ public class PageManager {
         mLineSpacing = lineSpacing;
         mParagraphSpacing = paragraphSpacing;
         mChapterNameSpacing = chapterNameSpacing;
-        mChapterNameMargin = 70;
+        mChapterNameMargin = CHAPTER_NAME_MARGIN;
         mContentPaint = contentPaint;
         mChapterNamePaint = chapterNamePaint;
 
@@ -98,7 +102,7 @@ public class PageManager {
             return pages;
         }
 
-        if (chapter == null) return pages;
+        if (chapter == null || TextUtils.isEmpty(chapter.getContent())) return pages;
         InputStream is = new ByteArrayInputStream(chapter.getContent().getBytes());
         // read it with BufferedReader
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -119,7 +123,7 @@ public class PageManager {
                     rHeight -= mChapterNameMargin;
                 } else {
                     //手动添加换行符  BufferedReader据'\n'读取一行
-                    paragraph = paragraph + "\n";
+                    paragraph += "\n";
                 }
 
                 //段落进行分行
@@ -141,7 +145,11 @@ public class PageManager {
                         page.setLines(new ArrayList<>(lines));
                         pages.add(page);
                         if (pages.size() == 1) {
-                            page.setChapterName("");
+                            if (!TextUtils.isEmpty(mBookName)) {
+                                page.setChapterName(mBookName);
+                            } else {
+                                page.setChapterName(chapter.getName());
+                            }
                         } else {
                             page.setChapterName(chapter.getName());
                         }
@@ -201,7 +209,6 @@ public class PageManager {
             pages.add(page);
         }
         for (int i = 0; i < pages.size(); i++) {
-//            String progress = "本章进度" + (i + 1) * 100 / pages.size() + " %";
             String progress = (i + 1) + "/" + pages.size();
             pages.get(i).setProgress(progress);
         }
@@ -211,8 +218,8 @@ public class PageManager {
     /**
      * 按段落截取行
      *
-     * @param isChapterName
-     * @param paragraph
+     * @param isChapterName 是否是章节名
+     * @param paragraph     段落字符串
      * @return
      */
     private LineData subLine(boolean isChapterName, String paragraph) {
@@ -237,26 +244,46 @@ public class PageManager {
             }
             //当前字符放不下了
             else {
-                //判断上一个字符能否当末尾 是：处理当前字符、否：删掉
-                char lastLetter = paragraph.charAt(i - 1);
+                //判断上一个字符不能当末尾
+                int lastIndex = i - 1;
+                char lastLetter = paragraph.charAt(lastIndex);
                 float lastLetterWidth;
                 if (ArrayUtils.contains(NO_LINE_TAIL, lastLetter)) {
-                    //之前加上了宽度 要减去
-                    if (isChapterName) {
-                        lastLetterWidth = mChapterNamePaint.measureText(String.valueOf(lastLetter));
-                    } else {
-                        lastLetterWidth = mContentPaint.measureText(String.valueOf(lastLetter));
+                    while (true) {
+                        lastIndex = i - 1;
+                        //几乎不可能[测试符号可能会出现]
+                        if (lastIndex < 0) break;
+                        lastLetter = paragraph.charAt(lastIndex);
+                        //满足条件了
+                        if (!ArrayUtils.contains(NO_LINE_TAIL, lastLetter)) break;
+                        if (isChapterName) {
+                            lastLetterWidth = mChapterNamePaint.measureText(String.valueOf(lastLetter));
+                        } else {
+                            lastLetterWidth = mContentPaint.measureText(String.valueOf(lastLetter));
+                        }
+                        //之前加上了宽度 要减去
+                        lineWidth -= (lastLetterWidth + mLetterSpacing);
+                        letterList.remove(letterList.size() - 1);
+                        i--;
                     }
-                    lineWidth -= (lastLetterWidth + mLetterSpacing);
-                    letterList.remove(letterList.size() - 1);
+
                 }
-                //判断当前字符能否当下一行开头 否：  是：
+                //判断当前字符不能当下一行开头
                 else if (ArrayUtils.contains(NO_LINE_HEADER, letter)) {
-                    LineData.LetterData data = new LineData.LetterData();
-                    data.setLetter(letter);
-                    data.setOffsetX(lineWidth);
-                    letterList.add(data);
-                    lineWidth += letterWidth;
+                    while (true) {
+                        //超出长度
+                        if (i >= paragraph.length()) break;
+                        char nextLetter = paragraph.charAt(i);
+                        //满足条件了
+                        if (!ArrayUtils.contains(NO_LINE_HEADER, nextLetter)) break;
+                        //不能当开头
+                        LineData.LetterData nextData = new LineData.LetterData();
+                        nextData.setLetter(nextLetter);
+                        nextData.setOffsetX(lineWidth);
+                        letterList.add(nextData);
+                        lineWidth += letterWidth;
+                        i++;
+                    }
                 }
                 //正常情况 ：减去最后一个字符多余的字间距
                 else {
@@ -270,7 +297,7 @@ public class PageManager {
         LineData lineData = new LineData();
         if (isChapterName) lineData.setChapterName(true);
         lineData.setLetters(letterList);
-        Log.e(TAG + "-", letterList.toString().replace(",", "").replace(" ", ""));
+//        L.e(TAG + "-", letterList.toString().replace(",", "").replace(" ", ""));
         return lineData;
     }
 
@@ -306,4 +333,7 @@ public class PageManager {
         pages.add(pageData);
     }
 
+    public void setBookName(String bookName) {
+        mBookName = bookName;
+    }
 }

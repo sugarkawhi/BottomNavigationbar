@@ -13,7 +13,7 @@ public class PageData {
     //是否是封面页
     private boolean isCover;
     //在章节中的索引
-    private float indexOfChapter;
+    private int indexOfChapter;
     //同时包含该页面HeaderData
     private String chapterName;
     //进度
@@ -31,11 +31,11 @@ public class PageData {
         isCover = cover;
     }
 
-    public float getIndexOfChapter() {
+    public int getIndexOfChapter() {
         return indexOfChapter;
     }
 
-    public void setIndexOfChapter(float indexOfChapter) {
+    public void setIndexOfChapter(int indexOfChapter) {
         this.indexOfChapter = indexOfChapter;
     }
 

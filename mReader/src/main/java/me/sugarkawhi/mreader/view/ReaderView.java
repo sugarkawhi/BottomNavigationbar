@@ -6,13 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import me.sugarkawhi.mreader.R;
@@ -22,10 +21,9 @@ import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
-import me.sugarkawhi.mreader.config.IReaderDirection;
-import me.sugarkawhi.mreader.config.IReaderPageMode;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
+import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.manager.PageGenerater;
 import me.sugarkawhi.mreader.manager.PageManager;
@@ -40,16 +38,15 @@ import me.sugarkawhi.mreader.utils.ScreenUtils;
  * Created by ZhaoZongyao on 2018/1/11.
  */
 public class ReaderView extends View {
+    private static final String TAG = "MReaderView";
 
     //加载中
     private static final int STATE_LOADING = 1;
     //打开书籍成功
     private static final int STATE_OPEN = 2;
-
     //当前状态
     private int mCurrentState = STATE_LOADING;
 
-    private static final String TAG = "MReaderView";
 
     public PageElement mPageElement;
 
@@ -78,6 +75,8 @@ public class ReaderView extends View {
     private PageAnimController mAnimController;
 
     private PageRespository mRespository;
+
+    private Handler mHandler;
 
     public ReaderView(Context context) {
         this(context, null);
@@ -124,30 +123,33 @@ public class ReaderView extends View {
      */
     private void init() {
         mRespository = new PageRespository(mPageElement);
-        setPageMode(IReaderPageMode.COVER);
+        int pageMode = IReaderPersistence.getPageMode(getContext());
+        setPageMode(pageMode);
+        mHandler = new Handler();
     }
 
     /**
      * 设置翻页模式
-     * {@link #(IReaderPageMode.COVER)} 覆盖模式
-     * {@link #(IReaderPageMode.SLIDE)}  平移模式
-     * {@link #(IReaderPageMode.NONE)}  无动画
-     * {@link #(IReaderPageMode.SIMULATION)} 仿真
+     * {@link #(IReaderConfig.PageMode.COVER)} 覆盖模式
+     * {@link #(IReaderConfig.PageMode.SLIDE)}  平移模式
+     * {@link #(IReaderConfig.PageMode.NONE)}  无动画
+     * {@link #(IReaderConfig.PageMode.SIMULATION)} 仿真
      *
      * @param mode 翻页模式
      */
     public void setPageMode(int mode) {
         switch (mode) {
-            case IReaderPageMode.COVER:
+            case IReaderConfig.PageMode.COVER:
                 mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
-            case IReaderPageMode.SLIDE:
+            case IReaderConfig.PageMode.SLIDE:
                 mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
-            case IReaderPageMode.NONE:
+            case IReaderConfig.PageMode.NONE:
                 mAnimController = new NoneAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
         }
+        IReaderPersistence.savePageMode(getContext(), mode);
         mAnimController.setIReaderTouchListener(mReaderTouchListener);
     }
 
@@ -160,13 +162,8 @@ public class ReaderView extends View {
 
         @Override
         public void onSelectPage(int direction, boolean isCancel) {
-            if (direction == IReaderDirection.NEXT) {
-                if (!isCancel) {
-                    PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
-                } else {
-                    PageGenerater.generate(mPageElement, mRespository.getCancelPage(), mAnimController.getCurrentBitmap());
-                }
-            }
+            mRespository.onSelectPage(direction, isCancel);
+            drawCurrentPage();
         }
 
         @Override
@@ -211,6 +208,14 @@ public class ReaderView extends View {
         mAnimController.setIReaderTouchListener(mReaderTouchListener);
     }
 
+    /**
+     * mRespository
+     *
+     * @param readerChapterChangeListener
+     */
+    public void setReaderChapterChangeListener(IReaderChapterChangeListener readerChapterChangeListener) {
+        mRespository.setChapterChangeListener(readerChapterChangeListener);
+    }
 
     public void setTime(String time) {
         mPageElement.setTime(time);
@@ -220,71 +225,64 @@ public class ReaderView extends View {
 
     public void setElectric(float electric) {
         mPageElement.setElectric(electric);
-
-        invalidate();
     }
 
-
-    private BaseChapterBean mCurChapter, mPreChapter, mNextChapter;
 
     /**
      * 设置当前章节
      * 阅读器维护一个页面的队列
      *
-     * @param preChapter
-     * @param curChapter
-     * @param nextChapter
+     * @param curChapter 当前章节
+     * @param progress   进度
      */
-    public void setChapters(BaseChapterBean preChapter, BaseChapterBean curChapter, BaseChapterBean nextChapter) {
-        mPreChapter = preChapter;
-        mCurChapter = curChapter;
-        mNextChapter = nextChapter;
-        new AsyncTask<BaseChapterBean, Void, List<List<PageData>>>() {
+    public void setCurrentChapter(final BaseChapterBean curChapter, final float progress) {
+        mRespository.setCurChapter(curChapter);
+        new Thread(new Runnable() {
             @Override
-            protected List<List<PageData>> doInBackground(BaseChapterBean... chapters) {
-                List<List<PageData>> lists = new ArrayList<>();
-                lists.add(mPageManager.generatePages(chapters[0]));
-                return lists;
-            }
-
-            @Override
-            protected void onPostExecute(List<List<PageData>> lists) {
-                super.onPostExecute(lists);
-                mCurrentState = STATE_OPEN;
-                mRespository.setCurPageList(lists.get(0));
-                drawCurrentPage();
-                invalidate();
-            }
-        }.execute(curChapter, preChapter, curChapter);
-    }
-
-    /**
-     * 设置当前章节
-     * 阅读器维护一个页面的队列
-     *
-     * @param preChapter
-     * @param curChapter
-     * @param nextChapter
-     */
-    public void setChapter(BaseChapterBean curChapter, final float progress) {
-        mCurChapter = curChapter;
-        new AsyncTask<BaseChapterBean, Void, List<PageData>>() {
-
-            @Override
-            protected List<PageData> doInBackground(BaseChapterBean... chapterBeans) {
-                return mPageManager.generatePages(chapterBeans[0]);
-            }
-
-            @Override
-            protected void onPostExecute(List<PageData> list) {
-                super.onPostExecute(list);
+            public void run() {
+                List<PageData> list = mPageManager.generatePages(curChapter);
                 mCurrentState = STATE_OPEN;
                 mRespository.setCurPageList(list);
                 mRespository.setCurPage(progress);
-                drawCurrentPage();
-                invalidate();
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        drawCurrentPage();
+                    }
+                });
             }
-        }.execute(curChapter);
+        }).start();
+    }
+
+    /**
+     * 设置下一章节
+     * todo 判断是否是下一章 准确判断
+     *
+     * @param nextChapter 当前章节的下一章
+     */
+    public void setNextChapter(final BaseChapterBean nextChapter) {
+        mRespository.setNextChapter(nextChapter);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<PageData> list = mPageManager.generatePages(nextChapter);
+                mRespository.setNextPageList(list);
+            }
+        }).start();
+    }
+
+    /**
+     * 设置当前章节
+     */
+    public void setPreChapter(final BaseChapterBean preChapter) {
+        mRespository.setPreChapter(preChapter);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<PageData> list = mPageManager.generatePages(preChapter);
+                mRespository.setPrePageList(list);
+            }
+        }).start();
     }
 
     public Bitmap getReaderBackgroundBitmap() {
@@ -313,23 +311,15 @@ public class ReaderView extends View {
         //重新绘制封面扉页
         createCover();
         //需要重绘当前页面
-        PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
-        invalidate();
+        drawCurrentPage();
     }
 
-    /**
-     * 设置当前进度
-     * TODO
-     */
-    public void setProgress(int progress) {
-        //
-    }
 
     /**
      * 设置文字大小
      * TODO 1.需要重新分页2.分页后保持当前进度
      */
-    public void setFontSize(float fontSize) {
+    public void setFontSize(int fontSize) {
         if (fontSize < IReaderConfig.FontSize.MIN) {
             L.w(TAG, "font size is too small");
             return;
@@ -338,27 +328,11 @@ public class ReaderView extends View {
             L.w(TAG, "font size is too large");
             return;
         }
+        IReaderPersistence.saveFontSize(getContext(), fontSize);
         mContentPaint.setTextSize(fontSize);
         mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
-
-        new AsyncTask<BaseChapterBean, Void, List<List<PageData>>>() {
-            @Override
-            protected List<List<PageData>> doInBackground(BaseChapterBean... chapters) {
-                List<List<PageData>> lists = new ArrayList<>();
-                lists.add(mPageManager.generatePages(chapters[0]));
-                return lists;
-            }
-
-            @Override
-            protected void onPostExecute(List<List<PageData>> lists) {
-                super.onPostExecute(lists);
-                mRespository.setCurPageList(lists.get(0));
-                drawCurrentPage();
-                invalidate();
-            }
-        }.execute(mCurChapter);
-
-        invalidate();
+        //需要将 当前、前、后 章节重新分页
+        dispose();
     }
 
     /**
@@ -424,25 +398,79 @@ public class ReaderView extends View {
         dispose();
     }
 
+    /**
+     * 重新刷新
+     */
     private void dispose() {
-        new AsyncTask<BaseChapterBean, Void, List<List<PageData>>>() {
+        Thread thread = new Thread(new Runnable() {
             @Override
-            protected List<List<PageData>> doInBackground(BaseChapterBean... chapters) {
-                List<List<PageData>> lists = new ArrayList<>();
-                lists.add(mPageManager.generatePages(chapters[0]));
-//                lists.add(mPageManager.generatePages(chapters[1]));
-//                lists.add(mPageManager.generatePages(chapters[2]));
-                return lists;
+            public void run() {
+                List<PageData> list = mPageManager.generatePages(mRespository.getCurChapter());
+                mRespository.setCurPageList(list);
+                float curProgress = mRespository.getReadingProgress();
+                mRespository.setCurPage(curProgress);
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        drawCurrentPage();
+                    }
+                });
+                List<PageData> preList = mPageManager.generatePages(mRespository.getPreChapter());
+                mRespository.setPrePageList(preList);
+                List<PageData> nextList = mPageManager.generatePages(mRespository.getNextChapter());
+                mRespository.setNextPageList(nextList);
             }
+        });
+        thread.start();
+    }
 
-            @Override
-            protected void onPostExecute(List<List<PageData>> lists) {
-                super.onPostExecute(lists);
-                mRespository.setCurPageList(lists.get(0));
-                drawCurrentPage();
-                invalidate();
-            }
-        }.execute(mCurChapter, mPreChapter, mNextChapter);
+    /**
+     * 设置当前章节的进度
+     * 1.首先要知道当前章节的总页数
+     * 2.用总页数乘以这百分比 得出当前页数
+     *
+     * @param progress 进度 >=0 并且<=1
+     */
+    public void setChapterProgress(float progress) {
+        mRespository.setChapterProgress(progress);
+        drawCurrentPage();
+    }
 
+    /**
+     * 直接跳转到下一章
+     */
+    public void directNextChapter() {
+        mRespository.directNextChapter();
+        drawCurrentPage();
+    }
+
+    /**
+     * 直接跳转到上一章
+     */
+    public void directPreChapter() {
+        mRespository.directPreChapter();
+        drawCurrentPage();
+    }
+
+
+    public void setBookName(String bookName) {
+        mPageManager.setBookName(bookName);
+    }
+
+    /**
+     * 获取当前的chapter
+     * 为了保存当前进度
+     */
+    public BaseChapterBean getCurrentChapter() {
+        return mRespository.getCurChapter();
+    }
+
+    /**
+     * 获取当前阅读进度
+     *
+     * @return 章节阅读进度
+     */
+    public float getReadingProgress() {
+        return mRespository.getReadingProgress();
     }
 }

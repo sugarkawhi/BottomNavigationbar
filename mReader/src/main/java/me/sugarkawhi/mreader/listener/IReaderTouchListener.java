@@ -17,13 +17,5 @@ public interface IReaderTouchListener {
      */
     void onTouchCenter();
 
-    /**
-     * touch right
-     */
-    boolean onTouchRight();
 
-    /**
-     * touch left
-     */
-    boolean onTouchLeft();
 }

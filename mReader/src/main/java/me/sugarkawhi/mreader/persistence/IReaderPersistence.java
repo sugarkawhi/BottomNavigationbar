@@ -37,6 +37,8 @@ public class IReaderPersistence {
 
     /**
      * 保存阅读器文字大小
+     * <p>
+     * 在View设置文字大小中已经做了保存，无需自行处理
      */
     public static void saveFontSize(Context context, int fontSize) {
         getSP(context).edit().putInt(READER_FONT_SIZE, fontSize).apply();
@@ -51,6 +53,8 @@ public class IReaderPersistence {
 
     /**
      * 保存翻页模式
+     * <p>
+     * 在View切换中已经做了保存，无需自行处理
      */
     public static void savePageMode(Context context, int mode) {
         getSP(context).edit().putInt(READER_PAGE_MODE, mode).apply();

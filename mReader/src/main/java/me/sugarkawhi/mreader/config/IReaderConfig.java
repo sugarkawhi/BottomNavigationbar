@@ -16,6 +16,7 @@ public interface IReaderConfig {
     float RATIO_CHAPTER_CONTENT = 1.3f;
     //头部(包括底部 i.时间 ii.进度 )文字大小
     int DEFAULT_HEADER_TEXTSIZE = 35;
+    int CHAPTER_NAME_MARGIN = 80;
 
     //关于电池的配置
     interface Battery {
@@ -31,7 +32,7 @@ public interface IReaderConfig {
         //最大
         int MAX = 10;
         //默认
-        int DEFAULT = 5;
+        int DEFAULT = 2;
         //最小
         int MIN = 0;
     }
@@ -76,7 +77,7 @@ public interface IReaderConfig {
         //滑动
         int SLIDE = 3;
         //无
-        int NODE = 4;
+        int NONE = 4;
     }
 
 

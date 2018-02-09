@@ -30,11 +30,9 @@ public class HeaderElement extends Element {
     @Override
     public boolean onDraw(Canvas canvas) {
         if (TextUtils.isEmpty(mChapterTitle)) return false;
-        mPaint.measureText(mChapterTitle);
         Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
         float titleY = (mHeaderHeight - fontMetrics.bottom - fontMetrics.top) / 2;
         canvas.drawText(mChapterTitle, mPadding, titleY, mPaint);
-//        canvas.drawLine(0, mHeaderHeight / 2, 1080, mHeaderHeight / 2, mPaint);
         return true;
     }
 

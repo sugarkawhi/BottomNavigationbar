@@ -30,6 +30,8 @@ public class HyReaderPersistence extends IReaderPersistence {
         int IMAGE_PURPLE = 3;
         //纯色-抹茶
         int COLOR_MATCHA = 4;
+        //夜间模式
+        int NIGHT = 5;
     }
 
     //字体颜色 对应于背景
@@ -80,18 +82,17 @@ public class HyReaderPersistence extends IReaderPersistence {
      * @param chapter  章节索引
      * @param position 章节位置
      */
-    public static void saveBookRecord(String bookId, String chapterId, int chapterIndex, float progress) {
+    public static void saveBookRecord(String bookId, String chapterId,  float progress) {
         BookRecordBean record = queryBookRecord(bookId);
         DaoSession session = MonApplication.getInstance().getDaoSession();
         BookRecordBeanDao dao = session.getBookRecordBeanDao();
         if (record == null) {
             //插入
-            record = new BookRecordBean(bookId, chapterId, chapterIndex, progress);
+            record = new BookRecordBean(bookId, chapterId, progress);
             long rowID = dao.insert(record);
             L.e(TAG, "insert one book record chapter=");
         } else {
             //更新
-            record.setChapterIndex(chapterIndex);
             record.setChapterId(chapterId);
             record.setProgress(progress);
             dao.update(record);

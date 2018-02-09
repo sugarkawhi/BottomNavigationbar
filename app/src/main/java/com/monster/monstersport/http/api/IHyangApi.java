@@ -20,12 +20,12 @@ import retrofit2.http.Query;
  * @date 2017/11/1
  */
 public interface IHyangApi {
-    String STORY_ID = "8aada6395ab2985c015afaeb0a9c0619";
+
     String BASE_URL = "https://app.xhhread.com/";
 
     /* 章节目录 */
-    @GET("/chapter/searchChapterListVO.i?storyid=" + STORY_ID + "&pageSize=10000")
-    Observable<BaseHttpResult<ChapterListBean>> searchChapterListVO();
+    @GET("/chapter/searchChapterListVO.i?pageSize=10000")
+    Observable<BaseHttpResult<ChapterListBean>> searchChapterListVO(@Query("storyid")String storyid);
 
     /* 获取章节内容*/
     @GET("/chapter/getChapterReadById.i")
@@ -34,12 +34,12 @@ public interface IHyangApi {
 
     /* 书籍特定章的上一章 */
     @GET("/chapter/getPreChapterReadById.i")
-    Observable<BaseHttpResult<ChapterBean>> getPreChapterReadById(@Query("chapterid") String chapterid);
+    Observable<ChapterBean> getPreChapterReadById(@Query("chapterid") String chapterid);
 
 
     /* 书籍特定章的下一章 */
     @GET("/chapter/getNextChapterReadById.i")
-    Observable<BaseHttpResult<ChapterBean>> getNextChapterReadById(@Query("chapterid") String chapterid);
+    Observable<ChapterBean> getNextChapterReadById(@Query("chapterid") String chapterid);
 
 
 }

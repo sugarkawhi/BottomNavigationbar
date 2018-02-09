@@ -5,6 +5,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:background="@color/white" />
+
     <com.monster.monstersport.view.SViewPager
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
