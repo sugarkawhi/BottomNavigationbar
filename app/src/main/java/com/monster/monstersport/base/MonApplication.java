@@ -30,7 +30,7 @@ public class MonApplication extends Application {
     public void onCreate() {
         super.onCreate();
         application = this;
-        SpeechUtility.createUtility(this, "appid=5a532148");
+        SpeechUtility.createUtility(this, "appid=5a936bf5");
         setupLeakCanary();
         initGreenDao();
     }

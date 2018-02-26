@@ -42,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
         mEntities = new ArrayList<>();
         mFragments = new ArrayList<>();
         mFragments.add(BookListFragment.newInstance());
-        mFragments.add(ZwHistoryFragment.newInstance());
+//        mFragments.add(ZwHistoryFragment.newInstance());
         mFragments.add(TtsFragment.newInstance());
-        mFragments.add(CbFragment.newInstance());
+//        mFragments.add(CbFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(
                 R.drawable.ic_tab_album_default,
                 R.drawable.ic_tab_album_selected));

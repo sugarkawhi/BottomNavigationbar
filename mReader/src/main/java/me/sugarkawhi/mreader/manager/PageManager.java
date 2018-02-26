@@ -208,6 +208,7 @@ public class PageManager {
             page.setLines(new ArrayList<LineData>(1));
             pages.add(page);
         }
+        //设置当前页的进度
         for (int i = 0; i < pages.size(); i++) {
             String progress = (i + 1) + "/" + pages.size();
             pages.get(i).setProgress(progress);

@@ -146,6 +146,7 @@ public class ReaderView extends View {
                 mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
             case IReaderConfig.PageMode.NONE:
+            default:
                 mAnimController = new NoneAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
                 break;
         }
