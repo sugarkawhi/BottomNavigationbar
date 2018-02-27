@@ -18,10 +18,18 @@ public class PageData {
     private String chapterName;
     //进度
     private String progress;
-    //
+    //行数据
     private List<LineData> lines;
+    //图片数据
     private List<ImageData> images;
+    //段落数据
+    private String content;
+    //字符数据
+    private List<LetterData> letters;
 
+
+    public PageData() {
+    }
 
     public boolean isCover() {
         return isCover;
@@ -69,5 +77,21 @@ public class PageData {
 
     public void setImages(List<ImageData> images) {
         this.images = images;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public List<LetterData> getLetters() {
+        return letters;
+    }
+
+    public void setLetters(List<LetterData> letters) {
+        this.letters = letters;
     }
 }

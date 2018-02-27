@@ -474,4 +474,21 @@ public class ReaderView extends View {
     public float getReadingProgress() {
         return mRespository.getReadingProgress();
     }
+
+    /**
+     * 获取当前页
+     *
+     * @return
+     */
+    public PageData getCurrentPage() {
+        return mRespository.getCurPage();
+    }
+
+    /**
+     * 设置语音合成进度
+     */
+    public void setTtsProgress(int percent, int beginPos, int endPos) {
+        mPageElement.setTtsProgress(percent, beginPos, endPos);
+        drawCurrentPage();
+    }
 }

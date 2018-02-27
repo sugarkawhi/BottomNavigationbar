@@ -1,5 +1,7 @@
 package me.sugarkawhi.mreader.data;
 
+import android.graphics.Rect;
+
 import java.util.List;
 
 /**
@@ -22,7 +24,11 @@ public class LineData {
     private boolean isChapterName;
     //本行的字符串 区别于letters
     private String line;
+    //本行区域
+    private Rect backgroundRect;
 
+    public LineData() {
+    }
 
     public List<LetterData> getLetters() {
         return letters;
@@ -64,41 +70,13 @@ public class LineData {
         this.line = line;
     }
 
-    /**
-     * 保存每个字的位置
-     */
-    public static class LetterData {
-        private char letter;
-        private float offsetX;
-        private float offsetY;
-
-        public char getLetter() {
-            return letter;
-        }
-
-        public void setLetter(char letter) {
-            this.letter = letter;
-        }
-
-        public float getOffsetX() {
-            return offsetX;
-        }
-
-        public void setOffsetX(float offsetX) {
-            this.offsetX = offsetX;
-        }
-
-        public float getOffsetY() {
-            return offsetY;
-        }
-
-        public void setOffsetY(float offsetY) {
-            this.offsetY = offsetY;
-        }
-
-        @Override
-        public String toString() {
-            return letter + "";
-        }
+    public Rect getBackgroundRect() {
+        return backgroundRect;
     }
+
+    public void setBackgroundRect(Rect backgroundRect) {
+        this.backgroundRect = backgroundRect;
+    }
+
+
 }

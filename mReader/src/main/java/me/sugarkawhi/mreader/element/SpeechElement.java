@@ -7,6 +7,7 @@ import android.text.TextUtils;
 
 import java.util.List;
 
+import me.sugarkawhi.mreader.data.LetterData;
 import me.sugarkawhi.mreader.data.LineData;
 
 /**
@@ -25,6 +26,7 @@ public class SpeechElement extends LineElement {
     private Paint mChapterNamePaint;
 
     private List<LineData> mLineDataList;
+    private List<LetterData> mLetterDataList;
 
     public SpeechElement(float contentWidth, float contentHeight, float headerHeight, float footerHeight, float padding, Paint contentPaint, Paint chapterNamePaint) {
         super(contentWidth, contentHeight, headerHeight, footerHeight, padding, contentPaint, chapterNamePaint);
@@ -34,33 +36,44 @@ public class SpeechElement extends LineElement {
         this.mLineDataList = lineDataList;
     }
 
+    public void setLetterData(List<LetterData> letterDataList) {
+        this.mLetterDataList = letterDataList;
+    }
+
     @Override
     public boolean onDraw(Canvas canvas) {
-        if (mLineDataList == null) return false;
-        for (int i = 0; i < mLineDataList.size(); i++) {
-            LineData lineData = mLineDataList.get(i);
-            if (lineData == null) continue;
-            //画一整行
-            if (!TextUtils.isEmpty(lineData.getLine())) {
-                canvas.drawText(lineData.getLine(), lineData.getOffsetX() + mPadding, lineData.getOffsetY() + mHeaderHeight, mContentPaint);
-                continue;
-            }
-
-            //画单个字符
-            List<LineData.LetterData> letterDataList = lineData.getLetters();
-            if (letterDataList != null) {
-                for (LineData.LetterData letter : letterDataList) {
-                    String str = String.valueOf(letter.getLetter());
-                    float x = letter.getOffsetX() + mPadding;
-                    float y = lineData.getOffsetY() + mHeaderHeight;
-                    if (lineData.isChapterName()) {
-                        canvas.drawText(str, x, y, mChapterNamePaint);
-                    } else {
-                        canvas.drawText(str, x, y, mContentPaint);
-                    }
-                }
+//        if (mLineDataList == null) return false;
+//        for (int i = 0; i < mLineDataList.size(); i++) {
+//            LineData lineData = mLineDataList.get(i);
+//            if (lineData == null) continue;
+//            //画单个字符
+//            List<LetterData> letterDataList = lineData.getLetters();
+//            if (letterDataList != null) {
+//                for (LetterData letter : letterDataList) {
+//                    String str = String.valueOf(letter.getLetter());
+//                    float x = letter.getOffsetX() + mPadding;
+//                    float y = lineData.getOffsetY() + mHeaderHeight;
+//                    if (lineData.isChapterName()) {
+//                        canvas.drawText(str, x, y, mChapterNamePaint);
+//                    } else {
+//                        canvas.drawText(str, x, y, mContentPaint);
+//                    }
+//                }
+//            }
+//        }
+        drawTts(canvas);
+        if (mLetterDataList == null) return false;
+        for (LetterData letter : mLetterDataList) {
+            String str = String.valueOf(letter.getLetter());
+            float x = letter.getOffsetX() + mPadding;
+            float y = letter.getOffsetY() + mHeaderHeight;
+            if (letter.isChapterName()) {
+                canvas.drawText(str, x, y, mChapterNamePaint);
+            } else {
+                canvas.drawText(str, x, y, mContentPaint);
             }
         }
+
         return true;
     }
 }

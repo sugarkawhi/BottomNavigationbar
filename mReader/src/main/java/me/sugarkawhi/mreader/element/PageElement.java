@@ -8,7 +8,6 @@ import android.graphics.PorterDuff;
 
 import java.util.List;
 
-import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.data.ImageData;
 import me.sugarkawhi.mreader.data.PageData;
 
@@ -103,7 +102,9 @@ public class PageElement {
             mFooterElement.onDraw(canvas);
             //set line
             mLineElement.setLineData(pageData.getLines());
+            mLineElement.setLetterData(pageData.getLetters());
             mLineElement.onDraw(canvas);
+            //set image
             List<ImageData> images = pageData.getImages();
             mImageElement.setImageDataList(images);
             mImageElement.onDraw(canvas);
@@ -113,7 +114,6 @@ public class PageElement {
             if (mCoverBitmap == null) return;
             canvas.drawBitmap(mCoverBitmap, 0, 0, null);
         }
-
     }
 
     public void setTime(String time) {
@@ -126,5 +126,9 @@ public class PageElement {
 
     public void setCoverBitmap(Bitmap bitmap) {
         this.mCoverBitmap = bitmap;
+    }
+
+    public void setTtsProgress(int percent, int beginPos, int endPos) {
+        mLineElement.setTtsProgress(percent, beginPos, endPos);
     }
 }

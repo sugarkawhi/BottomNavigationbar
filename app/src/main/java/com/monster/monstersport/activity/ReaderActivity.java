@@ -1,14 +1,18 @@
 package com.monster.monstersport.activity;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,6 +20,13 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.InitListener;
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.SpeechError;
+import com.iflytek.cloud.SpeechSynthesizer;
+import com.iflytek.cloud.SynthesizerListener;
+import com.iflytek.sunflower.FlowerCollector;
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.bean.ChapterBean;
@@ -47,6 +58,7 @@ import com.monster.monstersport.bean.BookBean;
 
 import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
+import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
 import me.sugarkawhi.mreader.utils.L;
@@ -66,6 +78,7 @@ import static com.monster.monstersport.persistence.HyReaderPersistence.Backgroun
 
 public class ReaderActivity extends BaseActivity {
 
+    public static final String TAG = "ReaderActivity";
     public static final String PARAM_STORY_ID = "PARAM_STORY_ID";
 
     private String mStoryId;
@@ -85,6 +98,16 @@ public class ReaderActivity extends BaseActivity {
     private boolean isShow;
 
     private int mScreenWidth, mScreenHeight;
+    //语音合成
+    // 语音合成对象
+    private SpeechSynthesizer mTts;
+    // 引擎类型
+    private String mEngineType = SpeechConstant.TYPE_CLOUD;
+    //
+    // 默认发音人
+    private String voicer = "xiaoyan";
+
+    private SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -152,7 +175,30 @@ public class ReaderActivity extends BaseActivity {
         });
         hideSystemUI();
         addCatalog();
+        initTts();
     }
+
+    private void initTts() {
+        mTts = SpeechSynthesizer.createSynthesizer(this, mTtsInitListener);
+        mSharedPreferences = getSharedPreferences("com.monster.setting", MODE_PRIVATE);
+    }
+
+    /**
+     * 初始化监听。
+     */
+    private InitListener mTtsInitListener = new InitListener() {
+        @Override
+        public void onInit(int code) {
+            Log.e(TAG, "InitListener init() code = " + code);
+            if (code != ErrorCode.SUCCESS) {
+                Log.e(TAG, "初始化失败,错误码：" + code);
+            } else {
+                // 初始化成功，之后可以调用startSpeaking方法
+                // 注：有的开发者在onCreate方法中创建完合成对象之后马上就调用startSpeaking进行合成，
+                // 正确的做法是将onCreate中的startSpeaking调用移至这里
+            }
+        }
+    };
 
     private void addCatalog() {
         CatalogueFragment catalogueFragment = CatalogueFragment.newInstance();
@@ -298,8 +344,8 @@ public class ReaderActivity extends BaseActivity {
                     @Override
                     public void onNext(ZipChapter zipChapter) {
                         readerView.setCurrentChapter(zipChapter.cur, progress);
-                        readerView.setNextChapter(zipChapter.next);
-                        readerView.setPreChapter(zipChapter.pre);
+//                        readerView.setNextChapter(zipChapter.next);
+//                        readerView.setPreChapter(zipChapter.pre);
                     }
 
                     @Override
@@ -557,5 +603,148 @@ public class ReaderActivity extends BaseActivity {
         if (chapter == null) return;
         HyReaderPersistence.saveBookRecord(mStoryId, chapter.getChapterid(), readerView.getReadingProgress());
     }
+
+    /****************************语音合成*****************************
+     * **************************语音合成*****************************
+     * **************************语音合成*****************************
+     * **************************语音合成*****************************/
+
+    //语音合成
+    @OnClick(R.id.iv_tts)
+    public void tts() {
+        PageData pageData = readerView.getCurrentPage();
+        if (pageData == null) {
+            showToast("当前页内容为空");
+            return;
+        }
+        String content = pageData.getContent();
+        startTts(content);
+    }
+
+    /**
+     * 开始语音合成
+     *
+     * @param content
+     */
+    private void startTts(String content) {
+        // 移动数据分析，收集开始合成事件
+        FlowerCollector.onEvent(this, "tts_play");
+
+        // 设置参数
+        setParam();
+        int code = mTts.startSpeaking(content, mTtsListener);
+//			/**
+//			 * 只保存音频不进行播放接口,调用此接口请注释startSpeaking接口
+//			 * text:要合成的文本，uri:需要保存的音频全路径，listener:回调接口
+//			*/
+//			String path = Environment.getExternalStorageDirectory()+"/tts.ico";
+//			int code = mTts.synthesizeToUri(text, path, mTtsListener);
+
+        if (code != ErrorCode.SUCCESS) {
+            showToast("语音合成失败,错误码: " + code);
+        }
+    }
+
+    /**
+     * 参数设置
+     *
+     * @return
+     */
+    private void setParam() {
+        // 清空参数
+        mTts.setParameter(SpeechConstant.PARAMS, null);
+        // 根据合成引擎设置相应参数
+        if (mEngineType.equals(SpeechConstant.TYPE_CLOUD)) {
+            mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+            // 设置在线合成发音人
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicer);
+            //设置合成语速
+            mTts.setParameter(SpeechConstant.SPEED, mSharedPreferences.getString("speed_preference", "50"));
+            //设置合成音调
+            mTts.setParameter(SpeechConstant.PITCH, mSharedPreferences.getString("pitch_preference", "50"));
+            //设置合成音量
+            mTts.setParameter(SpeechConstant.VOLUME, mSharedPreferences.getString("volume_preference", "50"));
+        } else {
+            mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
+            // 设置本地合成发音人 voicer为空，默认通过语记界面指定发音人。
+            mTts.setParameter(SpeechConstant.VOICE_NAME, "");
+            /**
+             * TODO 本地合成不设置语速、音调、音量，默认使用语记设置
+             * 开发者如需自定义参数，请参考在线合成参数设置
+             */
+        }
+        //设置播放器音频流类型
+        mTts.setParameter(SpeechConstant.STREAM_TYPE, mSharedPreferences.getString("stream_preference", "3"));
+        // 设置播放合成音频打断音乐播放，默认为true
+        mTts.setParameter(SpeechConstant.KEY_REQUEST_FOCUS, "true");
+
+        // 设置音频保存路径，保存音频格式支持pcm、wav，设置路径为sd卡请注意WRITE_EXTERNAL_STORAGE权限
+        // 注：AUDIO_FORMAT参数语记需要更新版本才能生效
+        mTts.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
+        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/tts.wav");
+    }
+
+    // 缓冲进度
+    private int mPercentForBuffering = 0;
+    // 播放进度
+    private int mPercentForPlaying = 0;
+
+    /**
+     * 合成回调监听。
+     */
+    private SynthesizerListener mTtsListener = new SynthesizerListener() {
+
+        @Override
+        public void onSpeakBegin() {
+            showToast("开始播放");
+        }
+
+        @Override
+        public void onSpeakPaused() {
+            showToast("暂停播放");
+        }
+
+        @Override
+        public void onSpeakResumed() {
+            showToast("继续播放");
+        }
+
+        @Override
+        public void onBufferProgress(int percent, int beginPos, int endPos,
+                                     String info) {
+            // 合成进度
+            mPercentForBuffering = percent;
+        }
+
+        @SuppressLint("DefaultLocale")
+        @Override
+        public void onSpeakProgress(int percent, int beginPos, int endPos) {
+            // 播放进度
+            mPercentForPlaying = percent;
+            showToast(String.format("缓存进度%d%%,播放进度%d%%", mPercentForBuffering, mPercentForPlaying)
+                    + " beginPos=" + beginPos
+                    + " endPos=" + endPos);
+            readerView.setTtsProgress(percent, beginPos, endPos);
+        }
+
+        @Override
+        public void onCompleted(SpeechError error) {
+            if (error == null) {
+                showToast("播放完成");
+            } else {
+                showToast(error.getPlainDescription(true));
+            }
+        }
+
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+            // 以下代码用于获取与云端的会话id，当业务出错时将会话id提供给技术支持人员，可用于查询会话日志，定位出错原因
+            // 若使用本地能力，会话id为null
+            //	if (SpeechEvent.EVENT_SESSION_ID == eventType) {
+            //		String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
+            //		Log.d(TAG, "session id =" + sid);
+            //	}
+        }
+    };
 
 }
