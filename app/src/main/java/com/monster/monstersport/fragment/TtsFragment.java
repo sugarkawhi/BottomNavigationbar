@@ -1,10 +1,12 @@
 package com.monster.monstersport.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
@@ -17,6 +19,7 @@ import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseFragment;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.widget.Toast.LENGTH_SHORT;
 
 /**
  * Created by ZhaoZongyao on 2018/1/10.
@@ -41,6 +44,7 @@ public class TtsFragment extends BaseFragment implements View.OnClickListener {
     private SharedPreferences mSharedPreferences;
 
     private String mText;
+    private Toast mToast;
 
     @Override
     protected int getLayoutId() {
@@ -55,6 +59,7 @@ public class TtsFragment extends BaseFragment implements View.OnClickListener {
         view.findViewById(R.id.btn_pause).setOnClickListener(this);
         view.findViewById(R.id.btn_recover).setOnClickListener(this);
         mText = getString(R.string.text_long_text);
+        mToast = Toast.makeText(getContext(),"", LENGTH_SHORT);
     }
 
 
@@ -177,10 +182,13 @@ public class TtsFragment extends BaseFragment implements View.OnClickListener {
 
         }
 
+        @SuppressLint("DefaultLocale")
         @Override
         public void onSpeakProgress(int percent, int beginPos, int endPos) {
             // 播放进度
-
+            showTip(String.format("播放进度%d%%", percent)
+                    + " beginPos=" + beginPos
+                    + " endPos=" + endPos);
         }
 
         @Override
@@ -205,6 +213,8 @@ public class TtsFragment extends BaseFragment implements View.OnClickListener {
 
     private void showTip(String str) {
         Log.e(TAG, "showTip  str=" + str);
+        mToast.setText(str);
+        mToast.show();
     }
 
 

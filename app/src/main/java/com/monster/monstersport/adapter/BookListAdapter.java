@@ -48,7 +48,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.Catalo
         final BookBean book = mData.get(position);
 
         Glide.with(mContext).load(book.getCover()).into(holder.mImageView);
-        holder.mTextView.setText(book.getName());
+//        holder.mTextView.setText(book.getName());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,8 +68,8 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.Catalo
 
         @BindView(R.id.iv)
         ImageView mImageView;
-        @BindView(R.id.text)
-        TextView mTextView;
+//        @BindView(R.id.text)
+//        TextView mTextView;
 
         CatalogItemHolder(View itemView) {
             super(itemView);

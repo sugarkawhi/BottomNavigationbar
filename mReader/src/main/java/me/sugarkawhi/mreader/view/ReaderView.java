@@ -484,11 +484,30 @@ public class ReaderView extends View {
         return mRespository.getCurPage();
     }
 
+
+    //开始
+    private int tmpBeginPos = -1;
+
     /**
      * 设置语音合成进度
      */
     public void setTtsProgress(int percent, int beginPos, int endPos) {
+        if (tmpBeginPos == beginPos) return;
+        tmpBeginPos = beginPos;
         mPageElement.setTtsProgress(percent, beginPos, endPos);
         drawCurrentPage();
+    }
+
+    /**
+     * 语音合成
+     * 自动翻到下一页
+     * TODO 暂时没有动画
+     */
+    public PageData ttsNextPage() {
+        PageData nextPage = mRespository.nextPage();
+        if (nextPage != null) {
+            drawCurrentPage();
+        }
+        return nextPage;
     }
 }

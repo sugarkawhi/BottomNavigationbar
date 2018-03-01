@@ -360,4 +360,20 @@ public class PageRespository {
         }
         return progress;
     }
+
+    /**
+     * 自动进入下一页
+     *
+     * @return 返回下一页的数据
+     */
+    public PageData nextPage() {
+        //TODO 进入下一章了
+        if (mCurIndex == mCurPageList.size() - 1) {
+            return null;
+        } else {
+            mCurIndex++;
+            mCurPage = mCurPageList.get(mCurIndex);
+            return mCurPage;
+        }
+    }
 }

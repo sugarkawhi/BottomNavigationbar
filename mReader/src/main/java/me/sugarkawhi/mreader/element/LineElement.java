@@ -32,7 +32,6 @@ public class LineElement extends Element {
     private List<LineData> mLineDataList;
     private List<LetterData> mLetterDataList;
 
-    //
     private int mBeginPos;
     private int mEndPos;
 
@@ -74,7 +73,9 @@ public class LineElement extends Element {
         int size = mLetterDataList.size();
         if (mBeginPos == mEndPos) return;
         if (mBeginPos >= size || mEndPos >= size) return;
-        List<LetterData> ttsList = mLetterDataList.subList(mBeginPos, mEndPos + 1);
+        int beginPos = mBeginPos;
+        int endPos = mEndPos + 1;
+        List<LetterData> ttsList = mLetterDataList.subList(beginPos, endPos);
         for (LetterData ttsLetter : ttsList) {
             if (ttsLetter.getLetter() == '　') continue;
             Rect area = ttsLetter.getArea();
@@ -127,4 +128,5 @@ public class LineElement extends Element {
 
         return true;
     }
+
 }

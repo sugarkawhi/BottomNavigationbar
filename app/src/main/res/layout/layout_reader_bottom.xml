@@ -56,31 +56,34 @@
         <ImageView
             android:id="@+id/tv_catalog"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
+            android:scaleType="centerInside"
             android:src="@drawable/reading_menu_ml" />
 
         <ImageView
             android:id="@+id/tv_setting"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
+            android:scaleType="centerInside"
             android:src="@drawable/reading_menu_sz" />
 
         <ImageView
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
+            android:scaleType="centerInside"
             android:src="@drawable/reading_menu_xzl" />
 
         <ImageView
             android:id="@+id/iv_tts"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
-            android:src="@drawable/reading_menu_pl" />
+            android:src="@drawable/reading_menu_tts" />
 
     </LinearLayout>
 </LinearLayout>

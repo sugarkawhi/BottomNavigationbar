@@ -33,6 +33,7 @@ import com.monster.monstersport.bean.ChapterBean;
 import com.monster.monstersport.bean.ChapterListBean;
 import com.monster.monstersport.dao.bean.BookRecordBean;
 import com.monster.monstersport.dialog.ReaderSettingDialog;
+import com.monster.monstersport.dialog.ReaderTtsDialog;
 import com.monster.monstersport.dialog.SpacingSettingDialog;
 import com.monster.monstersport.fragment.CatalogueFragment;
 import com.monster.monstersport.http.BaseHttpResult;
@@ -105,7 +106,7 @@ public class ReaderActivity extends BaseActivity {
     private String mEngineType = SpeechConstant.TYPE_CLOUD;
     //
     // 默认发音人
-    private String voicer = "xiaoyan";
+    private String voicer = "vixf";
 
     private SharedPreferences mSharedPreferences;
 
@@ -344,8 +345,8 @@ public class ReaderActivity extends BaseActivity {
                     @Override
                     public void onNext(ZipChapter zipChapter) {
                         readerView.setCurrentChapter(zipChapter.cur, progress);
-//                        readerView.setNextChapter(zipChapter.next);
-//                        readerView.setPreChapter(zipChapter.pre);
+                        readerView.setNextChapter(zipChapter.next);
+                        readerView.setPreChapter(zipChapter.pre);
                     }
 
                     @Override
@@ -617,6 +618,8 @@ public class ReaderActivity extends BaseActivity {
             showToast("当前页内容为空");
             return;
         }
+        hide();
+        showTtsDialog();
         String content = pageData.getContent();
         startTts(content);
     }
@@ -633,12 +636,6 @@ public class ReaderActivity extends BaseActivity {
         // 设置参数
         setParam();
         int code = mTts.startSpeaking(content, mTtsListener);
-//			/**
-//			 * 只保存音频不进行播放接口,调用此接口请注释startSpeaking接口
-//			 * text:要合成的文本，uri:需要保存的音频全路径，listener:回调接口
-//			*/
-//			String path = Environment.getExternalStorageDirectory()+"/tts.ico";
-//			int code = mTts.synthesizeToUri(text, path, mTtsListener);
 
         if (code != ErrorCode.SUCCESS) {
             showToast("语音合成失败,错误码: " + code);
@@ -659,7 +656,7 @@ public class ReaderActivity extends BaseActivity {
             // 设置在线合成发音人
             mTts.setParameter(SpeechConstant.VOICE_NAME, voicer);
             //设置合成语速
-            mTts.setParameter(SpeechConstant.SPEED, mSharedPreferences.getString("speed_preference", "50"));
+            mTts.setParameter(SpeechConstant.SPEED, mSharedPreferences.getString("speed_preference", "100"));
             //设置合成音调
             mTts.setParameter(SpeechConstant.PITCH, mSharedPreferences.getString("pitch_preference", "50"));
             //设置合成音量
@@ -688,6 +685,10 @@ public class ReaderActivity extends BaseActivity {
     private int mPercentForBuffering = 0;
     // 播放进度
     private int mPercentForPlaying = 0;
+    // 开始的索引位置
+    private int mBeginPos;
+    // 切换发音人拦截位置 TODO  在播放完成时 要置0
+    private int mInterceptPos;
 
     /**
      * 合成回调监听。
@@ -720,17 +721,29 @@ public class ReaderActivity extends BaseActivity {
         @Override
         public void onSpeakProgress(int percent, int beginPos, int endPos) {
             // 播放进度
+            int newBeginPos = beginPos + mInterceptPos;
+            int newEndPos = endPos + mInterceptPos;
+            mBeginPos = newBeginPos;
             mPercentForPlaying = percent;
-            showToast(String.format("缓存进度%d%%,播放进度%d%%", mPercentForBuffering, mPercentForPlaying)
-                    + " beginPos=" + beginPos
-                    + " endPos=" + endPos);
-            readerView.setTtsProgress(percent, beginPos, endPos);
+            //设置
+            readerView.setTtsProgress(percent, newBeginPos, newEndPos);
+
+//            showToast(String.format("缓存进度%d%%,播放进度%d%%", mPercentForBuffering, mPercentForPlaying)
+//                    + " beginPos=" + beginPos
+//                    + " endPos=" + endPos);
         }
 
         @Override
         public void onCompleted(SpeechError error) {
+            mInterceptPos = 0;
             if (error == null) {
                 showToast("播放完成");
+                PageData nextPage = readerView.ttsNextPage();
+                if (nextPage != null) {
+                    startTts(nextPage.getContent());
+                } else {
+                    showToast("无下一页");
+                }
             } else {
                 showToast(error.getPlainDescription(true));
             }
@@ -747,4 +760,37 @@ public class ReaderActivity extends BaseActivity {
         }
     };
 
+
+    private void showTtsDialog() {
+        new ReaderTtsDialog(this)
+                .setListener(new ReaderTtsDialog.IReaderTtsChangeListener() {
+                    @Override
+                    public void onTtsTypeChange(String ttsType) {
+
+                    }
+
+                    @Override
+                    public void onTtsVoicerChange(String ttsType, String voicer) {
+                        ReaderActivity.this.voicer = voicer;
+                        setParam();
+                        String content = readerView.getCurrentPage().getContent();
+                        mInterceptPos = mBeginPos;
+                        String lastContent = content.substring(mInterceptPos);
+                        mTts.startSpeaking(lastContent, mTtsListener);
+                    }
+                })
+                .show();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (null != mTts) {
+            mTts.stopSpeaking();
+            // 退出时释放连接
+            mTts.destroy();
+        }
+    }
 }

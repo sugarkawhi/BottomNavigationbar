@@ -5,7 +5,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -21,8 +20,6 @@ import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.data.LetterData;
 import me.sugarkawhi.mreader.data.LineData;
 import me.sugarkawhi.mreader.data.PageData;
-import me.sugarkawhi.mreader.data.ParagraphData;
-import me.sugarkawhi.mreader.utils.L;
 
 import static me.sugarkawhi.mreader.config.IReaderConfig.CHAPTER_NAME_MARGIN;
 
@@ -372,7 +369,7 @@ public class PageManager {
             area = new Rect();
             area.left = (int) letter.getOffsetX();
             area.top = (int) (letter.getOffsetY() - letterHeight);
-            area.bottom = (int) letter.getOffsetY() + 15;
+            area.bottom = (int) letter.getOffsetY() + 10;
             if (nextLetter == null) {
                 if (isChapterName)
                     area.right = area.left + (int) mChapterNamePaint.measureText(String.valueOf(letter.getLetter()));

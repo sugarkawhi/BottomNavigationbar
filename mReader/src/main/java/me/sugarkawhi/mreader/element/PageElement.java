@@ -131,4 +131,5 @@ public class PageElement {
     public void setTtsProgress(int percent, int beginPos, int endPos) {
         mLineElement.setTtsProgress(percent, beginPos, endPos);
     }
+
 }
