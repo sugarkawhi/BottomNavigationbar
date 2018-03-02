@@ -132,4 +132,7 @@ public class PageElement {
         mLineElement.setTtsProgress(percent, beginPos, endPos);
     }
 
+    public void stopTts() {
+        mLineElement.setTtsProgress(0, 0, 0);
+    }
 }

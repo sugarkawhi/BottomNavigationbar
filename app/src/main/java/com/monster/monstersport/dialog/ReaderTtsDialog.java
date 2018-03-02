@@ -75,10 +75,20 @@ public class ReaderTtsDialog extends BottomPopDialog {
         }
     }
 
+    /**
+     * 退出语音合成
+     */
+    @OnClick(R.id.reader_tts_exit)
+    public void exit() {
+        if (mListener != null) mListener.onTtsExit();
+    }
+
 
     public interface IReaderTtsChangeListener {
         void onTtsTypeChange(String ttsType);//Local Cloud
 
-        void onTtsVoicerChange(String ttsType, String voicer);//人物
+        void onTtsVoicerChange(String ttsType, String voicer);//修改发音人
+
+        void onTtsExit(); //退出语音朗读
     }
 }

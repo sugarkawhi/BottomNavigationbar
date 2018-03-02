@@ -116,7 +116,7 @@ public class PageManager {
         StringBuilder stringBuilder = new StringBuilder();
         float rHeight = mContentHeight;
         boolean isChapterName = true;
-        String paragraph = chapter.getName();//默认展示标题
+        String paragraph = chapter.getName() + "\n";//默认展示标题
         try {
             while (isChapterName || (paragraph = br.readLine()) != null) {
                 //重置段落

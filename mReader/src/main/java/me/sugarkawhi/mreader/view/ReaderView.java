@@ -39,6 +39,8 @@ import me.sugarkawhi.mreader.utils.ScreenUtils;
  */
 public class ReaderView extends View {
     private static final String TAG = "MReaderView";
+    //语音合成播放
+    private boolean isSpeaking = false;
 
     //加载中
     private static final int STATE_LOADING = 1;
@@ -192,6 +194,11 @@ public class ReaderView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (isSpeaking) {
+            if (mReaderTouchListener != null)
+                mReaderTouchListener.onTouchSpeaking();
+            return false;
+        }
         return mAnimController.dispatchTouchEvent(event);
     }
 
@@ -509,5 +516,21 @@ public class ReaderView extends View {
             drawCurrentPage();
         }
         return nextPage;
+    }
+
+    /**
+     * 退出语音合成
+     */
+    public void stopTts() {
+        mPageElement.stopTts();
+        drawCurrentPage();
+    }
+
+    public boolean isSpeaking() {
+        return isSpeaking;
+    }
+
+    public void setSpeaking(boolean speaking) {
+        isSpeaking = speaking;
     }
 }

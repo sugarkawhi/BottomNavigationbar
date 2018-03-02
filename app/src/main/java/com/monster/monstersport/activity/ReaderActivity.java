@@ -132,6 +132,15 @@ public class ReaderActivity extends BaseActivity {
                 else show();
             }
 
+            @Override
+            public void onTouchSpeaking() {
+                if (mReaderTtsDialog != null && mReaderTtsDialog.isShowing()) {
+                    mReaderTtsDialog.dismiss();
+                } else {
+                    showTtsDialog();
+                }
+            }
+
         });
 
         readerView.setReaderChapterChangeListener(new IReaderChapterChangeListener() {
@@ -305,7 +314,7 @@ public class ReaderActivity extends BaseActivity {
                     @Override
                     protected void onSuccess(ChapterListBean chapterListBean) {
                         BookRecordBean record = HyReaderPersistence.queryBookRecord(mStoryId);
-                        if (record != null) {
+                        if (record != null && record.getChapterId() != null) {
                             getChapterById(record.getChapterId(), record.getProgress());
                         } else {
                             getChapterById(chapterListBean.getDatas().get(0).getChapterid(), 0);
@@ -322,16 +331,16 @@ public class ReaderActivity extends BaseActivity {
      */
     private void getChapterById(String chapterId, final float progress) {
         IHyangApi api = HttpUtils.getApiInstance();
-        Observable<ChapterBean> cur = api.getChapterReadById(chapterId);
-        Observable<ChapterBean> pre = api.getPreChapterReadById(chapterId);
-        Observable<ChapterBean> next = api.getNextChapterReadById(chapterId);
-        Observable.zip(cur, pre, next, new Function3<ChapterBean, ChapterBean, ChapterBean, ZipChapter>() {
+        Observable<BaseHttpResult<ChapterBean>> cur = api.getChapterReadByIdV2(chapterId);
+        Observable<BaseHttpResult<ChapterBean>> pre = api.getPreChapterReadByIdV2(chapterId);
+        Observable<BaseHttpResult<ChapterBean>> next = api.getNextChapterReadByIdV2(chapterId);
+        Observable.zip(cur, pre, next, new Function3<BaseHttpResult<ChapterBean>, BaseHttpResult<ChapterBean>, BaseHttpResult<ChapterBean>, ZipChapter>() {
             @Override
-            public ZipChapter apply(ChapterBean cur, ChapterBean pre, ChapterBean next) throws Exception {
+            public ZipChapter apply(BaseHttpResult<ChapterBean> result, BaseHttpResult<ChapterBean> result2, BaseHttpResult<ChapterBean> result3) throws Exception {
                 ZipChapter zipChapter = new ZipChapter();
-                zipChapter.cur = cur;
-                zipChapter.pre = pre;
-                zipChapter.next = next;
+                zipChapter.cur = result.getData();
+                zipChapter.pre = result2.getData();
+                zipChapter.next = result3.getData();
                 return zipChapter;
             }
         })
@@ -359,21 +368,46 @@ public class ReaderActivity extends BaseActivity {
 
                     }
                 });
-    }
-
-    private void getNextChapter(String chapterId) {
         HttpUtils.getApiInstance()
-                .getNextChapterReadById(chapterId)
-                .compose(RxUtils.<ChapterBean>defaultSchedulers())
-                .subscribe(new Observer<ChapterBean>() {
+                .getChapterReadByIdV2(chapterId)
+                .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
+                .subscribe(new Observer<BaseHttpResult<ChapterBean>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(ChapterBean chapterBean) {
-                        readerView.setNextChapter(chapterBean);
+                    public void onNext(BaseHttpResult<ChapterBean> result) {
+                        readerView.setCurrentChapter(result.getData(), 0);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+    }
+
+    private void getNextChapter(String chapterId) {
+        HttpUtils.getApiInstance()
+                .getNextChapterReadByIdV2(chapterId)
+                .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
+                .subscribe(new Observer<BaseHttpResult<ChapterBean>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(BaseHttpResult<ChapterBean> chapterBean) {
+                        readerView.setNextChapter(chapterBean.getData());
                     }
 
                     @Override
@@ -390,17 +424,17 @@ public class ReaderActivity extends BaseActivity {
 
     private void getPreChapter(String chapterId) {
         HttpUtils.getApiInstance()
-                .getPreChapterReadById(chapterId)
-                .compose(RxUtils.<ChapterBean>defaultSchedulers())
-                .subscribe(new Observer<ChapterBean>() {
+                .getPreChapterReadByIdV2(chapterId)
+                .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
+                .subscribe(new Observer<BaseHttpResult<ChapterBean>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onNext(ChapterBean chapterBean) {
-                        readerView.setPreChapter(chapterBean);
+                    public void onNext(BaseHttpResult<ChapterBean> chapterBean) {
+                        readerView.setPreChapter(chapterBean.getData());
                     }
 
                     @Override
@@ -630,6 +664,7 @@ public class ReaderActivity extends BaseActivity {
      * @param content
      */
     private void startTts(String content) {
+        readerView.setSpeaking(true);
         // 移动数据分析，收集开始合成事件
         FlowerCollector.onEvent(this, "tts_play");
 
@@ -760,26 +795,41 @@ public class ReaderActivity extends BaseActivity {
         }
     };
 
+    private ReaderTtsDialog mReaderTtsDialog;
 
     private void showTtsDialog() {
-        new ReaderTtsDialog(this)
-                .setListener(new ReaderTtsDialog.IReaderTtsChangeListener() {
-                    @Override
-                    public void onTtsTypeChange(String ttsType) {
+        mReaderTtsDialog = new ReaderTtsDialog(this);
+        mReaderTtsDialog.setListener(new ReaderTtsDialog.IReaderTtsChangeListener() {
+            @Override
+            public void onTtsTypeChange(String ttsType) {
 
-                    }
+            }
 
-                    @Override
-                    public void onTtsVoicerChange(String ttsType, String voicer) {
-                        ReaderActivity.this.voicer = voicer;
-                        setParam();
-                        String content = readerView.getCurrentPage().getContent();
-                        mInterceptPos = mBeginPos;
-                        String lastContent = content.substring(mInterceptPos);
-                        mTts.startSpeaking(lastContent, mTtsListener);
-                    }
-                })
-                .show();
+            @Override
+            public void onTtsVoicerChange(String ttsType, String voicer) {
+                ReaderActivity.this.voicer = voicer;
+                setParam();
+                String content = readerView.getCurrentPage().getContent();
+                mInterceptPos = mBeginPos;
+                String lastContent = content.substring(mInterceptPos);
+                mTts.startSpeaking(lastContent, mTtsListener);
+            }
+
+            @Override
+            public void onTtsExit() {
+                mTts.stopSpeaking();
+                readerView.stopTts();
+                mReaderTtsDialog.dismiss();
+                readerView.setSpeaking(false);
+            }
+        });
+        mReaderTtsDialog.show();
+        mReaderTtsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                hide();
+            }
+        });
     }
 
 

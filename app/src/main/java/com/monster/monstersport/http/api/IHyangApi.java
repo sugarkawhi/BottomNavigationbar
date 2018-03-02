@@ -25,21 +25,21 @@ public interface IHyangApi {
 
     /* 章节目录 */
     @GET("/chapter/searchChapterListVO.i?pageSize=10000")
-    Observable<BaseHttpResult<ChapterListBean>> searchChapterListVO(@Query("storyid")String storyid);
+    Observable<BaseHttpResult<ChapterListBean>> searchChapterListVO(@Query("storyid") String storyid);
 
     /* 获取章节内容*/
     @GET("/chapter/getChapterReadById.i")
-    Observable<ChapterBean> getChapterReadById(@Query("chapterid") String chapterid);
+    Observable<BaseHttpResult<ChapterBean>> getChapterReadByIdV2(@Query("chapterid") String chapterid);
 
 
     /* 书籍特定章的上一章 */
     @GET("/chapter/getPreChapterReadById.i")
-    Observable<ChapterBean> getPreChapterReadById(@Query("chapterid") String chapterid);
+    Observable<BaseHttpResult<ChapterBean>> getPreChapterReadByIdV2(@Query("chapterid") String chapterid);
 
 
     /* 书籍特定章的下一章 */
     @GET("/chapter/getNextChapterReadById.i")
-    Observable<ChapterBean> getNextChapterReadById(@Query("chapterid") String chapterid);
+    Observable<BaseHttpResult<ChapterBean>> getNextChapterReadByIdV2(@Query("chapterid") String chapterid);
 
 
 }

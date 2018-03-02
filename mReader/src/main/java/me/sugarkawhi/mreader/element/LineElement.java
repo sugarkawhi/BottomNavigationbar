@@ -77,7 +77,7 @@ public class LineElement extends Element {
         int endPos = mEndPos + 1;
         List<LetterData> ttsList = mLetterDataList.subList(beginPos, endPos);
         for (LetterData ttsLetter : ttsList) {
-            if (ttsLetter.getLetter() == '　') continue;
+            if (ttsLetter.getLetter() == '　' || ttsLetter.getLetter() == '\n') continue;
             Rect area = ttsLetter.getArea();
 //            area.left = (int) (area.left + mPadding);
 //            area.right = (int) (area.right + mPadding);

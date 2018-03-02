@@ -18,4 +18,9 @@ public interface IReaderTouchListener {
     void onTouchCenter();
 
 
+    /**
+     * 正在播放语音时候 触摸屏幕回调
+     */
+    void onTouchSpeaking();
+
 }
