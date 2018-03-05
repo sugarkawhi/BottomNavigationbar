@@ -653,8 +653,10 @@ public class ReaderActivity extends BaseActivity {
             return;
         }
         hide();
-        showTtsDialog();
+
         String content = pageData.getContent();
+        // 设置参数
+        setParam();
         startTts(content);
     }
 
@@ -667,11 +669,7 @@ public class ReaderActivity extends BaseActivity {
         readerView.setSpeaking(true);
         // 移动数据分析，收集开始合成事件
         FlowerCollector.onEvent(this, "tts_play");
-
-        // 设置参数
-        setParam();
         int code = mTts.startSpeaking(content, mTtsListener);
-
         if (code != ErrorCode.SUCCESS) {
             showToast("语音合成失败,错误码: " + code);
         }
@@ -808,7 +806,8 @@ public class ReaderActivity extends BaseActivity {
             @Override
             public void onTtsVoicerChange(String ttsType, String voicer) {
                 ReaderActivity.this.voicer = voicer;
-                setParam();
+                // 设置在线合成发音人
+                mTts.setParameter(SpeechConstant.VOICE_NAME, voicer);
                 String content = readerView.getCurrentPage().getContent();
                 mInterceptPos = mBeginPos;
                 String lastContent = content.substring(mInterceptPos);
@@ -828,8 +827,12 @@ public class ReaderActivity extends BaseActivity {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 hide();
+                if (mTts.isSpeaking()) {
+                    mTts.resumeSpeaking();//恢复朗读
+                }
             }
         });
+        mTts.pauseSpeaking();
     }
 
 

@@ -52,7 +52,7 @@ public interface IReaderConfig {
         //最大
         int MAX = 100;
         //默认
-        int DEFAULT = 50;
+        int DEFAULT = 60;
         //最小
         int MIN = 0;
     }
@@ -61,7 +61,7 @@ public interface IReaderConfig {
     //字体大小
     interface FontSize {
         //最大
-        int MAX = 90;
+        int MAX = 120;
         //默认
         int DEFAULT = 60;
         //最小
