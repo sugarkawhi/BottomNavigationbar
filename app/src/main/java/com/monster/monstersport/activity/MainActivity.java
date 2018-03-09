@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import com.monster.monstersport.R;
 import com.monster.monstersport.fragment.BookListFragment;
 import com.monster.monstersport.fragment.CbFragment;
+import com.monster.monstersport.fragment.TestFragment;
 import com.monster.monstersport.fragment.TtsFragment;
 import com.monster.monstersport.fragment.ZwHistoryFragment;
 import com.monster.monstersport.view.SViewPager;
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         mFragments.add(BookListFragment.newInstance());
 //        mFragments.add(ZwHistoryFragment.newInstance());
         mFragments.add(TtsFragment.newInstance());
-//        mFragments.add(CbFragment.newInstance());
+        mFragments.add(TestFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(
                 R.drawable.ic_tab_album_default,
                 R.drawable.ic_tab_album_selected));
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBnbItemDoubleClick(int position) {
 //                Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(MainActivity.this, ReaderActivity.class));
+                startActivity(new Intent(MainActivity.this, ReaderBdActivity.class));
             }
         });
 

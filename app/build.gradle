@@ -66,6 +66,8 @@ dependencies {
     compile project(':mReader')
     compile project(':bottomnavigationbar')
     //数据库 greenDAO
-    compile 'org.greenrobot:greendao:3.2.2' // add library
+    compile 'org.greenrobot:greendao:3.2.2'
+    // add library
     compile 'net.zetetic:android-database-sqlcipher:3.5.6'
+    implementation files('libs/com.baidu.tts_2.3.1.20170808_e39ea89.jar')
 }

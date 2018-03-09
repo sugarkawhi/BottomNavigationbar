@@ -65,7 +65,7 @@ public interface IReaderConfig {
         //默认
         int DEFAULT = 60;
         //最小
-        int MIN = 40;
+        int MIN = 50;
     }
 
     //翻页模式

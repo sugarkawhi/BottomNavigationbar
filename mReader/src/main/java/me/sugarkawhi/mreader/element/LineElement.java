@@ -34,6 +34,7 @@ public class LineElement extends Element {
 
     private int mBeginPos;
     private int mEndPos;
+    private List<LetterData> mTtsLetters;
 
     public LineElement(float contentWidth, float contentHeight,
                        float headerHeight, float footerHeight, float padding,
@@ -92,6 +93,22 @@ public class LineElement extends Element {
         }
     }
 
+    /**
+     * 画语音合成背景
+     */
+    public void drawTtsLetters(Canvas canvas) {
+        if (mTtsLetters == null || mTtsLetters.isEmpty()) return;
+        for (LetterData ttsLetter : mTtsLetters) {
+            if (ttsLetter.getLetter() == '　' || ttsLetter.getLetter() == '\n') continue;
+            Rect area = ttsLetter.getArea();
+            canvas.drawRect(area.left + mPadding,
+                    area.top + mHeaderHeight,
+                    (area.right + mPadding),
+                    (area.bottom + mHeaderHeight),
+                    mTtsPanit);
+        }
+    }
+
     @Override
     public boolean onDraw(Canvas canvas) {
 //        if (mLineDataList == null) return false;
@@ -113,20 +130,27 @@ public class LineElement extends Element {
 //                }
 //            }
 //        }
-        drawTts(canvas);
-        if (mLetterDataList == null) return false;
-        for (LetterData letter : mLetterDataList) {
-            String str = String.valueOf(letter.getLetter());
-            float x = letter.getOffsetX() + mPadding;
-            float y = letter.getOffsetY() + mHeaderHeight;
-            if (letter.isChapterName()) {
-                canvas.drawText(str, x, y, mChapterNamePaint);
-            } else {
-                canvas.drawText(str, x, y, mContentPaint);
-            }
+            drawTtsLetters(canvas);
+            if (mLetterDataList == null) return false;
+            for (LetterData letter : mLetterDataList) {
+                String str = String.valueOf(letter.getLetter());
+                float x = letter.getOffsetX() + mPadding;
+                float y = letter.getOffsetY() + mHeaderHeight;
+                if (letter.isChapterName()) {
+                    canvas.drawText(str, x, y, mChapterNamePaint);
+                } else {
+                    canvas.drawText(str, x, y, mContentPaint);
+                }
         }
 
         return true;
     }
 
+    public void setTtsLetters(List<LetterData> ttsLetters) {
+        mTtsLetters = ttsLetters;
+    }
+
+    public void stopTts() {
+        if (mTtsLetters != null) mTtsLetters.clear();
+    }
 }

@@ -14,32 +14,24 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:text="朗读速度："
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <SeekBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
 
-    <RadioGroup
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal">
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="在线朗读"
-            android:textColor="@color/white" />
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="离线朗读"
-            android:textColor="@color/white" />
-    </RadioGroup>
+        android:layout_marginTop="15dp"
+        android:text="发音人："
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -50,7 +42,7 @@
         <RadioGroup
             android:id="@+id/reader_tts_character_cloud"
             android:layout_width="wrap_content"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="horizontal">
 
@@ -58,7 +50,7 @@
                 android:id="@+id/reader_tts_voicer_cloud_xiaoyan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/abc_radio_reader_page"
                 android:button="@null"
                 android:gravity="center"
@@ -67,14 +59,14 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="5dp"
-                android:text="小燕(女)"
+                android:text="普通女生"
                 android:textColor="@color/white" />
 
             <RadioButton
                 android:id="@+id/reader_tts_voicer_cloud_xiaofeng"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/abc_radio_reader_page"
                 android:button="@null"
                 android:gravity="center"
@@ -83,14 +75,14 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="5dp"
-                android:text="小峰(男)"
+                android:text="普通男声"
                 android:textColor="@color/white" />
 
             <RadioButton
                 android:id="@+id/reader_tts_voicer_cloud_xiaokun"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/abc_radio_reader_page"
                 android:button="@null"
                 android:gravity="center"
@@ -99,14 +91,14 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="5dp"
-                android:text="小坤(河南)"
+                android:text="度逍遥"
                 android:textColor="@color/white" />
 
             <RadioButton
                 android:id="@+id/reader_tts_voicer_cloud_xiaoqian"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/abc_radio_reader_page"
                 android:button="@null"
                 android:gravity="center"
@@ -115,7 +107,7 @@
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="5dp"
-                android:text="小倩(东北)"
+                android:text="度丫丫"
                 android:textColor="@color/white" />
 
 
@@ -128,8 +120,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
         android:padding="10dp"
         android:text="退出语音朗读"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

@@ -21,6 +21,7 @@ import me.sugarkawhi.mreader.anim.PageAnimController;
 import me.sugarkawhi.mreader.anim.SlideAnimController;
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
+import me.sugarkawhi.mreader.data.LetterData;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
@@ -492,6 +493,10 @@ public class ReaderView extends View {
     }
 
 
+    public PageData getNextPage(){
+        return mRespository.getNextPage();
+    }
+
     //开始
     private int tmpBeginPos = -1;
 
@@ -502,6 +507,14 @@ public class ReaderView extends View {
         if (tmpBeginPos == beginPos) return;
         tmpBeginPos = beginPos;
         mPageElement.setTtsProgress(percent, beginPos, endPos);
+        drawCurrentPage();
+    }
+
+    /**
+     * 设置语音合成进度
+     */
+    public void setTtsLetters(List<LetterData> list) {
+        mPageElement.setTtsLetters(list);
         drawCurrentPage();
     }
 

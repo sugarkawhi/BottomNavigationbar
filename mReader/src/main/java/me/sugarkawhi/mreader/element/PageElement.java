@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import java.util.List;
 
 import me.sugarkawhi.mreader.data.ImageData;
+import me.sugarkawhi.mreader.data.LetterData;
 import me.sugarkawhi.mreader.data.PageData;
 
 /**
@@ -132,7 +133,12 @@ public class PageElement {
         mLineElement.setTtsProgress(percent, beginPos, endPos);
     }
 
+    public void setTtsLetters(List<LetterData> list) {
+        mLineElement.setTtsLetters(list);
+
+    }
+
     public void stopTts() {
-        mLineElement.setTtsProgress(0, 0, 0);
+        mLineElement.stopTts();
     }
 }

@@ -32,6 +32,7 @@ public class PageRespository {
 
     //当前章节的浏览位置 为一个百分数
     private float progress;
+    private PageData mNextPage;
 
     public PageRespository(PageElement pageElement) {
         mPageElement = pageElement;
@@ -374,6 +375,14 @@ public class PageRespository {
             mCurIndex++;
             mCurPage = mCurPageList.get(mCurIndex);
             return mCurPage;
+        }
+    }
+
+    public PageData getNextPage() {
+        if (mCurIndex == mCurPageList.size() - 1) {
+            return null;
+        } else {
+            return mCurPageList.get(mCurIndex + 1);
         }
     }
 }

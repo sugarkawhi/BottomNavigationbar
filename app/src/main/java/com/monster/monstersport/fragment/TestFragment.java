@@ -10,30 +10,35 @@ import android.widget.TextView;
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseLazyFragment;
 
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 
 /**
+ * test
  * Created by ZhaoZongyao on 2017/10/16.
  */
 
 public class TestFragment extends BaseLazyFragment {
+    private String TAG = "TestFragment";
 
-    private View mView;
+    private static final String CONTENT = "　　“你们别顾着拍照啊！快救救她，你们有车的快救救她啊！” 　　十字路口边，车子堵成了长龙，在最前方，许多人拿着手机在围观拍照。 　　空气朦胧，天空阴森着脸，给人一种神伤。 　　一个上衣桃领衫，下身紧身牛仔裤的女生在撕心裂肺地冲他们喊着，可似乎没人愿意理她。 　　她的手上抱着一位头破血流的老人，那满头的白发被血染红，脸色苍白，毫无血色。 　　地上到处都是血，从老人身体流出来的血。";
 
-    public static TestFragment newInstance(String title) {
-        TestFragment fragment = new TestFragment();
-        if (!TextUtils.isEmpty(title)) {
-            Bundle bundle = new Bundle();
-            bundle.putString("title", title);
-            fragment.setArguments(bundle);
-        }
-        return fragment;
+    private static final char[] TAIL_CHAR = {'，', '。', ';', '”', '！', '？'};
+
+
+    public static TestFragment newInstance() {
+        return new TestFragment();
     }
 
-    private String TAG = "TestFragment";
-    private String mTitle;
 
     @Override
     protected int getLayoutId() {
@@ -42,34 +47,31 @@ public class TestFragment extends BaseLazyFragment {
 
     @Override
     protected void init(View view) {
-        TextView textView = view.findViewById(R.id.text);
-        Button button = view.findViewById(R.id.button);
-        mView = view.findViewById(R.id.main_view);
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                show();
-            }
-        });
+
     }
-
-
-    public void show() {
-        Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(ObservableEmitter<String> e) throws Exception {
-                //DB....
-                e.onNext("");
-            }
-        });
-    }
-
 
 
     @Override
     protected void loadData() {
-        Log.e(TAG, "loadData: title=" + mTitle);
     }
 
+    @OnClick(R.id.text)
+    public void calculate() {
+        List<String> list = new ArrayList<>();
+        StringBuffer stringBuffer = new StringBuffer();
+        for (int i = 0; i < CONTENT.length(); i++) {
+            char c = CONTENT.charAt(i);
+            stringBuffer.append(c);
+            if (ArrayUtils.contains(TAIL_CHAR, c)) {
+                list.add(stringBuffer.toString());
+                stringBuffer.setLength(0);
+                continue;
+            }
+        }
+        for (String ss : list) {
+            Log.e(TAG, "ss > " + ss);
+        }
+
+    }
 
 }

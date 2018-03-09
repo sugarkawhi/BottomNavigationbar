@@ -9,26 +9,17 @@
         android:gravity="center"
         android:orientation="vertical">
 
-        <EditText
-            android:layout_width="100dp"
-            android:layout_height="wrap_content" />
+
 
         <TextView
             android:id="@+id/text"
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:gravity="center"
-            android:text="SHOW"
+            android:text="TEST"
             android:textColor="@color/colorPrimary"
             android:textSize="20sp" />
 
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="HIDE"
-            android:textColor="@color/colorPrimary"
-            android:textSize="20sp" />
 
     </LinearLayout>
 </FrameLayout>
