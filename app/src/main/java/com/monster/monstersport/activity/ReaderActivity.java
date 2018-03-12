@@ -759,7 +759,7 @@ public class ReaderActivity extends BaseActivity {
             mBeginPos = newBeginPos;
             mPercentForPlaying = percent;
             //设置
-            readerView.setTtsProgress(percent, newBeginPos, newEndPos);
+            readerView.setTtsProgress(newBeginPos, newEndPos);
 
 //            showToast(String.format("缓存进度%d%%,播放进度%d%%", mPercentForBuffering, mPercentForPlaying)
 //                    + " beginPos=" + beginPos

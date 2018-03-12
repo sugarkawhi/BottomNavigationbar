@@ -34,11 +34,6 @@ public class PageElement {
 
 
     //内容 宽。高
-    private float mContentWidth;
-    private float mContentHeight;
-
-    private String mTime;
-    private float mElectric;
 
     private int mReaderWidth;
     private int mReaderHeight;
@@ -54,8 +49,8 @@ public class PageElement {
                        float padding, Paint headPaint, Paint contentPaint, Paint chapterNamePaint) {
         mReaderWidth = readerWidth;
         mReaderHeight = readerHeight;
-        mContentWidth = readerWidth - padding - padding;
-        mContentHeight = readerHeight - headerHeight - footerHeight;
+        float mContentWidth = readerWidth - padding - padding;
+        float mContentHeight = readerHeight - headerHeight - footerHeight;
 
         mHeaderElement = new HeaderElement(headerHeight, padding, headPaint);
         mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, headPaint);
@@ -70,16 +65,6 @@ public class PageElement {
         mBackgroundCanvas = new Canvas(mBackgroundBitmap);
     }
 
-    /**
-     * 设置背景
-     *
-     * @param backgroundBitmap
-     */
-    public void setBackgroundBitmap(Bitmap backgroundBitmap) {
-        if (backgroundBitmap == null) return;
-        mBackgroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        mBackgroundCanvas.drawBitmap(backgroundBitmap, 0, 0, null);
-    }
 
     /**
      * 根据 PageData 生成对应的bitmap 对象
@@ -117,27 +102,70 @@ public class PageElement {
         }
     }
 
+    /**
+     * 设置背景图片
+     * 纯色/图片
+     *
+     * @param backgroundBitmap 背景
+     */
+    public void setBackgroundBitmap(Bitmap backgroundBitmap) {
+        if (backgroundBitmap == null) return;
+        mBackgroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        mBackgroundCanvas.drawBitmap(backgroundBitmap, 0, 0, null);
+    }
+
+    /**
+     * 设置时间
+     *
+     * @param time 当前时间
+     */
     public void setTime(String time) {
         mFooterElement.setTime(time);
     }
 
-    public void setElectric(float electric) {
-        mFooterElement.setElectric(electric);
+    /**
+     * 设置电量
+     *
+     * @param level 电量百分比
+     */
+    public void setBatteryLevel(float level) {
+        mFooterElement.setBatteryLevel(level);
     }
 
+    /**
+     * 设置封面
+     * Bitmap对象 Canvas 绘制
+     *
+     * @param bitmap 封面
+     */
     public void setCoverBitmap(Bitmap bitmap) {
         this.mCoverBitmap = bitmap;
     }
 
-    public void setTtsProgress(int percent, int beginPos, int endPos) {
-        mLineElement.setTtsProgress(percent, beginPos, endPos);
+    /**
+     * 讯飞语音合成
+     *
+     * @param percent  合成进度
+     * @param beginPos 开始的索引
+     * @param endPos   结束的索引
+     */
+    public void setTtsProgress(int beginPos, int endPos) {
+        mLineElement.setTtsProgress(beginPos, endPos);
     }
 
+    /**
+     * 百度语音合成
+     *
+     * @param list 当前页要绘制背景的文字
+     */
     public void setTtsLetters(List<LetterData> list) {
         mLineElement.setTtsLetters(list);
 
     }
 
+    /**
+     * 结束语音合成
+     */
     public void stopTts() {
         mLineElement.stopTts();
     }

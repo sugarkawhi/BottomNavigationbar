@@ -60,7 +60,7 @@ public class LineElement extends Element {
         this.mLetterDataList = letterDataList;
     }
 
-    public void setTtsProgress(int percent, int beginPos, int endPos) {
+    public void setTtsProgress(int beginPos, int endPos) {
         this.mBeginPos = beginPos;
         this.mEndPos = endPos;
     }

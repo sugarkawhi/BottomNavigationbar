@@ -1,13 +1,15 @@
 package com.monster.monstersport.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -16,7 +18,6 @@ import android.util.Pair;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -27,7 +28,6 @@ import com.baidu.tts.client.SpeechSynthesizeBag;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.SpeechSynthesizerListener;
 import com.baidu.tts.client.TtsMode;
-import com.iflytek.cloud.SpeechConstant;
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.bean.BookBean;
@@ -44,12 +44,9 @@ import com.monster.monstersport.http.HttpUtils;
 import com.monster.monstersport.http.RxUtils;
 import com.monster.monstersport.http.api.IHyangApi;
 import com.monster.monstersport.http.observer.DefaultObserver;
-import com.monster.monstersport.listener.UiMessageListener;
 import com.monster.monstersport.persistence.HyReaderPersistence;
-import com.monster.monstersport.util.AutoCheck;
-import com.monster.monstersport.util.CharacterUtil;
-import com.monster.monstersport.util.InitConfig;
 import com.monster.monstersport.util.OfflineResource;
+import com.monster.monstersport.util.TimeFormatUtils;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -57,7 +54,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +83,6 @@ import static com.monster.monstersport.persistence.HyReaderPersistence.Backgroun
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.IMAGE_BLUE;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.IMAGE_PURPLE;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.NIGHT;
-import static com.monster.monstersport.util.MainHandlerConstant.INIT_SUCCESS;
 
 /**
  * 阅读页
@@ -127,8 +122,7 @@ public class ReaderBdActivity extends BaseActivity {
         ButterKnife.bind(this);
         mStoryId = getIntent().getStringExtra("storyid");
         init();
-        readerView.setBookName("主播的致命诱惑");
-
+        readerView.timeChange(TimeFormatUtils.hhmm(System.currentTimeMillis()));
         readerView.setReaderTouchListener(new IReaderTouchListener() {
             @Override
             public boolean canTouch() {
@@ -197,7 +191,36 @@ public class ReaderBdActivity extends BaseActivity {
         addCatalog();
     }
 
+    // 接收电池信息更新的广播
+    // 接收时间变化的广播
+    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
+                int level = intent.getIntExtra("level", 0);
+                Log.e(TAG, "ACTION_BATTERY_CHANGED  LEVEL=" + level);
+                readerView.batteryChange(level);
+            } else if (intent.getAction().equals(Intent.ACTION_TIME_TICK)) {
+                Log.e(TAG, Intent.ACTION_TIME_TICK);
+                readerView.timeChange(TimeFormatUtils.hhmm(System.currentTimeMillis()));
+            }
+        }
+    };
 
+    /**
+     * 注册阅读器广播接收器
+     */
+    private void registerReaderReceiver() {
+        //注册广播接受器
+        IntentFilter mfilter = new IntentFilter();
+        mfilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        mfilter.addAction(Intent.ACTION_TIME_TICK);
+        registerReceiver(myReceiver, mfilter);
+    }
+
+    /**
+     * 添加目录
+     */
     private void addCatalog() {
         CatalogueFragment catalogueFragment = CatalogueFragment.newInstance();
         Bundle bundle = new Bundle();
@@ -262,6 +285,7 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
     private void init() {
+        registerReaderReceiver();
         mScreenWidth = ScreenUtils.getScreenWidth(this);
         mScreenHeight = ScreenUtils.getScreenHeight(this);
         initReaderView();
@@ -457,12 +481,6 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        hideSystemUI();
-    }
-
     /**
      * 隐藏菜单。沉浸式阅读
      */
@@ -576,6 +594,10 @@ public class ReaderBdActivity extends BaseActivity {
     public void onBackPressed() {
         if (isShow) {
             hide();
+            return;
+        }
+        if (readerView.isSpeaking()) {
+            stopTts();
             return;
         }
         saveReadingProgress();
@@ -728,23 +750,22 @@ public class ReaderBdActivity extends BaseActivity {
                 mSpeechSynthesizer = SpeechSynthesizer.getInstance();
                 mSpeechSynthesizer.setContext(ReaderBdActivity.this);
                 mSpeechSynthesizer.setSpeechSynthesizerListener(mSynthesizerListener);
-                mSpeechSynthesizer.auth(TtsMode.MIX);
+                mSpeechSynthesizer.auth(ttsMode);
                 mSpeechSynthesizer.setAppId(appId);
                 mSpeechSynthesizer.setApiKey(appKey, secretKey);
 
                 if (true) {
                     // 授权检测接口(只是通过AuthInfo进行检验授权是否成功。选择纯在线可以不必调用auth方法。
-                    AuthInfo authInfo = mSpeechSynthesizer.auth(TtsMode.MIX);
+                    AuthInfo authInfo = mSpeechSynthesizer.auth(ttsMode);
                     if (!authInfo.isSuccess()) {
                         // 离线授权需要网站上的应用填写包名。本demo的包名是com.baidu.tts.sample，定义在build.gradle中
                         String errorMsg = authInfo.getTtsError().getDetailMessage();
-
                     }
                 }
                 setParams(getParams());
                 // 初始化tts
                 // 初始化tts
-                int result = mSpeechSynthesizer.initTts(TtsMode.MIX);
+                int result = mSpeechSynthesizer.initTts(ttsMode);
                 if (result != 0) {
                     Log.e(TAG, "【error】initTts 初始化失败 + errorCode：" + result);
                 }
@@ -795,12 +816,11 @@ public class ReaderBdActivity extends BaseActivity {
                     readerView.setTtsLetters(letterDataList);
                 }
             });
-
         }
 
         @Override
-        public void onSpeechFinish(String s) {
-            final int index = Integer.parseInt(s);
+        public void onSpeechFinish(String utteranceId) {
+            final int index = Integer.parseInt(utteranceId);
             if (index == list.size() - 1) {//最后一段读完了 切换到下一页
                 runOnUiThread(new Runnable() {
                     @Override
@@ -881,10 +901,10 @@ public class ReaderBdActivity extends BaseActivity {
      */
     private void speak(PageData pageData) {
         if (pageData == null) {
-            readerView.setSpeaking(false);
+            readerView.stopTts();
             return;
         }
-        readerView.setSpeaking(true);
+        readerView.startTts();
         list = calculate(pageData.getLetters());
         // 合成前可以修改参数：
         // Map<String, String> params = getParams();
@@ -930,32 +950,60 @@ public class ReaderBdActivity extends BaseActivity {
     /**
      * 暂停播放。仅调用speak后生效
      */
-    private void pause() {
-        int result = mSpeechSynthesizer.pause();
-        checkResult(result, "pause");
+    private void pauseTts() {
+        if (mSpeechSynthesizer != null) {
+            int result = mSpeechSynthesizer.pause();
+            checkResult(result, "pause");
+        }
     }
 
     /**
      * 继续播放。仅调用speak后生效，调用pause生效
      */
-    private void resume() {
-        int result = mSpeechSynthesizer.resume();
-        checkResult(result, "resume");
+    private void resumeTts() {
+        if (mSpeechSynthesizer != null) {
+            int result = mSpeechSynthesizer.resume();
+            checkResult(result, "resume");
+        }
     }
 
     /*
      * 停止合成引擎。即停止播放，合成，清空内部合成队列。
      */
-    private void stop() {
-        int result = mSpeechSynthesizer.stop();
-        checkResult(result, "stop");
+    private void stopTts() {
+        if (mSpeechSynthesizer != null) {
+            int result = mSpeechSynthesizer.stop();
+            checkResult(result, "stop");
+        }
+        if (mReaderTtsDialog != null && mReaderTtsDialog.isShowing())
+            mReaderTtsDialog.dismiss();
+        readerView.stopTts();
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        pauseTts();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        resumeTts();
+        hideSystemUI();
     }
 
 
     @Override
     protected void onDestroy() {
-        mSpeechSynthesizer.release();
-        Log.i(TAG, "释放资源成功");
+        if (mSpeechSynthesizer != null) {
+            mSpeechSynthesizer.release();
+            Log.i(TAG, "释放资源成功");
+        }
+        if (myReceiver != null) {
+            unregisterReceiver(myReceiver);
+        }
         super.onDestroy();
     }
 
@@ -977,10 +1025,7 @@ public class ReaderBdActivity extends BaseActivity {
 
             @Override
             public void onTtsExit() {
-                mSpeechSynthesizer.stop();
-                mReaderTtsDialog.dismiss();
-                readerView.setSpeaking(false);
-                readerView.stopTts();
+                stopTts();
             }
         });
         mReaderTtsDialog.show();
@@ -993,5 +1038,6 @@ public class ReaderBdActivity extends BaseActivity {
         });
         mSpeechSynthesizer.pause();
     }
+
 
 }

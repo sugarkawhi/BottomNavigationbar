@@ -58,7 +58,7 @@ public class FooterElement extends Element {
         this.time = time;
     }
 
-    public void setElectric(float electric) {
+    public void setBatteryLevel(float electric) {
         this.electric = electric;
     }
 

@@ -50,7 +50,7 @@ public class ReaderView extends View {
     //当前状态
     private int mCurrentState = STATE_LOADING;
 
-
+    //生成页面
     public PageElement mPageElement;
 
     //背景图
@@ -233,7 +233,7 @@ public class ReaderView extends View {
     }
 
     public void setElectric(float electric) {
-        mPageElement.setElectric(electric);
+        mPageElement.setBatteryLevel(electric);
     }
 
 
@@ -462,6 +462,11 @@ public class ReaderView extends View {
     }
 
 
+    /**
+     * 设置书名 用于绘制章节首页头部
+     *
+     * @param bookName 书名
+     */
     public void setBookName(String bookName) {
         mPageManager.setBookName(bookName);
     }
@@ -493,7 +498,7 @@ public class ReaderView extends View {
     }
 
 
-    public PageData getNextPage(){
+    public PageData getNextPage() {
         return mRespository.getNextPage();
     }
 
@@ -503,10 +508,10 @@ public class ReaderView extends View {
     /**
      * 设置语音合成进度
      */
-    public void setTtsProgress(int percent, int beginPos, int endPos) {
+    public void setTtsProgress(int beginPos, int endPos) {
         if (tmpBeginPos == beginPos) return;
         tmpBeginPos = beginPos;
-        mPageElement.setTtsProgress(percent, beginPos, endPos);
+        mPageElement.setTtsProgress(beginPos, endPos);
         drawCurrentPage();
     }
 
@@ -531,13 +536,6 @@ public class ReaderView extends View {
         return nextPage;
     }
 
-    /**
-     * 退出语音合成
-     */
-    public void stopTts() {
-        mPageElement.stopTts();
-        drawCurrentPage();
-    }
 
     public boolean isSpeaking() {
         return isSpeaking;
@@ -545,5 +543,41 @@ public class ReaderView extends View {
 
     public void setSpeaking(boolean speaking) {
         isSpeaking = speaking;
+    }
+
+    /**
+     * 开始语音合成
+     * 设置标志位
+     */
+    public void startTts() {
+        isSpeaking = true;
+    }
+
+    /**
+     * 退出语音合成
+     */
+    public void stopTts() {
+        isSpeaking = false;
+        mPageElement.stopTts();
+        drawCurrentPage();
+    }
+
+    /**
+     * 电量变化
+     * level为整数 PageElement需要使用百分数
+     * TODO  实时更新到页面
+     *
+     * @param level 电量
+     */
+    public void batteryChange(int level) {
+        mPageElement.setBatteryLevel(level / 100f);
+    }
+
+    /**
+     * 当前时间变化
+     * TODO 实时更新到页面
+     */
+    public void timeChange(String time) {
+        mPageElement.setTime(time);
     }
 }
