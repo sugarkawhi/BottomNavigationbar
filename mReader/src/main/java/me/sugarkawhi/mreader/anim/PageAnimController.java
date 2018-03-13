@@ -9,6 +9,7 @@ import android.view.ViewConfiguration;
 import android.view.animation.LinearInterpolator;
 import android.widget.Scroller;
 
+import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
@@ -118,7 +119,11 @@ public abstract class PageAnimController {
                 }
                 break;
         }
-        int duration = DURATION_PAGE_SWITCH * Math.abs(dx) / mReaderWidth;
+        int duration = 0;
+        if (mReaderView.getPageMode() != IReaderConfig.PageMode.NONE) {
+            duration = DURATION_PAGE_SWITCH;
+        }
+        duration = duration * Math.abs(dx) / mReaderWidth;
         mScroller.startScroll(mTouchX, 0, dx, 0, duration);
         mReaderView.postInvalidate();
     }
@@ -150,6 +155,7 @@ public abstract class PageAnimController {
         mTouchY = y;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                //NOTICE:务必在最前面调用
                 abortAnim();
                 mStartX = x;
                 mStartY = y;
@@ -163,6 +169,7 @@ public abstract class PageAnimController {
                 isCancel = false;
                 //是否是滑动状态
                 isMoveState = false;
+                //停止动画
                 L.e(TAG, "MotionEvent0.按下");
                 return true;
             case MotionEvent.ACTION_MOVE:
@@ -259,7 +266,7 @@ public abstract class PageAnimController {
 
     public void computeScroll() {
         boolean notFinished = mScroller.computeScrollOffset();
-        L.e(TAG, "computeScroll  computeScrollOffset -> " + notFinished);
+        //L.e(TAG, "computeScroll  computeScrollOffset -> " + notFinished);
         if (notFinished) {
             mTouchX = mScroller.getCurrX();
             mTouchY = mScroller.getCurrY();
@@ -286,13 +293,18 @@ public abstract class PageAnimController {
         return mPageChangeListener.hasNext();
     }
 
+    /**
+     * 结束动画
+     */
     private void abortAnim() {
         if (!mScroller.isFinished()) {
             mScroller.abortAnimation();
             isScroll = false;
             mTouchX = mScroller.getFinalX();
             mTouchY = mScroller.getFinalY();
-            mReaderView.postInvalidate();
+            mReaderView.drawCurrentPage();
+            mPageChangeListener.onSelectPage(mDirection, isCancel);
+            L.e(TAG, "abortAnim");
         }
     }
 
@@ -314,12 +326,33 @@ public abstract class PageAnimController {
 
     public interface IPageChangeListener {
 
+        /**
+         * 取消
+         *
+         * @param direction 方向
+         */
         void onCancel(int direction);
 
+        /**
+         * 选中
+         *
+         * @param direction 方向
+         * @param isCancel  是否取消
+         */
         void onSelectPage(int direction, boolean isCancel);
 
+        /**
+         * 下一页
+         *
+         * @return t/f
+         */
         boolean hasPre();
 
+        /**
+         * 上一页
+         *
+         * @return t/f
+         */
         boolean hasNext();
 
     }

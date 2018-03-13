@@ -9,6 +9,7 @@ import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
+import me.sugarkawhi.mreader.utils.L;
 
 /**
  * 页数库
@@ -110,19 +111,24 @@ public class PageRespository {
      */
     private PageData getNextPageFromNextChapter() {
         //当前章节都没有
-        if (mCurChapter == null) return null;
+        if (mCurChapter == null) {
+            L.e(TAG, "getNextPageFromNextChapter error [当前章节为null 无法取下一页]");
+            return null;
+        }
         //最后一章
         if (mCurChapter.isLastChapter()) {
-            if (mChapterChangeListener != null)
-                mChapterChangeListener.onReachLastChapter();
+            if (mChapterChangeListener != null) mChapterChangeListener.onReachLastChapter();
+            L.w(TAG, "getNextPageFromNextChapter warn [当前章节为最后一章");
             return null;
         }
         //非最后一章  但是下一章无数据
         if (mNextChapter == null || mNextPageList == null || mNextPageList.isEmpty()) {
             if (mChapterChangeListener != null)
                 mChapterChangeListener.onNoNextPage(mCurChapter);
+            L.w(TAG, "getNextPageFromNextChapter error [下一章节未加载出来");
             return null;
         }
+        L.i(TAG, "getNextPageFromNextChapter warn [从下一章中取得下一页]");
         return mNextPageList.get(0);
     }
 
@@ -139,10 +145,11 @@ public class PageRespository {
         } else {
             int index = mCurPage.getIndexOfChapter();
             switch (direction) {
-                case IReaderDirection.NEXT://TODO 处理是否是翻到了下一章的第一页
-                    // 翻到下页 还是第一页 毫无疑问切换章节了
+                case IReaderDirection.NEXT:
+                    // 翻到下页 还是第一页 毫无疑问切换章节了 TODO 处理是否是翻到了下一章的第一页
                     if (index == 0) {
                         switchNextChapter();
+                        //回调当前章节进度为0
                         if (mChapterChangeListener != null)
                             mChapterChangeListener.onProgressChange(0);
                     } else {
@@ -150,7 +157,7 @@ public class PageRespository {
                             mChapterChangeListener.onProgressChange((index + 1f) / mCurPageList.size());
                     }
                     break;
-                case IReaderDirection.PRE: //处理是否翻到了上一章的最后一页
+                case IReaderDirection.PRE: //TODO 处理是否翻到了上一章的最后一页
                     //翻到上页 并且之前一页(当前页的下一页)的索引是0 毫无疑问切换章节了
                     int cancelIndex = mCancelPage.getIndexOfChapter();
                     if (cancelIndex == 0) {

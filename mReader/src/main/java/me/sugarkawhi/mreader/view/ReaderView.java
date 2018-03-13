@@ -55,6 +55,8 @@ public class ReaderView extends View {
 
     //背景图
     private Bitmap mReaderBackgroundBitmap;
+    //翻页模式
+    private int mPageMode;
 
     //View 宽 强制全屏
     private int mWidth;
@@ -144,17 +146,24 @@ public class ReaderView extends View {
         switch (mode) {
             case IReaderConfig.PageMode.COVER:
                 mAnimController = new CoverAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
+                mPageMode = IReaderConfig.PageMode.COVER;
                 break;
             case IReaderConfig.PageMode.SLIDE:
                 mAnimController = new SlideAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
+                mPageMode = IReaderConfig.PageMode.SLIDE;
                 break;
             case IReaderConfig.PageMode.NONE:
             default:
                 mAnimController = new NoneAnimController(this, mWidth, mHeight, mPageElement, mPageChangeListener);
+                mPageMode = IReaderConfig.PageMode.NONE;
                 break;
         }
         IReaderPersistence.savePageMode(getContext(), mode);
         mAnimController.setIReaderTouchListener(mReaderTouchListener);
+    }
+
+    public int getPageMode() {
+        return mPageMode;
     }
 
     private PageAnimController.IPageChangeListener mPageChangeListener = new PageAnimController.IPageChangeListener() {
