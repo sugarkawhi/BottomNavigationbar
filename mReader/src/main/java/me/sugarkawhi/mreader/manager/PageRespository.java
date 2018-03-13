@@ -30,11 +30,9 @@ public class PageRespository {
     private PageData mCurPage;
     //如果取消了 保留一份上一个Page的备份
     private PageData mCancelPage;
-    private int mCurIndex;
 
     //当前章节的浏览位置 为一个百分数
     private float progress;
-    private PageData mNextPage;
 
     public PageRespository(PageElement pageElement) {
         mPageElement = pageElement;
@@ -86,10 +84,10 @@ public class PageRespository {
      */
     public boolean next(Bitmap curBitmap, Bitmap nextBitmap) {
         if (mCurPageList == null) return false;
-        int nextIndex = mCurIndex + 1;
+        int nextIndex = mCurPage.getIndexOfChapter() + 1;
         PageData nextPage = null;
         if (nextIndex < mCurPageList.size()) {
-            mCurIndex++;
+
             nextPage = mCurPageList.get(nextIndex);
         }
         //当前章节数到末尾了
@@ -148,7 +146,7 @@ public class PageRespository {
             int index = mCurPage.getIndexOfChapter();
             switch (direction) {
                 case IReaderDirection.NEXT:
-                    // 翻到下页 还是第一页 毫无疑问切换章节了 TODO 处理是否是翻到了下一章的第一页
+                    // 翻到下页 还是第一页 毫无疑问切换章节了
                     if (index == 0) {
                         switchNextChapter();
                         progress = 0;
@@ -156,7 +154,7 @@ public class PageRespository {
                         progress = (index + 1f) / mCurPageList.size();
                     }
                     break;
-                case IReaderDirection.PRE: //TODO 处理是否翻到了上一章的最后一页
+                case IReaderDirection.PRE:
                     //翻到上页 并且之前一页(当前页的下一页)的索引是0 毫无疑问切换章节了
                     int cancelIndex = mCancelPage.getIndexOfChapter();
                     if (cancelIndex == 0) {
@@ -185,8 +183,6 @@ public class PageRespository {
         mCurPageList = mNextPageList;
         mNextPageList = null;
 
-        mCurIndex = 0;
-
         if (mChapterChangeListener != null)
             mChapterChangeListener.onChapterChange(mCurChapter, IReaderDirection.NEXT);
     }
@@ -203,8 +199,6 @@ public class PageRespository {
         mCurPageList = mPrePageList;
         mPrePageList = null;
 
-        mCurIndex = mCurPageList.size() - 1;
-
         if (mChapterChangeListener != null)
             mChapterChangeListener.onChapterChange(mCurChapter, IReaderDirection.PRE);
     }
@@ -218,10 +212,9 @@ public class PageRespository {
      * @return hasPre
      */
     public boolean pre(Bitmap curBitmap, Bitmap nextBitmap) {
-        int preIndex = mCurIndex - 1;
+        int preIndex = mCurPage.getIndexOfChapter() - 1;
         PageData prePage = null;
         if (preIndex >= 0) {
-            mCurIndex--;
             prePage = mCurPageList.get(preIndex);
         }
         if (prePage == null) {
@@ -267,10 +260,10 @@ public class PageRespository {
         switch (direction) {
             //向下翻页取消了 TODO 章节间的翻页 翻到下一章节的第一页
             case IReaderDirection.NEXT:
-                mCurIndex--;
+
                 break;
             case IReaderDirection.PRE://向下翻页
-                mCurIndex++;
+
                 break;
         }
     }
@@ -285,19 +278,10 @@ public class PageRespository {
         mCurPageList = curPageList;
     }
 
-    /**
-     * 根据进度设置当前页
-     *
-     * @param progress 当前阅读进度
-     */
-    public void setCurPage(float progress) {
-        if (mCurPageList == null || mCurPageList.size() == 0) return;
-        mCurIndex = (int) ((mCurPageList.size() - 1) * progress);
-        mCurPage = mCurPageList.get(mCurIndex);
-    }
 
     /**
      * 设置上一章页面列表
+     *
      * @param prePageList 上一章
      */
     public void setPrePageList(List<PageData> prePageList) {
@@ -307,6 +291,7 @@ public class PageRespository {
 
     /**
      * 设置下一章 页面列表
+     *
      * @param nextPageList 下一章
      */
     public void setNextPageList(List<PageData> nextPageList) {
@@ -315,26 +300,16 @@ public class PageRespository {
     }
 
     /**
-     * * 设置当前章节的进度
-     * 1.首先要知道当前章节的总页数
-     * 2.用总页数乘以这百分比 得出当前页数
+     * 根据进度设置当前页
      *
-     * @param progress 进度 >=0 并且<=1
+     * @param progress 当前阅读进度
      */
     public void setChapterProgress(float progress) {
         if (mCurPageList == null || mCurPageList.isEmpty()) return;
-        mCurIndex = (int) ((getCurrentChapterPageNum() - 1) * progress);
-        mCurPage = mCurPageList.get(mCurIndex);
+        int curIndex = (int) ((mCurPageList.size() - 1) * progress);
+        mCurPage = mCurPageList.get(curIndex);
     }
 
-    /**
-     * 获取当前章节的总页数
-     *
-     * @return Num
-     */
-    private int getCurrentChapterPageNum() {
-        return mCurPageList == null ? 0 : mCurPageList.size();
-    }
 
     /**
      * 直接进行下一章
@@ -361,8 +336,7 @@ public class PageRespository {
             progress = 0;
             mChapterChangeListener.onProgressChange(progress);
         }
-        mCurIndex = 0;
-        mCurPage = mCurPageList.get(mCurIndex);
+        mCurPage = mCurPageList.get(0);
     }
 
     /**
@@ -389,8 +363,7 @@ public class PageRespository {
             progress = 0;
             mChapterChangeListener.onProgressChange(progress);
         }
-        mCurIndex = 0;
-        mCurPage = mCurPageList.get(mCurIndex);
+        mCurPage = mCurPageList.get(0);
     }
 
 
@@ -420,11 +393,10 @@ public class PageRespository {
      */
     public PageData nextPage() {
         //TODO 进入下一章待处理[必须]
-        if (mCurIndex == mCurPageList.size() - 1) {
+        if (mCurPage.getIndexOfChapter() == mCurPageList.size() - 1) {
             return null;
         } else {
-            mCurIndex++;
-            mCurPage = mCurPageList.get(mCurIndex);
+            mCurPage = mCurPageList.get(mCurPage.getIndexOfChapter() + 1);
             return mCurPage;
         }
     }

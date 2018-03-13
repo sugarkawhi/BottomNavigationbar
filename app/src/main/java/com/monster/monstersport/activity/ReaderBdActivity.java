@@ -158,6 +158,7 @@ public class ReaderBdActivity extends BaseActivity {
         readerView.setReaderChapterChangeListener(new IReaderChapterChangeListener() {
             @Override
             public void onChapterChange(BaseChapterBean curChapter, int direction) {
+                if (curChapter == null) return;
                 switch (direction) {
                     case IReaderDirection.NEXT:
                         getNextChapter(curChapter.getChapterid());
@@ -343,7 +344,7 @@ public class ReaderBdActivity extends BaseActivity {
                 .subscribe(new DefaultObserver<BookBean>() {
                     @Override
                     protected void onSuccess(BookBean bookBean) {
-                        readerView.setBookName(bookBean.getName());
+//                        readerView.setBookName(bookBean.getName());
                         generateCover(bookBean);
                     }
                 });
@@ -556,7 +557,6 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
 
-
     /**
      * 设置间距
      */
@@ -601,7 +601,6 @@ public class ReaderBdActivity extends BaseActivity {
             }
         });
     }
-
 
 
     /**

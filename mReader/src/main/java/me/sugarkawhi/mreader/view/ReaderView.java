@@ -260,7 +260,7 @@ public class ReaderView extends View {
     /**
      * 设置下一章节
      * 在保证有当前章节的情况下设置下一章节
-     * <p> todo 暂无dorder字段
+     * <p> todo 暂无dorder字段 --> 暂时无法精准设置
      * 判断依据：下一章的索引是当前章节的索引+1 否则不予设置
      * if (nextChapter.getDorder() == curChapter.getDorder() + 1)
      *
@@ -270,14 +270,13 @@ public class ReaderView extends View {
         BaseChapterBean curChapter = mRespository.getCurChapter();
         if (null == curChapter) return;
         if (null == nextChapter) return;
-        //索引信息来
         mRespository.setNextChapter(nextChapter);
         replanNextChapter();
     }
 
     /**
-     * 设置当前章节
-     * <p> todo 暂无dorder字段
+     * 设置上一章节
+     * <p> todo 暂无dorder字段 --> 暂时无法精准设置
      * 判断依据：上一章的索引是当前章节的索引-1 否则不予设置
      * if (preChapter.getDorder() == curChapter.getDorder() - 1)
      */
@@ -450,7 +449,7 @@ public class ReaderView extends View {
                     public void onNext(List<PageData> pageList) {
                         float curProgress = mRespository.getProgress();
                         mRespository.setCurPageList(pageList);
-                        mRespository.setCurPage(curProgress);
+                        mRespository.setChapterProgress(curProgress);
                         drawCurrentPage();
                     }
 
@@ -499,7 +498,7 @@ public class ReaderView extends View {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        e.printStackTrace();
                     }
 
                     @Override
