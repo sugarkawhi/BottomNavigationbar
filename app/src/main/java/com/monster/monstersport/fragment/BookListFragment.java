@@ -38,9 +38,8 @@ public class BookListFragment extends BaseLazyFragment {
 
     @Override
     protected void init(View view) {
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
     }
-
 
     @Override
     protected void loadData() {
@@ -54,7 +53,7 @@ public class BookListFragment extends BaseLazyFragment {
         BookBean book3 = new BookBean("https://img.xhhread.cn/images/covers/20170426163547664.png",
                 "宠我，老板大人不要停",
                 "8aada6395b89549e015b895793db000b");
-        BookBean book4 = new BookBean("https://img.xhhread.cn/images/covers/20170426163547664.png",
+        BookBean book4 = new BookBean("https://img.xhhread.cn/images/covers/20170401234510133.png",
                 "主播的致命诱惑",
                 "8aada6395ab2985c015afaeb0a9c0619");
         bookList.add(book1);

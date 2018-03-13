@@ -48,4 +48,10 @@ public interface IReaderChapterChangeListener {
      * @param progress 进度
      */
     void onProgressChange(float progress);
+
+    /**
+     * 章节切换出错
+     * 当下一章或上一章 没有数据会回调
+     */
+    void onChapterChangeError(int direction);
 }

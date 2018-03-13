@@ -14,6 +14,13 @@ import android.view.View;
 
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import me.sugarkawhi.mreader.R;
 import me.sugarkawhi.mreader.anim.CoverAnimController;
 import me.sugarkawhi.mreader.anim.NoneAnimController;
@@ -170,7 +177,7 @@ public class ReaderView extends View {
 
         @Override
         public void onCancel(int direction) {
-            mRespository.cancel(direction);
+            mRespository.onCancel(direction);
         }
 
         @Override
@@ -219,6 +226,7 @@ public class ReaderView extends View {
     }
 
     /**
+     * 阅读器触摸监听
      * set reader touch listener
      */
     public void setReaderTouchListener(IReaderTouchListener readerTouchListener) {
@@ -235,17 +243,6 @@ public class ReaderView extends View {
         mRespository.setChapterChangeListener(readerChapterChangeListener);
     }
 
-    public void setTime(String time) {
-        mPageElement.setTime(time);
-
-        invalidate();
-    }
-
-    public void setElectric(float electric) {
-        mPageElement.setBatteryLevel(electric);
-    }
-
-
     /**
      * 设置当前章节
      * 阅读器维护一个页面的队列
@@ -255,52 +252,41 @@ public class ReaderView extends View {
      */
     public void setCurrentChapter(final BaseChapterBean curChapter, final float progress) {
         mRespository.setCurChapter(curChapter);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<PageData> list = mPageManager.generatePages(curChapter);
-                mCurrentState = STATE_OPEN;
-                mRespository.setCurPageList(list);
-                mRespository.setCurPage(progress);
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        drawCurrentPage();
-                    }
-                });
-            }
-        }).start();
+        mRespository.setProgress(progress);
+        mCurrentState = STATE_OPEN;
+        rePlanCurChapter();
     }
 
     /**
      * 设置下一章节
-     * todo 判断是否是下一章 准确判断
+     * 在保证有当前章节的情况下设置下一章节
+     * <p> todo 暂无dorder字段
+     * 判断依据：下一章的索引是当前章节的索引+1 否则不予设置
+     * if (nextChapter.getDorder() == curChapter.getDorder() + 1)
      *
      * @param nextChapter 当前章节的下一章
      */
     public void setNextChapter(final BaseChapterBean nextChapter) {
+        BaseChapterBean curChapter = mRespository.getCurChapter();
+        if (null == curChapter) return;
+        if (null == nextChapter) return;
+        //索引信息来
         mRespository.setNextChapter(nextChapter);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<PageData> list = mPageManager.generatePages(nextChapter);
-                mRespository.setNextPageList(list);
-            }
-        }).start();
+        replanNextChapter();
     }
 
     /**
      * 设置当前章节
+     * <p> todo 暂无dorder字段
+     * 判断依据：上一章的索引是当前章节的索引-1 否则不予设置
+     * if (preChapter.getDorder() == curChapter.getDorder() - 1)
      */
     public void setPreChapter(final BaseChapterBean preChapter) {
+        BaseChapterBean curChapter = mRespository.getCurChapter();
+        if (null == curChapter) return;
+        if (null == preChapter) return;
         mRespository.setPreChapter(preChapter);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<PageData> list = mPageManager.generatePages(preChapter);
-                mRespository.setPrePageList(list);
-            }
-        }).start();
+        replanPreChapter();
     }
 
     public Bitmap getReaderBackgroundBitmap() {
@@ -350,7 +336,7 @@ public class ReaderView extends View {
         mContentPaint.setTextSize(fontSize);
         mChapterNamePaint.setTextSize(fontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
         //需要将 当前、前、后 章节重新分页
-        dispose();
+        rePlanning();
     }
 
     /**
@@ -385,7 +371,7 @@ public class ReaderView extends View {
         else if (letterSpacing < IReaderConfig.LetterSpacing.MIN)
             letterSpacing = IReaderConfig.LetterSpacing.MIN;
         mPageManager.setLetterSpacing(letterSpacing);
-        dispose();
+        rePlanning();
     }
 
     /**
@@ -399,7 +385,7 @@ public class ReaderView extends View {
         else if (lineSpacing < IReaderConfig.LineSpacing.MIN)
             lineSpacing = IReaderConfig.LineSpacing.MIN;
         mPageManager.setLineSpacing(lineSpacing);
-        dispose();
+        rePlanning();
     }
 
     /**
@@ -413,33 +399,155 @@ public class ReaderView extends View {
         else if (paragraphSpacing < IReaderConfig.ParagraphSpacing.MIN)
             paragraphSpacing = IReaderConfig.ParagraphSpacing.MIN;
         mPageManager.setParagraphSpacing(paragraphSpacing);
-        dispose();
+        rePlanning();
+    }
+
+
+    //处理当前章节
+    private Disposable mCurDisposable;
+    //处理上一章节
+    private Disposable mPreDisposable;
+    //处理下一章节
+    private Disposable mNextDisposable;
+
+    /**
+     * 需要规划
+     * 1、设置了文字大小
+     * 2、设置了行间距
+     * 3、设置了段间距
+     */
+    private void rePlanning() {
+        rePlanCurChapter();
+        replanPreChapter();
+        replanNextChapter();
     }
 
     /**
-     * 重新刷新
+     * 需要规划 当前章节
+     * 1、设置了文字大小
+     * 2、设置了行间距
+     * 3、设置了段间距
      */
-    private void dispose() {
-        Thread thread = new Thread(new Runnable() {
+    private void rePlanCurChapter() {
+        if (mCurDisposable != null && !mCurDisposable.isDisposed()) mCurDisposable.dispose();
+        Observable.create(new ObservableOnSubscribe<List<PageData>>() {
             @Override
-            public void run() {
+            public void subscribe(ObservableEmitter<List<PageData>> e) throws Exception {
                 List<PageData> list = mPageManager.generatePages(mRespository.getCurChapter());
-                mRespository.setCurPageList(list);
-                float curProgress = mRespository.getReadingProgress();
-                mRespository.setCurPage(curProgress);
-                mHandler.post(new Runnable() {
+                e.onNext(list);
+                e.onComplete();
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<PageData>>() {
                     @Override
-                    public void run() {
+                    public void onSubscribe(Disposable d) {
+                        mCurDisposable = d;
+                    }
+
+                    @Override
+                    public void onNext(List<PageData> pageList) {
+                        float curProgress = mRespository.getProgress();
+                        mRespository.setCurPageList(pageList);
+                        mRespository.setCurPage(curProgress);
                         drawCurrentPage();
                     }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
                 });
-                List<PageData> preList = mPageManager.generatePages(mRespository.getPreChapter());
-                mRespository.setPrePageList(preList);
-                List<PageData> nextList = mPageManager.generatePages(mRespository.getNextChapter());
-                mRespository.setNextPageList(nextList);
+        replanPreChapter();
+        replanNextChapter();
+    }
+
+    /**
+     * 需要重新规划上一章节
+     * 1、设置了文字大小
+     * 2、设置了行间距
+     * 3、设置了段间距
+     */
+    private void replanPreChapter() {
+        if (mPreDisposable != null && !mPreDisposable.isDisposed()) mPreDisposable.dispose();
+        Observable.create(new ObservableOnSubscribe<List<PageData>>() {
+            @Override
+            public void subscribe(ObservableEmitter<List<PageData>> e) throws Exception {
+                List<PageData> list = mPageManager.generatePages(mRespository.getPreChapter());
+                e.onNext(list);
+                e.onComplete();
             }
-        });
-        thread.start();
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<PageData>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        mPreDisposable = d;
+                    }
+
+                    @Override
+                    public void onNext(List<PageData> pageList) {
+                        mRespository.setPrePageList(pageList);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    /**
+     * 需要重新规划上一章节
+     * 1、设置了文字大小
+     * 2、设置了行间距
+     * 3、设置了段间距
+     */
+    private void replanNextChapter() {
+        if (mNextDisposable != null && !mNextDisposable.isDisposed()) mNextDisposable.dispose();
+        Observable.create(new ObservableOnSubscribe<List<PageData>>() {
+            @Override
+            public void subscribe(ObservableEmitter<List<PageData>> e) throws Exception {
+                List<PageData> list = mPageManager.generatePages(mRespository.getNextChapter());
+                e.onNext(list);
+                e.onComplete();
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<PageData>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        mNextDisposable = d;
+                    }
+
+                    @Override
+                    public void onNext(List<PageData> pageList) {
+                        mRespository.setNextPageList(pageList);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     /**
@@ -494,34 +602,16 @@ public class ReaderView extends View {
      * @return 章节阅读进度
      */
     public float getReadingProgress() {
-        return mRespository.getReadingProgress();
+        return mRespository.getProgress();
     }
 
     /**
      * 获取当前页
      *
-     * @return
+     * @return 当前页
      */
     public PageData getCurrentPage() {
         return mRespository.getCurPage();
-    }
-
-
-    public PageData getNextPage() {
-        return mRespository.getNextPage();
-    }
-
-    //开始
-    private int tmpBeginPos = -1;
-
-    /**
-     * 设置语音合成进度
-     */
-    public void setTtsProgress(int beginPos, int endPos) {
-        if (tmpBeginPos == beginPos) return;
-        tmpBeginPos = beginPos;
-        mPageElement.setTtsProgress(beginPos, endPos);
-        drawCurrentPage();
     }
 
     /**
@@ -546,12 +636,13 @@ public class ReaderView extends View {
     }
 
 
+    /**
+     * 是否在语音朗读模式
+     *
+     * @return t/f
+     */
     public boolean isSpeaking() {
         return isSpeaking;
-    }
-
-    public void setSpeaking(boolean speaking) {
-        isSpeaking = speaking;
     }
 
     /**
@@ -588,5 +679,13 @@ public class ReaderView extends View {
      */
     public void timeChange(String time) {
         mPageElement.setTime(time);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        if (mCurDisposable != null && !mCurDisposable.isDisposed()) mCurDisposable.dispose();
+        if (mPreDisposable != null && !mPreDisposable.isDisposed()) mPreDisposable.dispose();
+        if (mNextDisposable != null && !mNextDisposable.isDisposed()) mNextDisposable.dispose();
+        super.onDetachedFromWindow();
     }
 }

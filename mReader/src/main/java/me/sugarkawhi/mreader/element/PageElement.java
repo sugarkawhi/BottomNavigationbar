@@ -143,17 +143,6 @@ public class PageElement {
     }
 
     /**
-     * 讯飞语音合成
-     *
-     * @param percent  合成进度
-     * @param beginPos 开始的索引
-     * @param endPos   结束的索引
-     */
-    public void setTtsProgress(int beginPos, int endPos) {
-        mLineElement.setTtsProgress(beginPos, endPos);
-    }
-
-    /**
      * 百度语音合成
      *
      * @param list 当前页要绘制背景的文字

@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         setContentView(R.layout.activity_main);
         mSViewPager = findViewById(R.id.viewPager);
         mSViewPager.setCanScroll(false);
@@ -43,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
         mEntities = new ArrayList<>();
         mFragments = new ArrayList<>();
         mFragments.add(BookListFragment.newInstance());
-//        mFragments.add(ZwHistoryFragment.newInstance());
         mFragments.add(TtsFragment.newInstance());
         mFragments.add(TestFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(

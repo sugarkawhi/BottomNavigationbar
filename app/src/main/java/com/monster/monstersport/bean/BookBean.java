@@ -10,7 +10,7 @@ import java.util.List;
 
 public class BookBean implements Serializable {
 
-    private String authorName;
+    private String authorname;
     private String cover;
     private String name;
     private String storyid;
@@ -26,11 +26,11 @@ public class BookBean implements Serializable {
     }
 
     public String getAuthorName() {
-        return authorName;
+        return authorname;
     }
 
     public void setAuthorName(String authorName) {
-        this.authorName = authorName;
+        this.authorname = authorName;
     }
 
     public String getCover() {

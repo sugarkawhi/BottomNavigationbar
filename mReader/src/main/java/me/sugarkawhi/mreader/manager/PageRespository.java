@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import java.util.List;
 
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
+import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
@@ -108,6 +109,7 @@ public class PageRespository {
     /**
      * 到本章的最后一页了
      * 从下一章节取下一页
+     * 方法做的只是：取下一页 并没有设置索引，切换章节等操作 上述操作在onSelectPage方法实现
      */
     private PageData getNextPageFromNextChapter() {
         //当前章节都没有
@@ -149,12 +151,9 @@ public class PageRespository {
                     // 翻到下页 还是第一页 毫无疑问切换章节了 TODO 处理是否是翻到了下一章的第一页
                     if (index == 0) {
                         switchNextChapter();
-                        //回调当前章节进度为0
-                        if (mChapterChangeListener != null)
-                            mChapterChangeListener.onProgressChange(0);
+                        progress = 0;
                     } else {
-                        if (mChapterChangeListener != null)
-                            mChapterChangeListener.onProgressChange((index + 1f) / mCurPageList.size());
+                        progress = (index + 1f) / mCurPageList.size();
                     }
                     break;
                 case IReaderDirection.PRE: //TODO 处理是否翻到了上一章的最后一页
@@ -162,14 +161,15 @@ public class PageRespository {
                     int cancelIndex = mCancelPage.getIndexOfChapter();
                     if (cancelIndex == 0) {
                         switchPreChapter();
-                        if (mChapterChangeListener != null)
-                            mChapterChangeListener.onProgressChange(1);
+                        progress = 1;
                     } else {
-                        if (mChapterChangeListener != null)
-                            mChapterChangeListener.onProgressChange((index + 1f) / mCurPageList.size());
+                        progress = (index + 1f) / mCurPageList.size();
                     }
                     break;
             }
+            //回调进度
+            if (mChapterChangeListener != null)
+                mChapterChangeListener.onProgressChange(progress);
         }
     }
 
@@ -262,10 +262,11 @@ public class PageRespository {
      * 取消翻页了 - 要回退到上一个索引
      * 涉及到章节间的撤销
      */
-    public void cancel(int direction) {
+    public void onCancel(int direction) {
         mCurPage = mCancelPage;
         switch (direction) {
-            case IReaderDirection.NEXT://向下翻页取消了 TODO 章节间的翻页 翻到下一章节的第一页
+            //向下翻页取消了 TODO 章节间的翻页 翻到下一章节的第一页
+            case IReaderDirection.NEXT:
                 mCurIndex--;
                 break;
             case IReaderDirection.PRE://向下翻页
@@ -274,23 +275,40 @@ public class PageRespository {
         }
     }
 
-
+    /**
+     * 设置当前章节的页面列表
+     *
+     * @param curPageList pageList
+     */
     public void setCurPageList(List<PageData> curPageList) {
         if (curPageList == null) return;
         mCurPageList = curPageList;
     }
 
+    /**
+     * 根据进度设置当前页
+     *
+     * @param progress 当前阅读进度
+     */
     public void setCurPage(float progress) {
         if (mCurPageList == null || mCurPageList.size() == 0) return;
         mCurIndex = (int) ((mCurPageList.size() - 1) * progress);
         mCurPage = mCurPageList.get(mCurIndex);
     }
 
+    /**
+     * 设置上一章页面列表
+     * @param prePageList 上一章
+     */
     public void setPrePageList(List<PageData> prePageList) {
         if (prePageList == null) return;
         mPrePageList = prePageList;
     }
 
+    /**
+     * 设置下一章 页面列表
+     * @param nextPageList 下一章
+     */
     public void setNextPageList(List<PageData> nextPageList) {
         if (nextPageList == null) return;
         mNextPageList = nextPageList;
@@ -320,39 +338,70 @@ public class PageRespository {
 
     /**
      * 直接进行下一章
-     * TODO 逻辑待处理
+     * 1.处理
      */
     public void directNextChapter() {
-        if (mNextPageList == null || mNextPageList.isEmpty()) return;
+        if (mNextPageList == null || mNextPageList.isEmpty()) {
+            if (mChapterChangeListener != null)
+                mChapterChangeListener.onChapterChangeError(IReaderDirection.NEXT);
+            return;
+        }
+        //Page列表切换
+        mPrePageList = mCurPageList;
         mCurPageList = mNextPageList;
         mNextPageList = null;
-        mCurIndex = 0;
-        mCurPage = mCurPageList.get(mCurIndex);
-        //
         //设置章节切换
         mPreChapter = mCurChapter;
         mCurChapter = mNextChapter;
         mNextChapter = null;
-        if (mChapterChangeListener != null)
+        if (mChapterChangeListener != null) {
+            //章节切换回调
             mChapterChangeListener.onChapterChange(mCurChapter, IReaderDirection.NEXT);
+            //进度回调
+            progress = 0;
+            mChapterChangeListener.onProgressChange(progress);
+        }
+        mCurIndex = 0;
+        mCurPage = mCurPageList.get(mCurIndex);
     }
 
     /**
      * 直接进行上一章
-     * TODO 逻辑待处理
      */
     public void directPreChapter() {
-        if (mPrePageList == null || mPrePageList.isEmpty()) return;
+        if (mPrePageList == null || mPrePageList.isEmpty()) {
+            if (mChapterChangeListener != null)
+                mChapterChangeListener.onChapterChangeError(IReaderDirection.PRE);
+            return;
+        }
+        //Page列表切换
+        mNextPageList = mCurPageList;
         mCurPageList = mPrePageList;
         mPrePageList = null;
-        mCurIndex = 0;
-        mCurPage = mCurPageList.get(mCurIndex);
         //设置章节切换
         mNextChapter = mCurChapter;
         mCurChapter = mPreChapter;
         mPreChapter = null;
-        if (mChapterChangeListener != null)
+        if (mChapterChangeListener != null) {
+            //章节切换回调
             mChapterChangeListener.onChapterChange(mCurChapter, IReaderDirection.PRE);
+            //进度回调
+            progress = 0;
+            mChapterChangeListener.onProgressChange(progress);
+        }
+        mCurIndex = 0;
+        mCurPage = mCurPageList.get(mCurIndex);
+    }
+
+
+    /**
+     * 设置阅读进度
+     * 应用场景： 再一次打开书籍定位到上次阅读的位置
+     *
+     * @param progress 进度
+     */
+    public void setProgress(float progress) {
+        this.progress = progress;
     }
 
     /**
@@ -360,12 +409,7 @@ public class PageRespository {
      *
      * @return 进度
      */
-    public float getReadingProgress() {
-        if (mCurPageList == null || mCurPageList.isEmpty() || mCurPage == null) {
-            progress = 0;
-        } else {
-            progress = (mCurPage.getIndexOfChapter() + 1) * 1f / mCurPageList.size();
-        }
+    public float getProgress() {
         return progress;
     }
 
@@ -375,7 +419,7 @@ public class PageRespository {
      * @return 返回下一页的数据
      */
     public PageData nextPage() {
-        //TODO 进入下一章了
+        //TODO 进入下一章待处理[必须]
         if (mCurIndex == mCurPageList.size() - 1) {
             return null;
         } else {
@@ -385,11 +429,4 @@ public class PageRespository {
         }
     }
 
-    public PageData getNextPage() {
-        if (mCurIndex == mCurPageList.size() - 1) {
-            return null;
-        } else {
-            return mCurPageList.get(mCurIndex + 1);
-        }
-    }
 }

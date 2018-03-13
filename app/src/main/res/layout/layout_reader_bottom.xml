@@ -71,11 +71,12 @@
             android:src="@drawable/reading_menu_sz" />
 
         <ImageView
+            android:id="@+id/iv_spacing"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:scaleType="centerInside"
-            android:src="@drawable/reading_menu_xzl" />
+            android:src="@drawable/reading_menu_spacing" />
 
         <ImageView
             android:id="@+id/iv_tts"

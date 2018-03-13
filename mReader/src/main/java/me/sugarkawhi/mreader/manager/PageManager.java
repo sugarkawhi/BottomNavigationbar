@@ -25,6 +25,8 @@ import static me.sugarkawhi.mreader.config.IReaderConfig.CHAPTER_NAME_MARGIN;
 
 /**
  * p m
+ * TODO 需要线程同步
+ * <p>
  * Created by ZhaoZongyao on 2018/1/12.
  */
 
@@ -70,14 +72,29 @@ public class PageManager {
 
     }
 
+    /**
+     * 设置字间距
+     *
+     * @param letterSpacing 字间距
+     */
     public void setLetterSpacing(float letterSpacing) {
         mLetterSpacing = letterSpacing;
     }
 
+    /**
+     * 设置行间距
+     *
+     * @param lineSpacing 行间距
+     */
     public void setLineSpacing(float lineSpacing) {
         mLineSpacing = lineSpacing;
     }
 
+    /**
+     * 设置段间距
+     *
+     * @param paragraphSpacing 段间距
+     */
     public void setParagraphSpacing(float paragraphSpacing) {
         mParagraphSpacing = paragraphSpacing;
     }
@@ -86,7 +103,7 @@ public class PageManager {
      * 耗时操作 放到子线程去做
      *
      * @param chapter 章节数据
-     * @return
+     * @return 章节分页列表
      */
     @SuppressLint("DefaultLocale")
     public List<PageData> generatePages(BaseChapterBean chapter) {
@@ -395,4 +412,5 @@ public class PageManager {
     public void setBookName(String bookName) {
         mBookName = bookName;
     }
+
 }

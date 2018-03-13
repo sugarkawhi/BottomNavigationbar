@@ -13,7 +13,9 @@
         android:layout_width="120dp"
         android:layout_height="172dp"
         android:layout_centerHorizontal="true"
-        tools:background="#ddd" />
+        android:elevation="3dp"
+        tools:background="#ddd"
+        tools:targetApi="lollipop" />
 
     <TextView
         android:id="@+id/reader_cover_bookName"
@@ -34,7 +36,7 @@
         android:layout_below="@+id/reader_cover_bookName"
         android:layout_centerHorizontal="true"
         android:textColor="#999"
-        android:textSize="12sp"
+        android:textSize="14sp"
         tools:text="陈忠实" />
 
 

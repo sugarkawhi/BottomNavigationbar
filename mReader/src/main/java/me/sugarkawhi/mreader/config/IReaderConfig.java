@@ -30,9 +30,9 @@ public interface IReaderConfig {
     //字间距
     interface LetterSpacing {
         //最大
-        int MAX = 10;
+        int MAX = 15;
         //默认
-        int DEFAULT = 2;
+        int DEFAULT = 5;
         //最小
         int MIN = 0;
     }

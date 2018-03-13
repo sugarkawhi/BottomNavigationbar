@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -28,6 +29,13 @@ import com.baidu.tts.client.SpeechSynthesizeBag;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.SpeechSynthesizerListener;
 import com.baidu.tts.client.TtsMode;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.bean.BookBean;
@@ -163,7 +171,6 @@ public class ReaderBdActivity extends BaseActivity {
             @Override
             public void onNoPrePage(BaseChapterBean curChapter) {
                 showToast("网络问题，没有上一页了，稍后重试");
-
             }
 
             @Override
@@ -185,6 +192,15 @@ public class ReaderBdActivity extends BaseActivity {
             public void onProgressChange(float progress) {
                 L.e("TAG", "onProgressChange > " + progress);
                 readerSeekBarChapter.setProgress((int) (progress * 100));
+            }
+
+            @Override
+            public void onChapterChangeError(int direction) {
+                if (direction == IReaderDirection.NEXT) {
+                    L.e("TAG", "onChapterChangeError > NEXT");
+                } else {
+                    L.e("TAG", "onChapterChangeError > PRE");
+                }
             }
         });
         hideSystemUI();
@@ -289,7 +305,6 @@ public class ReaderBdActivity extends BaseActivity {
         mScreenWidth = ScreenUtils.getScreenWidth(this);
         mScreenHeight = ScreenUtils.getScreenHeight(this);
         initReaderView();
-        generateCover();
         drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         readerBottomView.measure(0, 0);
         readerBottomHeight = readerBottomView.getMeasuredHeight();
@@ -312,9 +327,26 @@ public class ReaderBdActivity extends BaseActivity {
                 readerProgress.setVisibility(View.GONE);
             }
         });
+        getBookDetail();
         getChapterList();
         //
         initialTts();
+    }
+
+    /**
+     * 获取书籍详情
+     */
+    private void getBookDetail() {
+        HttpUtils.getApiInstance()
+                .getLongStoryInfoByIdNew(mStoryId)
+                .compose(RxUtils.<BaseHttpResult<BookBean>>defaultSchedulers())
+                .subscribe(new DefaultObserver<BookBean>() {
+                    @Override
+                    protected void onSuccess(BookBean bookBean) {
+                        readerView.setBookName(bookBean.getName());
+                        generateCover(bookBean);
+                    }
+                });
     }
 
     /**
@@ -382,31 +414,6 @@ public class ReaderBdActivity extends BaseActivity {
 
                     }
                 });
-        HttpUtils.getApiInstance()
-                .getChapterReadByIdV2(chapterId)
-                .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
-                .subscribe(new Observer<BaseHttpResult<ChapterBean>>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(BaseHttpResult<ChapterBean> result) {
-                        readerView.setCurrentChapter(result.getData(), 0);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-
     }
 
     private void getNextChapter(String chapterId) {
@@ -549,6 +556,19 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
 
+
+    /**
+     * 设置间距
+     */
+    @OnClick(R.id.iv_spacing)
+    public void setSpacing() {
+        hide();
+        showSpacingDialog();
+    }
+
+    /**
+     * 显示间距对话框
+     */
     private void showSpacingDialog() {
         SpacingSettingDialog dialog = new SpacingSettingDialog(this);
         dialog.setLetterSpacing(10)
@@ -583,6 +603,10 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
 
+
+    /**
+     * 打开目录页
+     */
     @OnClick(R.id.tv_catalog)
     public void openDrawer() {
         hide();
@@ -604,23 +628,15 @@ public class ReaderBdActivity extends BaseActivity {
         super.onBackPressed();
     }
 
-    public void generateCover() {
-        BookBean bookBean = new BookBean();
-        bookBean.setName("战略级天使");
-        bookBean.setAuthorName("白伯欢");
-        generateCover(bookBean);
-    }
-
 
     /**
      * 如果是第一章 生成封面
      */
     public void generateCover(BookBean book) {
-        View view = getLayoutInflater().inflate(R.layout.layout_reader_cover, null);
-        ImageView cover_img = view.findViewById(R.id.reader_cover_img);
+        final View view = getLayoutInflater().inflate(R.layout.layout_reader_cover, null);
+        final ImageView cover_img = view.findViewById(R.id.reader_cover_img);
         TextView cover_bookName = view.findViewById(R.id.reader_cover_bookName);
         TextView cover_authorName = view.findViewById(R.id.reader_cover_authorName);
-        cover_img.setImageResource(R.drawable.cover_zljts);
         cover_bookName.setText(book.getName());
         cover_authorName.setText(book.getAuthorName());
         int width = ScreenUtils.getScreenWidth(this);
@@ -634,6 +650,15 @@ public class ReaderBdActivity extends BaseActivity {
         view.measure(measuredWidth, measuredHeight);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
         readerView.setCoverView(view);
+        Glide.with(this)
+                .load(book.getCover())
+                .into(new SimpleTarget<Drawable>() {
+                    @Override
+                    public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
+                        cover_img.setImageDrawable(resource);
+                        readerView.setCoverView(view);
+                    }
+                });
     }
 
     private class ZipChapter {
@@ -763,7 +788,6 @@ public class ReaderBdActivity extends BaseActivity {
                     }
                 }
                 setParams(getParams());
-                // 初始化tts
                 // 初始化tts
                 int result = mSpeechSynthesizer.initTts(ttsMode);
                 if (result != 0) {

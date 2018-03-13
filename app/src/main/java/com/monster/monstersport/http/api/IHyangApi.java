@@ -1,6 +1,7 @@
 package com.monster.monstersport.http.api;
 
 
+import com.monster.monstersport.bean.BookBean;
 import com.monster.monstersport.bean.ChapterBean;
 import com.monster.monstersport.bean.ChapterListBean;
 import com.monster.monstersport.http.BaseHttpResult;
@@ -41,5 +42,9 @@ public interface IHyangApi {
     @GET("/chapter/getNextChapterReadById.i")
     Observable<BaseHttpResult<ChapterBean>> getNextChapterReadByIdV2(@Query("chapterid") String chapterid);
 
+
+    //长篇详情
+    @GET("/longstory/getLongStoryInfoByIdNew.i")
+    Observable<BaseHttpResult<BookBean>> getLongStoryInfoByIdNew(@Query("storyid") String storyid);
 
 }
