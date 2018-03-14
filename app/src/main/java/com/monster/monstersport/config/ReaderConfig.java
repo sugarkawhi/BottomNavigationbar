@@ -13,8 +13,12 @@ import me.sugarkawhi.mreader.config.IReaderConfig;
  * Created by ZhaoZongyao on 2018/1/30.
  */
 
-public class ReaderConfig {
+public interface ReaderConfig {
 
-
+    interface BaiduTts {
+        String APP_ID = "10900823";
+        String APP_KEY = "QSOlWGh5VzsrGLheDTGbm7Nx";
+        String SECRET_KEY = "537013a25672bb8748d622066487fe53";
+    }
 
 }

@@ -14,13 +14,51 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:text="朗读速度："
-        android:textColor="@color/white"
+        android:textColor="@color/reader_font_night"
         android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textStyle="normal" />
 
-    <SeekBar
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="慢"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <SeekBar
+            android:id="@+id/reader_seekBar_tts_speed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:max="9"
+            android:maxHeight="2dp"
+            android:min="0"
+            android:minHeight="2dp"
+            android:progress="5"
+            android:progressDrawable="@drawable/abc_reader_seekbar"
+            android:thumb="@drawable/abc_reader_seekbar_thumb" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="快"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
 
     <TextView
@@ -29,90 +67,88 @@
         android:layout_marginBottom="10dp"
         android:layout_marginTop="15dp"
         android:text="发音人："
-        android:textColor="@color/white"
+        android:textColor="@color/reader_font_night"
         android:textSize="16sp"
         android:textStyle="bold" />
 
-    <HorizontalScrollView
+
+    <RadioGroup
+        android:id="@+id/reader_tts_speaker"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:overScrollMode="never"
-        android:scrollbars="none">
+        android:layout_height="35dp"
+        android:gravity="center"
+        android:orientation="horizontal">
 
-        <RadioGroup
-            android:id="@+id/reader_tts_character_cloud"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <RadioButton
+            android:id="@+id/reader_tts_female"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:maxLines="1"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="普通女生"
+            android:textColor="@color/white" />
 
-            <RadioButton
-                android:id="@+id/reader_tts_voicer_cloud_xiaoyan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/abc_radio_reader_page"
-                android:button="@null"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingBottom="5dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5dp"
-                android:text="普通女生"
-                android:textColor="@color/white" />
+        <RadioButton
+            android:id="@+id/reader_tts_male"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="普通男声"
+            android:textColor="@color/white" />
 
-            <RadioButton
-                android:id="@+id/reader_tts_voicer_cloud_xiaofeng"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/abc_radio_reader_page"
-                android:button="@null"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingBottom="5dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5dp"
-                android:text="普通男声"
-                android:textColor="@color/white" />
+        <RadioButton
+            android:id="@+id/reader_tts_duxy"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="度逍遥"
+            android:textColor="@color/white" />
 
-            <RadioButton
-                android:id="@+id/reader_tts_voicer_cloud_xiaokun"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/abc_radio_reader_page"
-                android:button="@null"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingBottom="5dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5dp"
-                android:text="度逍遥"
-                android:textColor="@color/white" />
-
-            <RadioButton
-                android:id="@+id/reader_tts_voicer_cloud_xiaoqian"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/abc_radio_reader_page"
-                android:button="@null"
-                android:gravity="center"
-                android:maxLines="1"
-                android:paddingBottom="5dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="5dp"
-                android:text="度丫丫"
-                android:textColor="@color/white" />
+        <RadioButton
+            android:id="@+id/reader_tts_duyy"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/abc_radio_reader_page"
+            android:button="@null"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:text="度丫丫"
+            android:textColor="@color/white" />
 
 
-        </RadioGroup>
-    </HorizontalScrollView>
+    </RadioGroup>
 
 
     <TextView

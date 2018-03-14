@@ -12,14 +12,17 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -30,11 +33,7 @@ import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.SpeechSynthesizerListener;
 import com.baidu.tts.client.TtsMode;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.BaseActivity;
@@ -44,8 +43,8 @@ import com.monster.monstersport.bean.ChapterListBean;
 import com.monster.monstersport.bean.TtsBean;
 import com.monster.monstersport.dao.bean.BookRecordBean;
 import com.monster.monstersport.dialog.ReaderSettingDialog;
+import com.monster.monstersport.dialog.ReaderSpacingDialog;
 import com.monster.monstersport.dialog.ReaderTtsDialog;
-import com.monster.monstersport.dialog.SpacingSettingDialog;
 import com.monster.monstersport.fragment.CatalogueFragment;
 import com.monster.monstersport.http.BaseHttpResult;
 import com.monster.monstersport.http.HttpUtils;
@@ -61,9 +60,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -73,7 +70,6 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function3;
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
@@ -82,10 +78,14 @@ import me.sugarkawhi.mreader.data.LetterData;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
+import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.L;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 import me.sugarkawhi.mreader.view.ReaderView;
 
+import static com.monster.monstersport.config.ReaderConfig.BaiduTts.APP_ID;
+import static com.monster.monstersport.config.ReaderConfig.BaiduTts.APP_KEY;
+import static com.monster.monstersport.config.ReaderConfig.BaiduTts.SECRET_KEY;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.COLOR_MATCHA;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.DEFAULT;
 import static com.monster.monstersport.persistence.HyReaderPersistence.Background.IMAGE_BLUE;
@@ -102,9 +102,14 @@ public class ReaderBdActivity extends BaseActivity {
     public static final String TAG = "ReaderActivity";
     public static final String PARAM_STORY_ID = "PARAM_STORY_ID";
     private static final char[] TAIL_CHAR = {'，', '。', ';', '”', '！', '？', '\n', '…', '：'};
+    private static final int ANIM_DURATION_BAR = 200;
 
     private String mStoryId;
 
+    @BindView(R.id.app_bar)
+    AppBarLayout mAppBarLayout;
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer_layout;
     @BindView(R.id.readerView)
@@ -116,6 +121,13 @@ public class ReaderBdActivity extends BaseActivity {
     @BindView(R.id.tv_progress)
     TextView readerProgress;
 
+    @BindView(R.id.tv_retry)
+    TextView mTvRetry; //点击重试
+    @BindView(R.id.progressBar)
+    ProgressBar mProgressBar;//加载
+
+
+    private int mAppBarHeight;
     private int readerBottomHeight;
     private boolean isShow;
 
@@ -125,11 +137,75 @@ public class ReaderBdActivity extends BaseActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         setContentView(R.layout.activity_reader);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         ButterKnife.bind(this);
         mStoryId = getIntent().getStringExtra("storyid");
         init();
+        addCatalog();
+    }
+
+    /**
+     * 初始化操作
+     */
+    private void init() {
+        mScreenWidth = ScreenUtils.getScreenWidth(this);
+        mScreenHeight = ScreenUtils.getScreenHeight(this);
+        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        registerReaderReceiver();
+        initReaderBar();
+        initReaderView();
+        getData();
+    }
+
+    /**
+     * 初始化设置栏
+     * TOP：1、添加书签 2、分享
+     * BOTTOM： 1、目录 2、夜间/日间 3、翻页 4、设置
+     */
+    private void initReaderBar() {
+        mToolbar.setTitle("");
+        setSupportActionBar(mToolbar);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+        mAppBarLayout.measure(0, 0);
+        int statusBarHeight = ScreenUtils.getStatusBarHeight(this);
+        mAppBarHeight = mAppBarLayout.getMeasuredHeight() + statusBarHeight;
+        mAppBarLayout.setTranslationY(-mAppBarHeight);
+        readerBottomView.measure(0, 0);
+        readerBottomHeight = readerBottomView.getMeasuredHeight();
+        readerBottomView.setTranslationY(readerBottomHeight);
+        readerSeekBarChapter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                readerProgress.setText(progress + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                readerProgress.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                float progress = seekBar.getProgress() / 100f;
+                readerView.setChapterProgress(progress);
+                readerProgress.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    /**
+     * 初始化阅读器
+     */
+    private void initReaderView() {
+        //设置背景颜色(ps:也设置对应字体颜色)
+        int background = HyReaderPersistence.getBackground(this);
+        initReaderBackground(background);
         readerView.timeChange(TimeFormatUtils.hhmm(System.currentTimeMillis()));
         readerView.setReaderTouchListener(new IReaderTouchListener() {
             @Override
@@ -139,13 +215,12 @@ public class ReaderBdActivity extends BaseActivity {
 
             @Override
             public void onTouchCenter() {
-                if (isShow) hide();
-                else show();
+                if (isShow) hideReaderBar();
+                else showReaderBar();
             }
 
             @Override
             public void onTouchSpeaking() {
-                //TODO 显示Dialog
                 if (mReaderTtsDialog != null && mReaderTtsDialog.isShowing()) {
                     mReaderTtsDialog.dismiss();
                 } else {
@@ -171,12 +246,12 @@ public class ReaderBdActivity extends BaseActivity {
 
             @Override
             public void onNoPrePage(BaseChapterBean curChapter) {
-                showToast("网络问题，没有上一页了，稍后重试");
+                showToast("WAIT : pre");
             }
 
             @Override
             public void onNoNextPage(BaseChapterBean curChapter) {
-                showToast("网络问题，没有下一页了，稍后重试");
+                showToast("WAIT : next");
             }
 
             @Override
@@ -204,8 +279,6 @@ public class ReaderBdActivity extends BaseActivity {
                 }
             }
         });
-        hideSystemUI();
-        addCatalog();
     }
 
     // 接收电池信息更新的广播
@@ -248,14 +321,6 @@ public class ReaderBdActivity extends BaseActivity {
                 .commit();
     }
 
-    /**
-     * 初始化readerView
-     */
-    private void initReaderView() {
-        //设置背景颜色(ps:也设置对应字体颜色)
-        int background = HyReaderPersistence.getBackground(this);
-        initReaderBackground(background);
-    }
 
     /**
      * 初始化阅读器背景
@@ -301,38 +366,14 @@ public class ReaderBdActivity extends BaseActivity {
         }
     }
 
-    private void init() {
-        registerReaderReceiver();
-        mScreenWidth = ScreenUtils.getScreenWidth(this);
-        mScreenHeight = ScreenUtils.getScreenHeight(this);
-        initReaderView();
-        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        readerBottomView.measure(0, 0);
-        readerBottomHeight = readerBottomView.getMeasuredHeight();
-        readerBottomView.setTranslationY(readerBottomHeight);
-        readerSeekBarChapter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                readerProgress.setText(progress + "%");
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                readerProgress.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                float progress = seekBar.getProgress() / 100f;
-                readerView.setChapterProgress(progress);
-                readerProgress.setVisibility(View.GONE);
-            }
-        });
+    /**
+     * 获取数据 包括 书籍详情  章节列表 章节详情
+     */
+    private void getData() {
         getBookDetail();
         getChapterList();
-        //
-        initialTts();
     }
+
 
     /**
      * 获取书籍详情
@@ -344,7 +385,7 @@ public class ReaderBdActivity extends BaseActivity {
                 .subscribe(new DefaultObserver<BookBean>() {
                     @Override
                     protected void onSuccess(BookBean bookBean) {
-//                        readerView.setBookName(bookBean.getName());
+                        readerView.setBookName(bookBean.getName());
                         generateCover(bookBean);
                     }
                 });
@@ -354,6 +395,8 @@ public class ReaderBdActivity extends BaseActivity {
      * 获取章节
      */
     private void getChapterList() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mTvRetry.setVisibility(View.GONE);
         HttpUtils.getApiInstance()
                 .searchChapterListVO(mStoryId)
                 .compose(RxUtils.<BaseHttpResult<ChapterListBean>>defaultSchedulers())
@@ -367,6 +410,19 @@ public class ReaderBdActivity extends BaseActivity {
                             getChapterById(chapterListBean.getDatas().get(0).getChapterid(), 0);
                         }
                     }
+
+                    @Override
+                    protected void onFail(BaseHttpResult<ChapterListBean> result) {
+                        super.onFail(result);
+
+                    }
+
+                    @Override
+                    protected void onException(ExceptionReason reason) {
+                        super.onException(reason);
+                        mProgressBar.setVisibility(View.GONE);
+                        mTvRetry.setVisibility(View.VISIBLE);
+                    }
                 });
 
     }
@@ -374,7 +430,7 @@ public class ReaderBdActivity extends BaseActivity {
     /**
      * 根据chapter id 来 获取章节内容
      *
-     * @param chapterId
+     * @param chapterId 当前章节id
      */
     private void getChapterById(String chapterId, final float progress) {
         IHyangApi api = HttpUtils.getApiInstance();
@@ -407,105 +463,111 @@ public class ReaderBdActivity extends BaseActivity {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        mProgressBar.setVisibility(View.GONE);
+                        mTvRetry.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onComplete() {
-
+                        mProgressBar.setVisibility(View.GONE);
+                        mTvRetry.setVisibility(View.GONE);
                     }
                 });
     }
 
+    /**
+     * 获取章节下一章
+     *
+     * @param chapterId
+     */
     private void getNextChapter(String chapterId) {
         HttpUtils.getApiInstance()
                 .getNextChapterReadByIdV2(chapterId)
                 .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
-                .subscribe(new Observer<BaseHttpResult<ChapterBean>>() {
+                .subscribe(new DefaultObserver<ChapterBean>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(BaseHttpResult<ChapterBean> chapterBean) {
-                        readerView.setNextChapter(chapterBean.getData());
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                    protected void onSuccess(ChapterBean chapterBean) {
+                        readerView.setNextChapter(chapterBean);
                     }
                 });
     }
 
+    /**
+     * 获取章节的前一章
+     *
+     * @param chapterId 当前章节id
+     */
     private void getPreChapter(String chapterId) {
         HttpUtils.getApiInstance()
                 .getPreChapterReadByIdV2(chapterId)
                 .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
-                .subscribe(new Observer<BaseHttpResult<ChapterBean>>() {
+                .subscribe(new DefaultObserver<ChapterBean>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(BaseHttpResult<ChapterBean> chapterBean) {
-                        readerView.setPreChapter(chapterBean.getData());
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                    protected void onSuccess(ChapterBean chapterBean) {
+                        readerView.setPreChapter(chapterBean);
                     }
                 });
     }
 
-    private void show() {
+    /**
+     * 显示 APP_BAR 和 Bottom_Bar 和状态栏
+     */
+    private void showReaderBar() {
         isShow = true;
+        mAppBarLayout.animate()
+                .translationY(0)
+                .setDuration(ANIM_DURATION_BAR)
+                .start();
         readerBottomView.animate()
                 .translationY(0)
-                .setDuration(200)
+                .setDuration(ANIM_DURATION_BAR)
                 .start();
+        showSystemUI();
     }
 
-    private void hide() {
+    /**
+     * 隐藏 APP_BAR 和 Bottom_Bar 和 状态栏
+     */
+    private void hideReaderBar() {
         isShow = false;
+        mAppBarLayout.animate()
+                .translationY(-mAppBarHeight)
+                .setDuration(ANIM_DURATION_BAR)
+                .start();
         readerBottomView.animate()
                 .translationY(readerBottomHeight)
-                .setDuration(200)
+                .setDuration(ANIM_DURATION_BAR)
                 .start();
         hideSystemUI();
     }
 
 
     /**
-     * 隐藏菜单。沉浸式阅读
+     * 隐藏系统状态栏
      */
     private void hideSystemUI() {
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        );
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hideReaderBar status bar
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
+    /**
+     * 显示状态栏
+     */
     private void showSystemUI() {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        );
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    /**
+     * 点击重试
+     */
+    @OnClick(R.id.tv_retry)
+    public void retry() {
+        getChapterList();
     }
 
     /**
@@ -529,7 +591,7 @@ public class ReaderBdActivity extends BaseActivity {
      */
     @OnClick(R.id.tv_setting)
     public void setting() {
-        hide();
+        hideReaderBar();
         ReaderSettingDialog dialog = new ReaderSettingDialog(this);
         dialog.setSettingListener(new ReaderSettingDialog.IReaderSettingListener() {
             @Override
@@ -548,12 +610,7 @@ public class ReaderBdActivity extends BaseActivity {
             }
         })
                 .show();
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                hideSystemUI();
-            }
-        });
+        dialog.setOnDismissListener(mDismissListener);
     }
 
 
@@ -562,7 +619,7 @@ public class ReaderBdActivity extends BaseActivity {
      */
     @OnClick(R.id.iv_spacing)
     public void setSpacing() {
-        hide();
+        hideReaderBar();
         showSpacingDialog();
     }
 
@@ -570,11 +627,11 @@ public class ReaderBdActivity extends BaseActivity {
      * 显示间距对话框
      */
     private void showSpacingDialog() {
-        SpacingSettingDialog dialog = new SpacingSettingDialog(this);
+        ReaderSpacingDialog dialog = new ReaderSpacingDialog(this);
         dialog.setLetterSpacing(10)
                 .setLineSpacing(20)
                 .setParagraphSpacing(30)
-                .setSpacingChangeListener(new SpacingSettingDialog.IReaderSpacingChangeListener() {
+                .setSpacingChangeListener(new ReaderSpacingDialog.IReaderSpacingChangeListener() {
                     @Override
                     public void onLetterSpacingChange(int progress) {
                         int offset = IReaderConfig.LetterSpacing.MAX - IReaderConfig.LetterSpacing.MIN;
@@ -594,13 +651,20 @@ public class ReaderBdActivity extends BaseActivity {
                     }
                 })
                 .show();
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                hideSystemUI();
-            }
-        });
+        dialog.setOnDismissListener(mDismissListener);
     }
+
+    /**
+     * 隐藏状态栏
+     */
+    private DialogInterface.OnDismissListener mDismissListener = new DialogInterface.OnDismissListener() {
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            showToast("HIDE SYS UI");
+            hideSystemUI();
+            //L.e(TAG,"OnDismissListener HIDE SYS UI");
+        }
+    };
 
 
     /**
@@ -608,7 +672,7 @@ public class ReaderBdActivity extends BaseActivity {
      */
     @OnClick(R.id.tv_catalog)
     public void openDrawer() {
-        hide();
+        hideReaderBar();
         drawer_layout.openDrawer(Gravity.START);
     }
 
@@ -616,7 +680,7 @@ public class ReaderBdActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
         if (isShow) {
-            hide();
+            hideReaderBar();
             return;
         }
         if (readerView.isSpeaking()) {
@@ -680,18 +744,34 @@ public class ReaderBdActivity extends BaseActivity {
      * **************************语音合成*****************************
      * **************************语音合成*****************************/
 
-    //语音合成
+    //开启语音合成
     @OnClick(R.id.iv_tts)
     public void tts() {
+        if (null == mSpeechSynthesizer) {
+            initialTts();
+        } else {
+            startTts();
+        }
+        hideReaderBar();
+    }
+
+    /**
+     * 开始语音合成
+     */
+    private void startTts() {
         PageData pageData = readerView.getCurrentPage();
         if (pageData == null) {
             showToast("当前页内容为空");
             return;
         }
-        hide();
         speak(pageData);
     }
 
+    /**
+     * 语音合成计算
+     *
+     * @param letters 所给字符
+     */
     public List<TtsBean> calculate(List<LetterData> letters) {
         List<TtsBean> ttsList = new ArrayList<>();
         if (letters == null || letters.size() == 0) {
@@ -731,11 +811,6 @@ public class ReaderBdActivity extends BaseActivity {
      * 发布时请替换成自己申请的appId appKey 和 secretKey。注意如果需要离线合成功能,请在您申请的应用中填写包名。
      * 本demo的包名是com.baidu.tts.sample，定义在build.gradle中。
      */
-    protected String appId = "10900823";
-
-    protected String appKey = "QSOlWGh5VzsrGLheDTGbm7Nx";
-
-    protected String secretKey = "537013a25672bb8748d622066487fe53";
 
     // TtsMode.MIX; 离在线融合，在线优先； TtsMode.ONLINE 纯在线； 没有纯离线
     protected TtsMode ttsMode = TtsMode.MIX;
@@ -743,18 +818,12 @@ public class ReaderBdActivity extends BaseActivity {
 //    // 离线发音选择，VOICE_FEMALE即为离线女声发音。
     // assets目录下bd_etts_common_speech_m15_mand_eng_high_am-mix_v3.0.0_20170505.dat为离线男声模型；
     // assets目录下bd_etts_common_speech_f7_mand_eng_high_am-mix_v3.0.0_20170512.dat为离线女声模型
-    protected String offlineVoice = OfflineResource.VOICE_FEMALE;
 
     // ===============初始化参数设置完毕，更多合成参数请至getParams()方法中设置 =================
 
     // 主控制类，所有合成控制方法从这个类开始
 
     protected SpeechSynthesizer mSpeechSynthesizer;
-
-    /**
-     * 界面上的按钮对应方法
-     */
-
 
     /**
      * 初始化引擎，需要的参数均在InitConfig类里
@@ -765,9 +834,10 @@ public class ReaderBdActivity extends BaseActivity {
      * FileSaveListener 在UiMessageListener的基础上，使用 onSynthesizeDataArrived回调，获取音频流
      */
     protected void initialTts() {
-        Observable.create(new ObservableOnSubscribe<Object>() {
+        //TODO 需要弹框表示正在初始化 并且不能取消 否则可能导致报错
+        Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void subscribe(ObservableEmitter<Object> e) throws Exception {
+            public void subscribe(ObservableEmitter<String> e) throws Exception {
                 LoggerProxy.printable(true); // 日志打印在logcat中
                 // 设置初始化参数
                 // appId appKey secretKey 网站上您申请的应用获取。注意使用离线合成功能的话，需要应用中填写您app的包名。包名在build.gradle中获取。
@@ -775,8 +845,8 @@ public class ReaderBdActivity extends BaseActivity {
                 mSpeechSynthesizer.setContext(ReaderBdActivity.this);
                 mSpeechSynthesizer.setSpeechSynthesizerListener(mSynthesizerListener);
                 mSpeechSynthesizer.auth(ttsMode);
-                mSpeechSynthesizer.setAppId(appId);
-                mSpeechSynthesizer.setApiKey(appKey, secretKey);
+                mSpeechSynthesizer.setAppId(APP_ID);
+                mSpeechSynthesizer.setApiKey(APP_KEY, SECRET_KEY);
 
                 if (true) {
                     // 授权检测接口(只是通过AuthInfo进行检验授权是否成功。选择纯在线可以不必调用auth方法。
@@ -786,21 +856,39 @@ public class ReaderBdActivity extends BaseActivity {
                         String errorMsg = authInfo.getTtsError().getDetailMessage();
                     }
                 }
-                setParams(getParams());
-                // 初始化tts
+                setParams();
+                // 初始化tts TODO 这儿报错的可能 在初始化Tts的时候销毁了activity 会空指针
                 int result = mSpeechSynthesizer.initTts(ttsMode);
                 if (result != 0) {
-                    Log.e(TAG, "【error】initTts 初始化失败 + errorCode：" + result);
+                    e.onError(new Throwable("【error】initTts 初始化失败 + errorCode：" + result));
+                } else {
+                    // 此时可以调用 speak和synthesize方法
+                    e.onNext("合成引擎初始化成功,此时可以调用 speak和synthesize方法");
+                    e.onComplete();
                 }
-                // 此时可以调用 speak和synthesize方法
-                Log.e(TAG, "合成引擎初始化成功");
-                // 此时可以调用 speak和synthesize方法
-            }
-        }).compose(RxUtils.defaultSchedulers())
-                .subscribe(new Consumer<Object>() {
-                    @Override
-                    public void accept(Object o) throws Exception {
 
+            }
+        }).compose(RxUtils.<String>defaultSchedulers())
+                .compose(this.<String>bindToLifecycle())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        Log.e(TAG, "s > " + s);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        startTts();
                     }
                 });
 
@@ -830,9 +918,9 @@ public class ReaderBdActivity extends BaseActivity {
         @Override
         public void onSpeechProgressChanged(String utteranceId, int i) {
             final int index = Integer.parseInt(utteranceId);
-            if (list == null || index >= list.size())
+            if (mTtsList == null || index >= mTtsList.size())
                 return;
-            final List<LetterData> letterDataList = list.get(index).getLetterList();
+            final List<LetterData> letterDataList = mTtsList.get(index).getLetterList();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -844,7 +932,7 @@ public class ReaderBdActivity extends BaseActivity {
         @Override
         public void onSpeechFinish(String utteranceId) {
             final int index = Integer.parseInt(utteranceId);
-            if (index == list.size() - 1) {//最后一段读完了 切换到下一页
+            if (index == mTtsList.size() - 1) {//最后一段读完了 切换到下一页
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -861,32 +949,18 @@ public class ReaderBdActivity extends BaseActivity {
         }
     };
 
-    public void setParams(Map<String, String> params) {
-        if (params != null) {
-            for (Map.Entry<String, String> e : params.entrySet()) {
-                mSpeechSynthesizer.setParam(e.getKey(), e.getValue());
-            }
-        }
-    }
-
-    /**
-     * 合成的参数，可以初始化时填写，也可以在合成前设置。
-     *
-     * @return
-     */
-    protected Map<String, String> getParams() {
-        Map<String, String> params = new HashMap<String, String>();
+    public void setParams() {
         // 以下参数均为选填
         // 设置在线发声音人： 0 普通女声（默认） 1 普通男声 2 特别男声 3 情感男声<度逍遥> 4 情感儿童声<度丫丫>
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_SPEAKER, "0");
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(IReaderPersistence.getTtsSpeaker(this)));
         // 设置合成的音量，0-9 ，默认 5
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_VOLUME, "5");
+        // mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_VOLUME, "5");
         // 设置合成的语速，0-9 ，默认 5
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_SPEED, "5");
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, String.valueOf(IReaderPersistence.getTtsSpeed(this)));
         // 设置合成的语调，0-9 ，默认 5
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_PITCH, "5");
+        // mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_PITCH, "5");
 
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_MIX_MODE, com.baidu.tts.client.SpeechSynthesizer.MIX_MODE_DEFAULT);
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_MIX_MODE, SpeechSynthesizer.MIX_MODE_HIGH_SPEED_SYNTHESIZE_WIFI);
         // 该参数设置为TtsMode.MIX生效。即纯在线模式不生效。
         // MIX_MODE_DEFAULT 默认 ，wifi状态下使用在线，非wifi离线。在线状态下，请求超时6s自动转离线
         // MIX_MODE_HIGH_SPEED_SYNTHESIZE_WIFI wifi状态下使用在线，非wifi离线。在线状态下， 请求超时1.2s自动转离线
@@ -894,19 +968,19 @@ public class ReaderBdActivity extends BaseActivity {
         // MIX_MODE_HIGH_SPEED_SYNTHESIZE, 2G 3G 4G wifi状态下使用在线，其它状态离线。在线状态下，请求超时1.2s自动转离线
 
         // 离线资源文件
-        OfflineResource offlineResource = createOfflineResource(offlineVoice);
+        OfflineResource offlineResource = createOfflineResource(IReaderPersistence.getTtsSpeaker(this));
         // 声学模型文件路径 (离线引擎使用), 请确认下面两个文件存在
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
-        params.put(com.baidu.tts.client.SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE,
-                offlineResource.getModelFilename());
-        return params;
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
+        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
+
+
     }
 
 
-    protected OfflineResource createOfflineResource(String voiceType) {
+    protected OfflineResource createOfflineResource(int speaker) {
         OfflineResource offlineResource = null;
         try {
-            offlineResource = new OfflineResource(this, voiceType);
+            offlineResource = new OfflineResource(this, speaker);
         } catch (IOException e) {
             // IO 错误自行处理
             e.printStackTrace();
@@ -915,7 +989,8 @@ public class ReaderBdActivity extends BaseActivity {
         return offlineResource;
     }
 
-    private List<TtsBean> list;
+    //语音合成列表
+    private List<TtsBean> mTtsList;
 
     /**
      * speak 实际上是调用 synthesize后，获取音频流，然后播放。
@@ -928,14 +1003,14 @@ public class ReaderBdActivity extends BaseActivity {
             return;
         }
         readerView.startTts();
-        list = calculate(pageData.getLetters());
+        mTtsList = calculate(pageData.getLetters());
         // 合成前可以修改参数：
         // Map<String, String> params = getParams();
         // synthesizer.setParams(params);
         List<Pair<String, Integer>> texts = new ArrayList<>();
 
         int count = 0;
-        for (TtsBean ttsBean : list) {
+        for (TtsBean ttsBean : mTtsList) {
             texts.add(new Pair<>(ttsBean.getContent(), count++));
         }
 
@@ -956,9 +1031,8 @@ public class ReaderBdActivity extends BaseActivity {
     /**
      * 切换离线发音。注意需要添加额外的判断：引擎在合成时该方法不能调用
      */
-    private void loadModel(String mode) {
-        offlineVoice = mode;
-        OfflineResource offlineResource = createOfflineResource(offlineVoice);
+    private void loadModel(int speaker) {
+        OfflineResource offlineResource = createOfflineResource(speaker);
         int result = mSpeechSynthesizer.loadModel(offlineResource.getModelFilename(), offlineResource.getTextFilename());
         checkResult(result, "loadModel");
     }
@@ -1020,42 +1094,52 @@ public class ReaderBdActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (mSpeechSynthesizer != null) {
-            mSpeechSynthesizer.release();
-            Log.i(TAG, "释放资源成功");
+            int result = mSpeechSynthesizer.release();
+            Log.e(TAG, "释放资源成功");
         }
         if (myReceiver != null) {
             unregisterReceiver(myReceiver);
         }
-        super.onDestroy();
     }
 
 
     private ReaderTtsDialog mReaderTtsDialog;
 
+    /**
+     * 显示语音合成设置Dialog
+     */
     private void showTtsDialog() {
         mReaderTtsDialog = new ReaderTtsDialog(this);
-        mReaderTtsDialog.setListener(new ReaderTtsDialog.IReaderTtsChangeListener() {
-            @Override
-            public void onTtsTypeChange(String ttsType) {
+        mReaderTtsDialog.setTtsSpeed(IReaderPersistence.getTtsSpeed(this))
+                .setTtsSpeaker(IReaderPersistence.getTtsSpeaker(this))
+                .setListener(new ReaderTtsDialog.IReaderTtsChangeListener() {
+                    @Override
+                    public void onTtsSpeedChange(int speed) {
+                        IReaderPersistence.saveTtsSpeed(ReaderBdActivity.this, speed);
+                        //语速变了 TODO 需要重新合成
+                        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, String.valueOf(speed));
+                    }
 
-            }
+                    @Override
+                    public void onTtsSpeakerChange(int speaker) {
+                        IReaderPersistence.saveTtsSpeaker(ReaderBdActivity.this, speaker);
+                        //发音人变了 TODO  需要重新合成
+                        mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker));
+                    }
 
-            @Override
-            public void onTtsVoicerChange(String ttsType, String voicer) {
 
-            }
-
-            @Override
-            public void onTtsExit() {
-                stopTts();
-            }
-        });
+                    @Override
+                    public void onTtsExit() {
+                        stopTts();
+                    }
+                });
         mReaderTtsDialog.show();
         mReaderTtsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-                hide();
+                hideSystemUI();
                 mSpeechSynthesizer.resume();//恢复朗读
             }
         });

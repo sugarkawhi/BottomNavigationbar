@@ -80,5 +80,18 @@ public interface IReaderConfig {
         int NONE = 4;
     }
 
+    //发音人
+    //百度文档： 0 普通女声（默认） 1 普通男声 2 特别男声 3 情感男声<度逍遥> 4 情感儿童声<度丫丫>
+    interface Speaker {
+        // 普通女声
+        int FEMALE = 0;
+        // 普通男声
+        int MALE = 1;
+        // 度丫丫
+        int DUXY = 3;
+        // 度逍遥
+        int DUYY = 4;
+    }
+
 
 }

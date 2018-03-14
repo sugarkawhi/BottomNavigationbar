@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -33,7 +34,6 @@ import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
 import me.sugarkawhi.mreader.listener.IReaderChapterChangeListener;
 import me.sugarkawhi.mreader.listener.IReaderTouchListener;
-import me.sugarkawhi.mreader.manager.PageGenerater;
 import me.sugarkawhi.mreader.manager.PageManager;
 import me.sugarkawhi.mreader.manager.PageRespository;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
@@ -202,8 +202,11 @@ public class ReaderView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         if (mCurrentState == STATE_LOADING) {
-            if (mReaderBackgroundBitmap != null)
+            if (mReaderBackgroundBitmap != null && mReaderBackgroundBitmap.getWidth() > 0 && mReaderBackgroundBitmap.getHeight() > 0) {
                 canvas.drawBitmap(mReaderBackgroundBitmap, 0, 0, null);
+            } else {
+                canvas.drawColor(Color.parseColor("#F5DEB3"));
+            }
         } else {
             mAnimController.dispatchDrawPage(canvas);
         }
@@ -296,7 +299,7 @@ public class ReaderView extends View {
      * 绘制当前页面
      */
     public void drawCurrentPage() {
-        PageGenerater.generate(mPageElement, mRespository.getCurPage(), mAnimController.getCurrentBitmap());
+        mPageElement.generatePage(mRespository.getCurPage(), mAnimController.getCurrentBitmap());
         invalidate();
     }
 
@@ -345,13 +348,12 @@ public class ReaderView extends View {
         if (mCoverView == null) return;
         Bitmap coverBitmap = BitmapUtils.getCoverBitmap(mCoverView, getReaderBackgroundBitmap());
         mPageElement.setCoverBitmap(coverBitmap);
-        invalidate();
     }
 
     /**
      * 封面View
      *
-     * @param coverView
+     * @param coverView 封面view
      */
     public void setCoverView(View coverView) {
         mCoverView = coverView;
@@ -686,5 +688,14 @@ public class ReaderView extends View {
         if (mPreDisposable != null && !mPreDisposable.isDisposed()) mPreDisposable.dispose();
         if (mNextDisposable != null && !mNextDisposable.isDisposed()) mNextDisposable.dispose();
         super.onDetachedFromWindow();
+    }
+
+    /**
+     * 是否是打开书籍状态
+     *
+     * @return t/f
+     */
+    public boolean isOpening() {
+        return mCurrentState == STATE_OPEN;
     }
 }

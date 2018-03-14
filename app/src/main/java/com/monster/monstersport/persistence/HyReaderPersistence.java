@@ -46,6 +46,11 @@ public class HyReaderPersistence extends IReaderPersistence {
         int MATCHA = R.color.reader_font_matcha;
     }
 
+    //语音合成
+    public interface TTS{
+
+    }
+
     /**
      * 获取背景
      */

@@ -57,10 +57,7 @@ public class PageElement {
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight, padding, contentPaint, chapterNamePaint);
         mImageElement = new ImageElement(headerHeight, footerHeight, padding);
-        init();
-    }
 
-    private void init() {
         mBackgroundBitmap = Bitmap.createBitmap(mReaderWidth, mReaderHeight, Bitmap.Config.RGB_565);
         mBackgroundCanvas = new Canvas(mBackgroundBitmap);
     }

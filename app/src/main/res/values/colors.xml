@@ -22,7 +22,7 @@
     <color name="reader_bg_purple">#D5BBF6</color>
     <color name="reader_bg_blue">#6AC9DE</color>
     <color name="reader_bg_default">#CEC29C</color>
-    <color name="reader_bg_night">#2C2C2C</color>
+    <color name="reader_bg_night">#000</color>
 
     <!--字体颜色-->
     <color name="reader_font_default">#424242</color>

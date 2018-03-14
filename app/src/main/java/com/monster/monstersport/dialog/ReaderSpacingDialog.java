@@ -9,11 +9,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * 设置字体
+ * 设置 间距
  * Created by ZhaoZongyao on 2018/1/30.
  */
 
-public class SpacingSettingDialog extends BottomPopDialog {
+public class ReaderSpacingDialog extends BottomPopDialog {
     @BindView(R.id.reader_seekBar_letterSpacing)
     SeekBar mLetterSeekBar;
     @BindView(R.id.reader_seekBar_linerSpacing)
@@ -23,7 +23,7 @@ public class SpacingSettingDialog extends BottomPopDialog {
 
     private IReaderSpacingChangeListener mSpacingChangeListener;
 
-    public SpacingSettingDialog(Context context) {
+    public ReaderSpacingDialog(Context context) {
         super(context);
         ButterKnife.bind(this, getContentView());
         setListener();
@@ -40,22 +40,22 @@ public class SpacingSettingDialog extends BottomPopDialog {
         mParagraphSeekBar.setOnSeekBarChangeListener(new MySeekBarChangeListener(mParagraphSeekBar));
     }
 
-    public SpacingSettingDialog setSpacingChangeListener(IReaderSpacingChangeListener spacingChangeListener) {
+    public ReaderSpacingDialog setSpacingChangeListener(IReaderSpacingChangeListener spacingChangeListener) {
         mSpacingChangeListener = spacingChangeListener;
         return this;
     }
 
-    public SpacingSettingDialog setLetterSpacing(int progress) {
+    public ReaderSpacingDialog setLetterSpacing(int progress) {
         mLetterSeekBar.setProgress(progress);
         return this;
     }
 
-    public SpacingSettingDialog setLineSpacing(int progress) {
+    public ReaderSpacingDialog setLineSpacing(int progress) {
         mLineSeekBar.setProgress(progress);
         return this;
     }
 
-    public SpacingSettingDialog setParagraphSpacing(int progress) {
+    public ReaderSpacingDialog setParagraphSpacing(int progress) {
         mParagraphSeekBar.setProgress(progress);
         return this;
     }

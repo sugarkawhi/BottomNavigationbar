@@ -144,7 +144,10 @@ public abstract class PageAnimController {
      * 分发事件
      */
     public boolean dispatchTouchEvent(MotionEvent event) {
-
+        //非打开书籍状态
+        if (!mReaderView.isOpening()) {
+            return true;
+        }
         if (mIReaderTouchListener != null && !mIReaderTouchListener.canTouch()) {
             if (event.getAction() == MotionEvent.ACTION_UP) mIReaderTouchListener.onTouchCenter();
             return true;
@@ -302,7 +305,6 @@ public abstract class PageAnimController {
             isScroll = false;
             mTouchX = mScroller.getFinalX();
             mTouchY = mScroller.getFinalY();
-            mReaderView.drawCurrentPage();
             mPageChangeListener.onSelectPage(mDirection, isCancel);
             L.e(TAG, "abortAnim");
         }

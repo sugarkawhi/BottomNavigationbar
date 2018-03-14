@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import java.util.List;
 
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
-import me.sugarkawhi.mreader.config.IReaderConfig;
 import me.sugarkawhi.mreader.config.IReaderDirection;
 import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.element.PageElement;
@@ -32,7 +31,7 @@ public class PageRespository {
     private PageData mCancelPage;
 
     //当前章节的浏览位置 为一个百分数
-    private float progress;
+    private float mProgress;
 
     public PageRespository(PageElement pageElement) {
         mPageElement = pageElement;
@@ -83,7 +82,7 @@ public class PageRespository {
      * @return hasNext
      */
     public boolean next(Bitmap curBitmap, Bitmap nextBitmap) {
-        if (mCurPageList == null) return false;
+        if (null == mCurPage) return false;
         int nextIndex = mCurPage.getIndexOfChapter() + 1;
         PageData nextPage = null;
         if (nextIndex < mCurPageList.size()) {
@@ -98,9 +97,9 @@ public class PageRespository {
         mCancelPage = mCurPage;
         mCurPage = nextPage;
         //绘制左边的图
-        PageGenerater.generate(mPageElement, mCancelPage, curBitmap);
+        mPageElement.generatePage(mCancelPage, curBitmap);
         //绘制右边的bitmap
-        PageGenerater.generate(mPageElement, mCurPage, nextBitmap);
+        mPageElement.generatePage(mCurPage, nextBitmap);
         return true;
     }
 
@@ -149,9 +148,9 @@ public class PageRespository {
                     // 翻到下页 还是第一页 毫无疑问切换章节了
                     if (index == 0) {
                         switchNextChapter();
-                        progress = 0;
+                        mProgress = 0;
                     } else {
-                        progress = (index + 1f) / mCurPageList.size();
+                        mProgress = (index + 1f) / mCurPageList.size();
                     }
                     break;
                 case IReaderDirection.PRE:
@@ -159,15 +158,14 @@ public class PageRespository {
                     int cancelIndex = mCancelPage.getIndexOfChapter();
                     if (cancelIndex == 0) {
                         switchPreChapter();
-                        progress = 1;
+                        mProgress = 1;
                     } else {
-                        progress = (index + 1f) / mCurPageList.size();
+                        mProgress = (index + 1f) / mCurPageList.size();
                     }
                     break;
             }
             //回调进度
-            if (mChapterChangeListener != null)
-                mChapterChangeListener.onProgressChange(progress);
+            callBackProgress();
         }
     }
 
@@ -212,6 +210,7 @@ public class PageRespository {
      * @return hasPre
      */
     public boolean pre(Bitmap curBitmap, Bitmap nextBitmap) {
+        if (null == mCurPage) return false;
         int preIndex = mCurPage.getIndexOfChapter() - 1;
         PageData prePage = null;
         if (preIndex >= 0) {
@@ -224,9 +223,9 @@ public class PageRespository {
         mCancelPage = mCurPage;
         mCurPage = prePage;
         //绘制左边的图
-        PageGenerater.generate(mPageElement, mCurPage, curBitmap);
+        mPageElement.generatePage(mCurPage, curBitmap);
         //绘制右边的bitmap
-        PageGenerater.generate(mPageElement, mCancelPage, nextBitmap);
+        mPageElement.generatePage(mCancelPage, nextBitmap);
         return true;
     }
 
@@ -301,6 +300,7 @@ public class PageRespository {
 
     /**
      * 根据进度设置当前页
+     * 需要回调当前进度
      *
      * @param progress 当前阅读进度
      */
@@ -308,6 +308,9 @@ public class PageRespository {
         if (mCurPageList == null || mCurPageList.isEmpty()) return;
         int curIndex = (int) ((mCurPageList.size() - 1) * progress);
         mCurPage = mCurPageList.get(curIndex);
+        //回调进度
+        mProgress = progress;
+        callBackProgress();
     }
 
 
@@ -333,8 +336,8 @@ public class PageRespository {
             //章节切换回调
             mChapterChangeListener.onChapterChange(mCurChapter, IReaderDirection.NEXT);
             //进度回调
-            progress = 0;
-            mChapterChangeListener.onProgressChange(progress);
+            mProgress = 0;
+            callBackProgress();
         }
         mCurPage = mCurPageList.get(0);
     }
@@ -360,8 +363,8 @@ public class PageRespository {
             //章节切换回调
             mChapterChangeListener.onChapterChange(mCurChapter, IReaderDirection.PRE);
             //进度回调
-            progress = 0;
-            mChapterChangeListener.onProgressChange(progress);
+            mProgress = 0;
+            callBackProgress();
         }
         mCurPage = mCurPageList.get(0);
     }
@@ -374,7 +377,7 @@ public class PageRespository {
      * @param progress 进度
      */
     public void setProgress(float progress) {
-        this.progress = progress;
+        this.mProgress = progress;
     }
 
     /**
@@ -383,7 +386,14 @@ public class PageRespository {
      * @return 进度
      */
     public float getProgress() {
-        return progress;
+        return mProgress;
+    }
+
+    /**
+     * 回调进度
+     */
+    private void callBackProgress() {
+        if (mChapterChangeListener != null) mChapterChangeListener.onProgressChange(mProgress);
     }
 
     /**
@@ -400,5 +410,6 @@ public class PageRespository {
             return mCurPage;
         }
     }
+
 
 }
