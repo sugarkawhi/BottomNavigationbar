@@ -54,7 +54,7 @@ public class PageManager {
 
     private Paint mContentPaint;
     private Paint mChapterNamePaint;
-    private String mBookName;
+//    private String mBookName;
 
     public PageManager(float contentWidth, float contentHeight,
                        float letterSpacing, float lineSpacing, float paragraphSpacing,
@@ -165,16 +165,17 @@ public class PageManager {
                         page.setLines(new ArrayList<>(lines));
                         page.setLetters(new ArrayList<>(pageLetters));
                         page.setContent(stringBuilder.toString());
+                        page.setChapterId(chapter.getChapterid());
                         pages.add(page);
-                        if (pages.size() == 1) {
-                            if (!TextUtils.isEmpty(mBookName)) {
-                                page.setChapterName(mBookName);
-                            } else {
-                                page.setChapterName(chapter.getName());
-                            }
-                        } else {
-                            page.setChapterName(chapter.getName());
-                        }
+//                        if (pages.size() == 1) {
+//                            if (!TextUtils.isEmpty(mBookName)) {
+//                                page.setChapterName(mBookName);
+//                            } else {
+//                                page.setChapterName(chapter.getName());
+//                            }
+//                        } else {
+                        page.setChapterName(chapter.getName());
+//                        }
                         //重置Lines
                         lines.clear();
                         pageLetters.clear();
@@ -218,6 +219,7 @@ public class PageManager {
                 page.setLines(new ArrayList<>(lines));
                 page.setContent(stringBuilder.toString());
                 page.setLetters(new ArrayList<>(pageLetters));
+                page.setChapterId(chapter.getChapterid());
                 pages.add(page);
                 //重置Lines
                 lines.clear();
@@ -241,9 +243,11 @@ public class PageManager {
         }
         //设置当前页的进度
         for (int i = 0; i < pages.size(); i++) {
-            String progress = (i + 1) + "/" + pages.size();
+            int progress = (int) ((i + 1) * 100f / pages.size());
             pages.get(i).setProgress(progress);
+            pages.get(i).setTotalPageNum(pages.size());
         }
+
         return pages;
     }
 
@@ -409,8 +413,13 @@ public class PageManager {
         pages.add(pageData);
     }
 
+    /**
+     * todo 未使用
+     *
+     * @param bookName 书籍名
+     */
     public void setBookName(String bookName) {
-        mBookName = bookName;
+//        mBookName = bookName;
     }
 
 }

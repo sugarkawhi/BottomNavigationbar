@@ -162,5 +162,11 @@ public class LineElement extends Element {
         if (mTtsLetters != null) mTtsLetters.clear();
     }
 
-
+    /**
+     * 获取当前的语音合成列表
+     *
+     */
+    public List<LetterData> getTtsLetters() {
+        return mTtsLetters;
+    }
 }

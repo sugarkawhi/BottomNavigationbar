@@ -419,5 +419,18 @@ public class PageRespository {
         return mCurPage;
     }
 
-
+    /**
+     * 从本章节中获取当前页的下一页
+     * 设计到 章节 切换的下一页 返回null
+     *
+     * @return page
+     */
+    public PageData getNextPageFromCurChapter() {
+        if (null == mCurPage) return null;
+        if (mCurPageList == null || mCurPageList.isEmpty()) return null;
+        int curIndex = mCurPage.getIndexOfChapter();
+        int nextIndex = curIndex + 1;
+        if (nextIndex >= mCurPageList.size()) return null;
+        return mCurPageList.get(nextIndex);
+    }
 }

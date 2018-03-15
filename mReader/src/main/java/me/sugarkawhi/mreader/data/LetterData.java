@@ -60,4 +60,24 @@ public class LetterData {
     public void setArea(Rect area) {
         this.area = area;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof LetterData)) return false;
+        LetterData letter = (LetterData) obj;
+        return letter.getLetter() == this.getLetter()
+                && letter.getOffsetX() == this.getOffsetX()
+                && letter.getOffsetY() == this.getOffsetY();
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + letter;
+        result = (int) (31 * result + offsetY);
+        result = (int) (31 * result + offsetY);
+        return result;
+    }
 }

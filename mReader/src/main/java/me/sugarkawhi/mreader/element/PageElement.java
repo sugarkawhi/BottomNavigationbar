@@ -80,7 +80,7 @@ public class PageElement {
             mHeaderElement.setChapterName(pageData.getChapterName());
             mHeaderElement.onDraw(canvas);
             //set footer
-            mFooterElement.setProgress(pageData.getProgress());
+            mFooterElement.setProgress(pageData.getIndexOfChapter() + 1 + "/" + pageData.getTotalPageNum());
             mFooterElement.onDraw(canvas);
             //set line
             mLineElement.setLineData(pageData.getLines());
@@ -142,8 +142,17 @@ public class PageElement {
      */
     public void setTtsLetters(List<LetterData> list) {
         mLineElement.setTtsLetters(list);
-
     }
+
+    /**
+     * 百度语音合成
+     *
+     * @param list 当前页要绘制背景的文字
+     */
+    public List<LetterData> getTtsLetters() {
+        return mLineElement.getTtsLetters();
+    }
+
 
     /**
      * 结束语音合成

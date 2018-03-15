@@ -14,10 +14,14 @@ public class PageData {
     private boolean isCover;
     //在章节中的索引
     private int indexOfChapter;
+    //本章节总页数
+    private int totalPageNum;
+    //章节id
+    private String chapterId;
     //同时包含该页面HeaderData
     private String chapterName;
-    //进度
-    private String progress;
+    //进度 整数 0-100  最大100
+    private int progress;
     //行数据
     private List<LineData> lines;
     //图片数据
@@ -47,6 +51,22 @@ public class PageData {
         this.indexOfChapter = indexOfChapter;
     }
 
+    public int getTotalPageNum() {
+        return totalPageNum;
+    }
+
+    public void setTotalPageNum(int totalPageNum) {
+        this.totalPageNum = totalPageNum;
+    }
+
+    public String getChapterId() {
+        return chapterId;
+    }
+
+    public void setChapterId(String chapterId) {
+        this.chapterId = chapterId;
+    }
+
     public String getChapterName() {
         return chapterName;
     }
@@ -55,11 +75,11 @@ public class PageData {
         this.chapterName = chapterName;
     }
 
-    public String getProgress() {
+    public int getProgress() {
         return progress;
     }
 
-    public void setProgress(String progress) {
+    public void setProgress(int progress) {
         this.progress = progress;
     }
 

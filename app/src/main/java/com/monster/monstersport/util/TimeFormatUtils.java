@@ -22,4 +22,16 @@ public class TimeFormatUtils {
         Date date = new Date(time);
         return sdf.format(date);
     }
+
+    /**
+     * 格式化为 小时:分钟
+     *
+     * @return hh:mm
+     */
+    public static String yyyyMMddHHmmss(long time) {
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date(time);
+        return sdf.format(date);
+    }
 }

@@ -96,28 +96,33 @@
 
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@color/white"
+        android:fitsSystemWindows="true"
         android:orientation="vertical">
 
-        <TextView
+        <com.ogaclejapan.smarttablayout.SmartTabLayout
+            android:id="@+id/smartTabLayout"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:text="目录" />
+            android:layout_height="wrap_content"
+            android:minHeight="?attr/actionBarSize"
+            app:stl_defaultTabTextAllCaps="true"
+            app:stl_defaultTabTextSize="16sp"
+            app:stl_dividerColor="@color/white"
+            app:stl_indicatorColor="@color/colorPrimary"
+            app:stl_indicatorThickness="2dp"
+            app:stl_indicatorWidth="30dp"
+            app:stl_underlineColor="@color/colorPrimary"
+            app:stl_underlineThickness="1px" />
 
-        <View
+        <android.support.v4.view.ViewPager
+            android:id="@+id/viewPager"
             android:layout_width="match_parent"
-            android:layout_height="1px"
-            android:background="@color/colorPrimary" />
-
-        <FrameLayout
-            android:id="@+id/fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
+            android:layout_height="match_parent"
+            android:overScrollMode="never" />
     </LinearLayout>
 
 </android.support.v4.widget.DrawerLayout>

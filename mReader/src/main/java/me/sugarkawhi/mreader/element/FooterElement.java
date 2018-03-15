@@ -5,7 +5,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.TextUtils;
 
-import me.sugarkawhi.mreader.bean.Battery;
 import me.sugarkawhi.mreader.config.IReaderConfig;
 
 import static me.sugarkawhi.mreader.config.IReaderConfig.Battery.RADIUS;
@@ -23,7 +22,7 @@ public class FooterElement extends Element {
     private float mPadding;
     private String progress;
     private String time;
-    private float electric;
+    private float batteryLevel;
     private Paint mPaint;
     private float mBatteryWidth, mBatteryInWidth;
     private float mBatteryGap;
@@ -50,16 +49,30 @@ public class FooterElement extends Element {
                 mReaderHeight - mFooterHeight / 2 + batteryHeight / 2);
     }
 
+    /**
+     * 当前页在章节中的进度
+     *
+     * @param progress 进度
+     */
     public void setProgress(String progress) {
         this.progress = progress;
     }
 
+    /**
+     * 当前时间
+     *
+     * @param time 时间
+     */
     public void setTime(String time) {
         this.time = time;
     }
 
-    public void setBatteryLevel(float electric) {
-        this.electric = electric;
+    /**
+     * 电量百分比
+     * @param electric
+     */
+    public void setBatteryLevel(float level) {
+        this.batteryLevel = level;
     }
 
     @Override
@@ -79,7 +92,7 @@ public class FooterElement extends Element {
         mPaint.setStyle(Paint.Style.FILL);
         canvas.drawRect(mBatteryRectF.left + mBatteryGap,
                 mBatteryRectF.top + mBatteryGap,
-                mBatteryRectF.left + mBatteryGap + (mBatteryInWidth * electric),
+                mBatteryRectF.left + mBatteryGap + (mBatteryInWidth * batteryLevel),
                 mBatteryRectF.bottom - mBatteryGap,
                 mPaint);
         //画时间

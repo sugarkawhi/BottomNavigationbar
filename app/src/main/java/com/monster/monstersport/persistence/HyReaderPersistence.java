@@ -1,15 +1,19 @@
 package com.monster.monstersport.persistence;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.base.MonApplication;
+import com.monster.monstersport.dao.bean.BookMarkBean;
+import com.monster.monstersport.dao.bean.BookMarkBeanDao;
 import com.monster.monstersport.dao.bean.BookRecordBean;
 import com.monster.monstersport.dao.bean.BookRecordBeanDao;
 import com.monster.monstersport.dao.bean.DaoSession;
 
 import java.util.List;
 
+import me.sugarkawhi.mreader.data.PageData;
 import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.L;
 
@@ -47,7 +51,7 @@ public class HyReaderPersistence extends IReaderPersistence {
     }
 
     //语音合成
-    public interface TTS{
+    public interface TTS {
 
     }
 
@@ -87,7 +91,7 @@ public class HyReaderPersistence extends IReaderPersistence {
      * @param chapter  章节索引
      * @param position 章节位置
      */
-    public static void saveBookRecord(String bookId, String chapterId,  float progress) {
+    public static void saveBookRecord(String bookId, String chapterId, float progress) {
         BookRecordBean record = queryBookRecord(bookId);
         DaoSession session = MonApplication.getInstance().getDaoSession();
         BookRecordBeanDao dao = session.getBookRecordBeanDao();
@@ -112,6 +116,7 @@ public class HyReaderPersistence extends IReaderPersistence {
      * @param bookId 书籍id
      */
     public static BookRecordBean queryBookRecord(String bookId) {
+        if (TextUtils.isEmpty(bookId)) return null;
         DaoSession session = MonApplication.getInstance().getDaoSession();
         BookRecordBeanDao dao = session.getBookRecordBeanDao();
         List<BookRecordBean> list = dao.queryBuilder()
@@ -121,4 +126,67 @@ public class HyReaderPersistence extends IReaderPersistence {
             return null;
         return list.get(0);
     }
+
+    /**
+     * 保存书签
+     */
+    public static boolean saveBookMark(String bookId, PageData pageData) {
+        if (pageData == null) return false;
+        BookMarkBean bookMark = queryBookMark(bookId, pageData);
+        DaoSession session = MonApplication.getInstance().getDaoSession();
+        BookMarkBeanDao dao = session.getBookMarkBeanDao();
+        if (bookMark == null) {
+            //插入
+            long time = System.currentTimeMillis();
+            String chapterName = pageData.getChapterName();
+            String chapterId = pageData.getChapterId();
+            int progress = pageData.getProgress();
+            String content = pageData.getContent() + "";
+            bookMark = new BookMarkBean(bookId, time, chapterName, chapterId, progress, content);
+            long rowID = dao.insert(bookMark);
+            L.e(TAG, "insert one book mark chapter=" + rowID);
+            return true;
+        } else {
+            L.e(TAG, "saveBookMark has one");
+            return false;
+        }
+    }
+
+    /**
+     * 查询书签
+     *
+     * @param bookId   书籍id
+     * @param pageData 页面信息
+     */
+    public static BookMarkBean queryBookMark(String bookId, PageData pageData) {
+        if (TextUtils.isEmpty(bookId)) return null;
+        if (pageData == null) return null;
+        DaoSession session = MonApplication.getInstance().getDaoSession();
+        BookMarkBeanDao dao = session.getBookMarkBeanDao();
+        List<BookMarkBean> list = dao.queryBuilder()
+                .where(BookMarkBeanDao.Properties.BookId.eq(bookId),
+                        BookMarkBeanDao.Properties.ChapterId.eq(pageData.getChapterId()),
+                        BookMarkBeanDao.Properties.Progress.eq(pageData.getProgress()))
+                .list();
+        if (list == null || list.size() == 0)
+            return null;
+        return list.get(0);
+    }
+
+    /**
+     * 根据书籍id查询本书籍的书签列表
+     *
+     * @param bookId   书籍id
+     * @param pageData 页面信息
+     */
+    public static List<BookMarkBean> queryBookMarkList(String bookId) {
+        if (TextUtils.isEmpty(bookId)) return null;
+        DaoSession session = MonApplication.getInstance().getDaoSession();
+        BookMarkBeanDao dao = session.getBookMarkBeanDao();
+        List<BookMarkBean> list = dao.queryBuilder()
+                .where(BookMarkBeanDao.Properties.BookId.eq(bookId))
+                .list();
+        return list;
+    }
+
 }

@@ -12,9 +12,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -46,6 +51,7 @@ import com.monster.monstersport.dao.bean.BookRecordBean;
 import com.monster.monstersport.dialog.ReaderSettingDialog;
 import com.monster.monstersport.dialog.ReaderSpacingDialog;
 import com.monster.monstersport.dialog.ReaderTtsDialog;
+import com.monster.monstersport.fragment.BookMarkFragment;
 import com.monster.monstersport.fragment.CatalogueFragment;
 import com.monster.monstersport.http.BaseHttpResult;
 import com.monster.monstersport.http.HttpUtils;
@@ -55,6 +61,7 @@ import com.monster.monstersport.http.observer.DefaultObserver;
 import com.monster.monstersport.persistence.HyReaderPersistence;
 import com.monster.monstersport.util.OfflineResource;
 import com.monster.monstersport.util.TimeFormatUtils;
+import com.ogaclejapan.smarttablayout.SmartTabLayout;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -71,6 +78,7 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 import io.reactivex.functions.Function3;
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
@@ -127,13 +135,18 @@ public class ReaderBdActivity extends BaseActivity {
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;//加载
 
+    @BindView(R.id.smartTabLayout)
+    SmartTabLayout mSmartTabLayout;
+    @BindView(R.id.viewPager)
+    ViewPager mViewPager;
+
 
     private int mAppBarHeight;
     private int readerBottomHeight;
     private boolean isShow;
-
     private int mScreenWidth, mScreenHeight;
-
+    //书籍详细信息
+    private BookBean mBook;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -143,7 +156,6 @@ public class ReaderBdActivity extends BaseActivity {
         ButterKnife.bind(this);
         mStoryId = getIntent().getStringExtra("storyid");
         init();
-        addCatalog();
     }
 
     /**
@@ -152,8 +164,8 @@ public class ReaderBdActivity extends BaseActivity {
     private void init() {
         mScreenWidth = ScreenUtils.getScreenWidth(this);
         mScreenHeight = ScreenUtils.getScreenHeight(this);
-        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         registerReaderReceiver();
+        initDrawer();
         initReaderBar();
         initReaderView();
         getData();
@@ -309,19 +321,6 @@ public class ReaderBdActivity extends BaseActivity {
         registerReceiver(myReceiver, mfilter);
     }
 
-    /**
-     * 添加目录
-     */
-    private void addCatalog() {
-        CatalogueFragment catalogueFragment = CatalogueFragment.newInstance();
-        Bundle bundle = new Bundle();
-        bundle.putString("storyid", mStoryId);
-        catalogueFragment.setArguments(bundle);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, catalogueFragment)
-                .commit();
-    }
-
 
     /**
      * 初始化阅读器背景
@@ -365,6 +364,42 @@ public class ReaderBdActivity extends BaseActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 初始化抽屉栏
+     */
+    private void initDrawer() {
+        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        Bundle bundle = new Bundle();
+        bundle.putString(PARAM_STORY_ID, mStoryId);
+        final CatalogueFragment mCatalogFragment = CatalogueFragment.newInstance();
+        final BookMarkFragment mBookMarkFragment = BookMarkFragment.newInstance();
+        mCatalogFragment.setArguments(bundle);
+        mBookMarkFragment.setArguments(bundle);
+        final List<Fragment> fragments = new ArrayList<>();
+        fragments.add(mCatalogFragment);
+        fragments.add(mBookMarkFragment);
+        mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public int getCount() {
+                return fragments.size();
+            }
+
+            @Override
+            public Fragment getItem(int position) {
+                return fragments.get(position);
+            }
+
+            @Nullable
+            @Override
+            public CharSequence getPageTitle(int position) {
+                return position == 0 ? "目录" : "书签";
+            }
+
+        });
+        mSmartTabLayout.setViewPager(mViewPager);
+
     }
 
     /**
@@ -479,7 +514,7 @@ public class ReaderBdActivity extends BaseActivity {
     /**
      * 获取章节下一章
      *
-     * @param chapterId
+     * @param chapterId 章节id
      */
     private void getNextChapter(String chapterId) {
         HttpUtils.getApiInstance()
@@ -552,7 +587,23 @@ public class ReaderBdActivity extends BaseActivity {
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_FULLSCREEN // hideReaderBar status bar
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+
     }
+    /**
+     * 显示隐藏状态栏，全屏不变，只在有全屏时有效
+     * @param enable
+     */
+    private void setStatusBarVisibility(boolean enable) {
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        if (enable) {
+            lp.flags |= WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
+        } else {
+            lp.flags &= (~WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        }
+        getWindow().setAttributes(lp);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+    }
+
 
     /**
      * 显示状态栏
@@ -561,6 +612,42 @@ public class ReaderBdActivity extends BaseActivity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    /**
+     * 添加书签
+     */
+    @OnClick(R.id.tv_add_mark)
+    public void addMark() {
+        final PageData page = readerView.getCurrentPage();
+        Observable.create(new ObservableOnSubscribe<Boolean>() {
+            @Override
+            public void subscribe(ObservableEmitter<Boolean> e) throws Exception {
+                e.onNext(HyReaderPersistence.saveBookMark(mStoryId, page));
+                e.onComplete();
+            }
+        })
+                .compose(RxUtils.<Boolean>defaultSchedulers())
+                .compose(this.<Boolean>bindToLifecycle())
+                .subscribe(new io.reactivex.observers.DefaultObserver<Boolean>() {
+                    @Override
+                    public void onNext(Boolean aBoolean) {
+                        if (aBoolean)
+                            showToast("添加成功");
+                        else
+                            showToast("添加失败");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     /**
@@ -661,8 +748,10 @@ public class ReaderBdActivity extends BaseActivity {
     private DialogInterface.OnDismissListener mDismissListener = new DialogInterface.OnDismissListener() {
         @Override
         public void onDismiss(DialogInterface dialog) {
-            showToast("HIDE SYS UI");
+            //TODO 有问题
             hideSystemUI();
+            showToast("HIDE SYS UI");
+//            hideReaderBar();
             //L.e(TAG,"OnDismissListener HIDE SYS UI");
         }
     };
@@ -755,10 +844,11 @@ public class ReaderBdActivity extends BaseActivity {
     //当前批量阅读到的索引位置
     private int mTtsIndex;
     // 主控制类，所有合成控制方法从这个类开始
-
     protected SpeechSynthesizer mSpeechSynthesizer;
     //语音合成列表
     private List<TtsBean> mTtsList;
+    //页面切换时 避免整句被分割,字符偏移量 默认为0
+    private int mTtsLetterOffset = 0;
 
     //开启语音合成
     @OnClick(R.id.iv_tts)
@@ -793,6 +883,7 @@ public class ReaderBdActivity extends BaseActivity {
         if (letters == null || letters.size() == 0) {
             return ttsList;
         }
+        if (mTtsLetterOffset != 0) letters = letters.subList(mTtsLetterOffset, letters.size());
         List<LetterData> letterList = new ArrayList<>();
         int utteranceId = 0;
         for (int i = 0; i < letters.size(); i++) {
@@ -811,15 +902,45 @@ public class ReaderBdActivity extends BaseActivity {
         if (letterList.size() > 0) {
             TtsBean ttsBean = new TtsBean();
             ttsBean.setUtteranceId(utteranceId);
-            ttsBean.setLetterList(new ArrayList<>(letterList));
+            //判断最后一个字符是否是标点 如果是：那么本页正好处理完 如果否：需要加下一页补全这句话
+            LetterData lastLetterData = letterList.get(letterList.size() - 1);
+            if (ArrayUtils.contains(TAIL_CHAR, lastLetterData.getLetter())) {
+                ttsBean.setLetterList(new ArrayList<>(letterList));
+                mTtsLetterOffset = 0;//偏移量置0
+            } else {
+                comleteSentenceWithNextPage(readerView.getNextPageFromCurChapter(), letterList);
+                ttsBean.setLetterList(new ArrayList<>(letterList));
+            }
+            letterList.clear();
             ttsList.add(ttsBean);
+        } else {
+            mTtsLetterOffset = 0;//偏移量置0
         }
-
 
         for (TtsBean tts : ttsList) {
             Log.e(TAG, "utteranceId > " + tts.getUtteranceId() + " content > " + tts.getContent());
         }
         return ttsList;
+    }
+
+    /**
+     * 用下一页的内容来补全句子
+     *
+     * @param nextPage           下一页内容
+     * @param sentenceLetterList 句子中的字符集合
+     */
+    private void comleteSentenceWithNextPage(PageData nextPage, List<LetterData> sentenceLetterList) {
+        if (nextPage == null) return;
+        List<LetterData> letterList = nextPage.getLetters();
+        if (letterList == null) return;
+        mTtsLetterOffset = 0;//偏移量置0 重新计算下一页偏移量
+        for (LetterData letter : letterList) {
+            mTtsLetterOffset++;//偏移量
+            sentenceLetterList.add(letter);
+            if (ArrayUtils.contains(TAIL_CHAR, letter.getLetter())) {
+                break;
+            }
+        }
     }
 
 
@@ -918,6 +1039,11 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
     private SpeechSynthesizerListener mSynthesizerListener = new SpeechSynthesizerListener() {
+        //已经翻到下一页了
+        //做标志位的原因：onSpeechProgressChanged中progress的回调与播放到哪个字无关
+        //所以就无从知道具体读到哪里了 只能粗略统计和判断 无法精准判断
+        private boolean hasSwitchNextPage = false;
+
         @Override
         public void onSynthesizeStart(String s) {
 
@@ -938,16 +1064,45 @@ public class ReaderBdActivity extends BaseActivity {
 
         }
 
+        /**
+         * 播放进度回调接口，分多次回调
+         * 注意：progress表示进度，与播放到哪个字无关【真的坑】
+         *
+         * @param utteranceId
+         * @param progress 文本按字符划分的进度，比如:你好啊 进度是0-3
+         */
         @Override
-        public void onSpeechProgressChanged(String utteranceId, int i) {
+        public void onSpeechProgressChanged(String utteranceId, final int progress) {
             mTtsIndex = Integer.parseInt(utteranceId);
             if (mTtsList == null || mTtsIndex >= mTtsList.size())
                 return;
             final List<LetterData> letterDataList = mTtsList.get(mTtsIndex).getLetterList();
+            Log.e(TAG, "onSpeechProgressChanged > utteranceId=" + utteranceId + " progress=" + progress);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    readerView.setTtsLetters(letterDataList);
+                    //todo 最后一句要做处理
+                    if (mTtsIndex == mTtsList.size() - 1) {
+                        if (mTtsLetterOffset == 0) {//没有涉及到下一页
+                            readerView.setTtsLetters(letterDataList);
+                        } else {
+                            //TODO 要翻页了
+                            if (progress > letterDataList.size() - mTtsLetterOffset) {
+                                if (hasSwitchNextPage) return;
+                                hasSwitchNextPage = true;
+                                //后半部分
+                                List<LetterData> list = letterDataList.subList(letterDataList.size() - mTtsLetterOffset, letterDataList.size());
+                                readerView.setTtsLetters(list);
+                                readerView.directNextPage();
+                            } else {
+                                //前半部分
+                                List<LetterData> list = letterDataList.subList(0, letterDataList.size() - mTtsLetterOffset);
+                                readerView.setTtsLetters(list);
+                            }
+                        }
+                    } else {
+                        readerView.setTtsLetters(letterDataList);
+                    }
                 }
             });
         }
@@ -957,13 +1112,18 @@ public class ReaderBdActivity extends BaseActivity {
             final int index = Integer.parseInt(utteranceId);
             //最后一段读完了 切换到下一页
             if (index == mTtsList.size() - 1) {
-                //清空上一页的绘制文字
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         readerView.clearTtsLetters();
-                        PageData pageData = readerView.ttsNextPage();
-                        speak(pageData);
+                        if (mTtsLetterOffset == 0) {
+                            PageData pageData = readerView.directNextPage();
+                            speak(pageData);
+                        } else {
+                            hasSwitchNextPage = false;//重置标志位
+                            PageData pageData = readerView.getCurrentPage();
+                            speak(pageData);
+                        }
                     }
                 });
             }
@@ -1101,6 +1261,7 @@ public class ReaderBdActivity extends BaseActivity {
      * 停止合成引擎。即停止播放，合成，清空内部合成队列。
      */
     private void stopTts() {
+        mTtsLetterOffset = 0;
         if (mSpeechSynthesizer != null) {
             int result = mSpeechSynthesizer.stop();
             checkResult(result, "stop");
@@ -1237,5 +1398,6 @@ public class ReaderBdActivity extends BaseActivity {
         mTtsList = newTtsList;
         batchSpeak();
     }
+
 
 }

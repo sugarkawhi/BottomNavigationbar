@@ -1,10 +1,12 @@
 package com.monster.monstersport.fragment;
 
+import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.monster.monstersport.R;
+import com.monster.monstersport.activity.ReaderBdActivity;
 import com.monster.monstersport.adapter.CatalogAdapter;
 import com.monster.monstersport.base.BaseFragment;
 import com.monster.monstersport.bean.ChapterBean;
@@ -50,7 +52,9 @@ public class CatalogueFragment extends BaseFragment {
 
     @Override
     protected void loadData() {
-        String id = getArguments().getString("storyid");
+        Bundle bundle = getArguments();
+        if (bundle == null) return;
+        String id = bundle.getString(ReaderBdActivity.PARAM_STORY_ID);
         HttpUtils.getApiInstance()
                 .searchChapterListVO(id)
                 .compose(RxUtils.<BaseHttpResult<ChapterListBean>>defaultSchedulers())

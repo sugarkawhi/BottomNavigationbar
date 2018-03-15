@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -88,6 +89,7 @@ public class ReaderView extends View {
     private PageRespository mRespository;
 
     private Handler mHandler;
+    private PageData mNextPage;
 
     public ReaderView(Context context) {
         this(context, null);
@@ -616,8 +618,14 @@ public class ReaderView extends View {
 
     /**
      * 设置语音合成进度
+     * 重写 LetterData 的equals 和 hashCode 方法
      */
     public void setTtsLetters(List<LetterData> list) {
+        if (null == list) return;
+        if (mPageElement.getTtsLetters() != null && mPageElement.getTtsLetters().equals(list)) {
+            Log.i(TAG, "setTtsLetters again!");
+            return;
+        }
         mPageElement.setTtsLetters(list);
         drawCurrentPage();
     }
@@ -625,17 +633,16 @@ public class ReaderView extends View {
     /**
      * 清空绘制的文字
      */
-    public void clearTtsLetters(){
+    public void clearTtsLetters() {
         mPageElement.clearTtsLetters();
         drawCurrentPage();
     }
 
     /**
-     * 语音合成
-     * 自动翻到下一页
-     * TODO 暂时没有动画
+     * 直接翻到下一页
+     * TODO  没有实现动画翻页、直接绘制了下一页
      */
-    public PageData ttsNextPage() {
+    public PageData directNextPage() {
         PageData nextPage = mRespository.directNextPage();
         if (nextPage != null) {
             drawCurrentPage();
@@ -704,5 +711,15 @@ public class ReaderView extends View {
      */
     public boolean isOpening() {
         return mCurrentState == STATE_OPEN;
+    }
+
+    /**
+     * 从本章节中获取当前页的下一页
+     * 设计到 章节 切换的下一页 返回null
+     *
+     * @return page
+     */
+    public PageData getNextPageFromCurChapter() {
+        return mRespository.getNextPageFromCurChapter();
     }
 }

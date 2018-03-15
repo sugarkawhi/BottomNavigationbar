@@ -44,4 +44,22 @@ public class TtsBean {
     public void setContent(String content) {
         this.content = content;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof TtsBean)) return false;
+        TtsBean ttsBean = (TtsBean) obj;
+        if (utteranceId == ttsBean.utteranceId && content.equals(ttsBean.content))
+            return true;
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + utteranceId;
+        result = 31 * result + content.hashCode();
+        return result;
+    }
 }

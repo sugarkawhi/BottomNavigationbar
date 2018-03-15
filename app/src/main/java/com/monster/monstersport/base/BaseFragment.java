@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.monster.monstersport.R;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import butterknife.ButterKnife;
 
@@ -15,7 +16,7 @@ import butterknife.ButterKnife;
  * Created by ZhaoZongyao on 2017/12/22.
  */
 
-public abstract class BaseFragment extends Fragment {
+public abstract class BaseFragment extends RxFragment {
 
     @Nullable
     @Override
