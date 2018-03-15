@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -624,12 +623,20 @@ public class ReaderView extends View {
     }
 
     /**
+     * 清空绘制的文字
+     */
+    public void clearTtsLetters(){
+        mPageElement.clearTtsLetters();
+        drawCurrentPage();
+    }
+
+    /**
      * 语音合成
      * 自动翻到下一页
      * TODO 暂时没有动画
      */
     public PageData ttsNextPage() {
-        PageData nextPage = mRespository.nextPage();
+        PageData nextPage = mRespository.directNextPage();
         if (nextPage != null) {
             drawCurrentPage();
         }

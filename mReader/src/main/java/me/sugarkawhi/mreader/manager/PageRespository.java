@@ -397,18 +397,26 @@ public class PageRespository {
     }
 
     /**
-     * 自动进入下一页
+     * 直接进入下一页
      *
      * @return 返回下一页的数据
      */
-    public PageData nextPage() {
-        //TODO 进入下一章待处理[必须]
-        if (mCurPage.getIndexOfChapter() == mCurPageList.size() - 1) {
-            return null;
+    public PageData directNextPage() {
+        if (null == mCurPageList || mCurPageList.isEmpty() || null == mCurPage) return null;
+        int index = mCurPage.getIndexOfChapter();
+        if (index == mCurPageList.size() - 1) {  //TODO 进入下一章待处理[必须]
+            if (null == mNextChapter || null == mNextPageList || mNextPageList.isEmpty())
+                return null;
+            switchNextChapter();
+            mCurPage = mCurPageList.get(0);
+            mProgress = 0;
         } else {
-            mCurPage = mCurPageList.get(mCurPage.getIndexOfChapter() + 1);
-            return mCurPage;
+            int nextIndex = index + 1;
+            mCurPage = mCurPageList.get(nextIndex);//
+            mProgress = (nextIndex + 1f) / mCurPageList.size();
         }
+        callBackProgress();
+        return mCurPage;
     }
 
 

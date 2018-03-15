@@ -30,7 +30,6 @@ public class PageElement {
     private HeaderElement mHeaderElement;
     private FooterElement mFooterElement;
     private LineElement mLineElement;
-    private ImageElement mImageElement;
 
 
     //内容 宽。高
@@ -56,7 +55,7 @@ public class PageElement {
         mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, headPaint);
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight, padding, contentPaint, chapterNamePaint);
-        mImageElement = new ImageElement(headerHeight, footerHeight, padding);
+
 
         mBackgroundBitmap = Bitmap.createBitmap(mReaderWidth, mReaderHeight, Bitmap.Config.RGB_565);
         mBackgroundCanvas = new Canvas(mBackgroundBitmap);
@@ -87,10 +86,7 @@ public class PageElement {
             mLineElement.setLineData(pageData.getLines());
             mLineElement.setLetterData(pageData.getLetters());
             mLineElement.onDraw(canvas);
-            //set image
-            List<ImageData> images = pageData.getImages();
-            mImageElement.setImageDataList(images);
-            mImageElement.onDraw(canvas);
+
         }
         //封面页
         else {
@@ -153,6 +149,13 @@ public class PageElement {
      * 结束语音合成
      */
     public void stopTts() {
-        mLineElement.stopTts();
+        mLineElement.clearTtsLetters();
+    }
+
+    /**
+     * 清空Tts绘制文字
+     */
+    public void clearTtsLetters() {
+        mLineElement.clearTtsLetters();
     }
 }

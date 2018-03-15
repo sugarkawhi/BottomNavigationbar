@@ -1,5 +1,6 @@
 package com.monster.monstersport.activity;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -685,6 +686,7 @@ public class ReaderBdActivity extends BaseActivity {
         }
         if (readerView.isSpeaking()) {
             stopTts();
+            showToast("已退出语音朗读");
             return;
         }
         saveReadingProgress();
@@ -744,13 +746,27 @@ public class ReaderBdActivity extends BaseActivity {
      * **************************语音合成*****************************
      * **************************语音合成*****************************/
 
+    //语音朗读设置弹框
+    private ReaderTtsDialog mReaderTtsDialog;
+    //初始化等待弹框
+    private ProgressDialog mInitialBaiduTtsDialog;
+    //初始化成功
+    private boolean isInitied;
+    //当前批量阅读到的索引位置
+    private int mTtsIndex;
+    // 主控制类，所有合成控制方法从这个类开始
+
+    protected SpeechSynthesizer mSpeechSynthesizer;
+    //语音合成列表
+    private List<TtsBean> mTtsList;
+
     //开启语音合成
     @OnClick(R.id.iv_tts)
     public void tts() {
-        if (null == mSpeechSynthesizer) {
-            initialTts();
-        } else {
+        if (isInitied) {
             startTts();
+        } else {
+            initialTts();
         }
         hideReaderBar();
     }
@@ -799,6 +815,7 @@ public class ReaderBdActivity extends BaseActivity {
             ttsList.add(ttsBean);
         }
 
+
         for (TtsBean tts : ttsList) {
             Log.e(TAG, "utteranceId > " + tts.getUtteranceId() + " content > " + tts.getContent());
         }
@@ -821,9 +838,6 @@ public class ReaderBdActivity extends BaseActivity {
 
     // ===============初始化参数设置完毕，更多合成参数请至getParams()方法中设置 =================
 
-    // 主控制类，所有合成控制方法从这个类开始
-
-    protected SpeechSynthesizer mSpeechSynthesizer;
 
     /**
      * 初始化引擎，需要的参数均在InitConfig类里
@@ -835,6 +849,11 @@ public class ReaderBdActivity extends BaseActivity {
      */
     protected void initialTts() {
         //TODO 需要弹框表示正在初始化 并且不能取消 否则可能导致报错
+        mInitialBaiduTtsDialog = new ProgressDialog(this);
+        mInitialBaiduTtsDialog.setCancelable(false);
+        mInitialBaiduTtsDialog.setCanceledOnTouchOutside(false);
+        mInitialBaiduTtsDialog.setMessage("正在载入语音朗读,请稍后");
+        mInitialBaiduTtsDialog.show();
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(ObservableEmitter<String> e) throws Exception {
@@ -884,11 +903,15 @@ public class ReaderBdActivity extends BaseActivity {
                     @Override
                     public void onError(Throwable e) {
                         e.printStackTrace();
+                        mInitialBaiduTtsDialog.dismiss();
+                        showToast("语音朗读载入失败");
                     }
 
                     @Override
                     public void onComplete() {
+                        isInitied = true;
                         startTts();
+                        mInitialBaiduTtsDialog.dismiss();
                     }
                 });
 
@@ -917,10 +940,10 @@ public class ReaderBdActivity extends BaseActivity {
 
         @Override
         public void onSpeechProgressChanged(String utteranceId, int i) {
-            final int index = Integer.parseInt(utteranceId);
-            if (mTtsList == null || index >= mTtsList.size())
+            mTtsIndex = Integer.parseInt(utteranceId);
+            if (mTtsList == null || mTtsIndex >= mTtsList.size())
                 return;
-            final List<LetterData> letterDataList = mTtsList.get(index).getLetterList();
+            final List<LetterData> letterDataList = mTtsList.get(mTtsIndex).getLetterList();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -932,10 +955,13 @@ public class ReaderBdActivity extends BaseActivity {
         @Override
         public void onSpeechFinish(String utteranceId) {
             final int index = Integer.parseInt(utteranceId);
-            if (index == mTtsList.size() - 1) {//最后一段读完了 切换到下一页
+            //最后一段读完了 切换到下一页
+            if (index == mTtsList.size() - 1) {
+                //清空上一页的绘制文字
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        readerView.clearTtsLetters();
                         PageData pageData = readerView.ttsNextPage();
                         speak(pageData);
                     }
@@ -989,8 +1015,6 @@ public class ReaderBdActivity extends BaseActivity {
         return offlineResource;
     }
 
-    //语音合成列表
-    private List<TtsBean> mTtsList;
 
     /**
      * speak 实际上是调用 synthesize后，获取音频流，然后播放。
@@ -1004,6 +1028,14 @@ public class ReaderBdActivity extends BaseActivity {
         }
         readerView.startTts();
         mTtsList = calculate(pageData.getLetters());
+        batchSpeak();
+    }
+
+    /**
+     * 只用了batchSpeak方法 批量合成
+     */
+    private void batchSpeak() {
+        if (mTtsList == null) return;
         // 合成前可以修改参数：
         // Map<String, String> params = getParams();
         // synthesizer.setParams(params);
@@ -1031,10 +1063,11 @@ public class ReaderBdActivity extends BaseActivity {
     /**
      * 切换离线发音。注意需要添加额外的判断：引擎在合成时该方法不能调用
      */
-    private void loadModel(int speaker) {
+    private int loadModel(int speaker) {
         OfflineResource offlineResource = createOfflineResource(speaker);
         int result = mSpeechSynthesizer.loadModel(offlineResource.getModelFilename(), offlineResource.getTextFilename());
         checkResult(result, "loadModel");
+        return result;
     }
 
     private void checkResult(int result, String method) {
@@ -1105,8 +1138,6 @@ public class ReaderBdActivity extends BaseActivity {
     }
 
 
-    private ReaderTtsDialog mReaderTtsDialog;
-
     /**
      * 显示语音合成设置Dialog
      */
@@ -1120,6 +1151,7 @@ public class ReaderBdActivity extends BaseActivity {
                         IReaderPersistence.saveTtsSpeed(ReaderBdActivity.this, speed);
                         //语速变了 TODO 需要重新合成
                         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, String.valueOf(speed));
+                        reSetParams(IReaderPersistence.getTtsSpeaker(ReaderBdActivity.this));
                     }
 
                     @Override
@@ -1127,6 +1159,7 @@ public class ReaderBdActivity extends BaseActivity {
                         IReaderPersistence.saveTtsSpeaker(ReaderBdActivity.this, speaker);
                         //发音人变了 TODO  需要重新合成
                         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker));
+                        reSetParams(speaker);
                     }
 
 
@@ -1146,5 +1179,63 @@ public class ReaderBdActivity extends BaseActivity {
         mSpeechSynthesizer.pause();
     }
 
+    /**
+     * 1.语速变了  2.发音人变了
+     * 以上两种情况都要重新进行语音合成
+     */
+    private void reSetParams(final int speaker) {
+        Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> e) throws Exception {
+                //即停止播放，合成，清空内部合成队列。
+                mSpeechSynthesizer.stop();
+                e.onNext(loadModel(speaker));
+                e.onComplete();
+            }
+        })
+                .compose(RxUtils.<Integer>defaultSchedulers())
+                .compose(this.<Integer>bindToLifecycle())
+                .subscribe(new Observer<Integer>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        checkResult(integer, "loadModel");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        //当前索引截断
+                        reSpeaking();
+                    }
+                });
+    }
+
+    /**
+     * 重新使用新配置的参数进行合成
+     */
+    private void reSpeaking() {
+        if (mTtsList == null || mTtsList.isEmpty()) {
+            stopTts();
+            L.e(TAG, "语音合成列表为空");
+            return;
+        }
+        if (mTtsIndex < 0 || mTtsIndex >= mTtsList.size()) {
+            stopTts();
+            L.e(TAG, "索引位置不准确");
+            return;
+        }
+        List<TtsBean> newTtsList = mTtsList.subList(mTtsIndex, mTtsList.size());
+        mTtsList = newTtsList;
+        batchSpeak();
+    }
 
 }

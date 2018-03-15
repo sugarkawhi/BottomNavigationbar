@@ -80,9 +80,9 @@ public abstract class PageAnimController {
         this.mReaderHeight = readerHeight;
         mPageChangeListener = pageChangeListener;
 
-        mLeftRect = new Rect(0, 0, readerWidth / 3, readerHeight);
-        mRightRect = new Rect(readerWidth / 3 * 2, 0, readerWidth, readerHeight);
-        mCenterRect = new Rect(readerWidth / 3, 0, readerWidth / 3 * 2, readerHeight);
+        mLeftRect = new Rect(0, 0, readerWidth / 4, readerHeight);
+        mRightRect = new Rect(readerWidth / 4 * 3, 0, readerWidth, readerHeight);
+        mCenterRect = new Rect(readerWidth / 4, 0, readerWidth / 4 * 3, readerHeight);
         mCurrentBitmap = Bitmap.createBitmap(readerWidth, readerHeight, Bitmap.Config.RGB_565);
         mNextBitmap = Bitmap.createBitmap(readerWidth, readerHeight, Bitmap.Config.RGB_565);
         mScroller = new Scroller(mReaderView.getContext(), new LinearInterpolator());

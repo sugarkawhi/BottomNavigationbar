@@ -130,27 +130,37 @@ public class LineElement extends Element {
 //                }
 //            }
 //        }
-            drawTtsLetters(canvas);
-            if (mLetterDataList == null) return false;
-            for (LetterData letter : mLetterDataList) {
-                String str = String.valueOf(letter.getLetter());
-                float x = letter.getOffsetX() + mPadding;
-                float y = letter.getOffsetY() + mHeaderHeight;
-                if (letter.isChapterName()) {
-                    canvas.drawText(str, x, y, mChapterNamePaint);
-                } else {
-                    canvas.drawText(str, x, y, mContentPaint);
-                }
+        drawTtsLetters(canvas);
+        if (mLetterDataList == null) return false;
+        for (LetterData letter : mLetterDataList) {
+            String str = String.valueOf(letter.getLetter());
+            float x = letter.getOffsetX() + mPadding;
+            float y = letter.getOffsetY() + mHeaderHeight;
+            if (letter.isChapterName()) {
+                canvas.drawText(str, x, y, mChapterNamePaint);
+            } else {
+                canvas.drawText(str, x, y, mContentPaint);
+            }
         }
 
         return true;
     }
 
+    /**
+     * 设置语音合成文字
+     *
+     * @param ttsLetters 需要绘制背景的语音合成文字
+     */
     public void setTtsLetters(List<LetterData> ttsLetters) {
         mTtsLetters = ttsLetters;
     }
 
-    public void stopTts() {
+    /**
+     * 清空绘制的语音合成文字
+     */
+    public void clearTtsLetters() {
         if (mTtsLetters != null) mTtsLetters.clear();
     }
+
+
 }
