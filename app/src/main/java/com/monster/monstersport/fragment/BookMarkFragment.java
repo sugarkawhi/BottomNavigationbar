@@ -1,12 +1,13 @@
 package com.monster.monstersport.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.monster.monstersport.R;
-import com.monster.monstersport.activity.ReaderBdActivity;
+import com.monster.monstersport.activity.ReaderActivity;
 import com.monster.monstersport.adapter.BookMarkAdapter;
 import com.monster.monstersport.base.BaseFragment;
 import com.monster.monstersport.dao.bean.BookMarkBean;
@@ -32,9 +33,24 @@ public class BookMarkFragment extends BaseFragment {
     RecyclerView mRecyclerView;
 
     private BookMarkAdapter mBookMarkAdapter;
+    private BookMarkAdapter.IBookMarkItemClickListener mBookMarkItemClickListener;
 
     public static BookMarkFragment newInstance() {
         return new BookMarkFragment();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof BookMarkAdapter.IBookMarkItemClickListener) {
+            mBookMarkItemClickListener = (BookMarkAdapter.IBookMarkItemClickListener) context;
+        } else {
+            try {
+                throw new Exception("未实现IBookMarkItemClickListener");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -47,6 +63,13 @@ public class BookMarkFragment extends BaseFragment {
         mBookMarkAdapter = new BookMarkAdapter(getContext());
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mRecyclerView.setAdapter(mBookMarkAdapter);
+        mBookMarkAdapter.setItemClickListener(new BookMarkAdapter.IBookMarkItemClickListener() {
+            @Override
+            public void onBookMarkItemClick(BookMarkBean bookMark) {
+                if (mBookMarkItemClickListener != null)
+                    mBookMarkItemClickListener.onBookMarkItemClick(bookMark);
+            }
+        });
     }
 
 
@@ -54,7 +77,7 @@ public class BookMarkFragment extends BaseFragment {
     protected void loadData() {
         Bundle bundle = getArguments();
         if (bundle == null) return;
-        final String id = bundle.getString(ReaderBdActivity.PARAM_STORY_ID);
+        final String id = bundle.getString(ReaderActivity.PARAM_STORY_ID);
         Observable.create(new ObservableOnSubscribe<List<BookMarkBean>>() {
             @Override
             public void subscribe(ObservableEmitter<List<BookMarkBean>> e) throws Exception {

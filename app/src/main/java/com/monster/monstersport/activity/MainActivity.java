@@ -5,15 +5,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.WindowManager;
 
 
 import com.monster.monstersport.R;
 import com.monster.monstersport.fragment.BookListFragment;
-import com.monster.monstersport.fragment.CbFragment;
 import com.monster.monstersport.fragment.TestFragment;
 import com.monster.monstersport.fragment.TtsFragment;
-import com.monster.monstersport.fragment.ZwHistoryFragment;
 import com.monster.monstersport.view.SViewPager;
 
 import java.util.ArrayList;
@@ -69,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBnbItemDoubleClick(int position) {
 //                Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(MainActivity.this, ReaderBdActivity.class));
+                startActivity(new Intent(MainActivity.this, ReaderActivity.class));
             }
         });
 

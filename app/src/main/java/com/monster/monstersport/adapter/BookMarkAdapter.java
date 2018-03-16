@@ -90,7 +90,6 @@ public class BookMarkAdapter extends RecyclerView.Adapter<BookMarkAdapter.Catalo
     }
 
     public interface IBookMarkItemClickListener {
-
         void onBookMarkItemClick(BookMarkBean bookMark);
     }
 

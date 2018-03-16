@@ -16,7 +16,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import com.monster.monstersport.activity.ReaderBdActivity;
+import com.monster.monstersport.activity.ReaderActivity;
 import com.monster.monstersport.bean.BookBean;
 
 /**
@@ -51,7 +51,7 @@ public class BookListAdapter extends RecyclerView.Adapter<BookListAdapter.Catalo
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, ReaderBdActivity.class);
+                Intent intent = new Intent(mContext, ReaderActivity.class);
                 intent.putExtra("storyid", book.getStoryid());
                 mContext.startActivity(intent);
             }

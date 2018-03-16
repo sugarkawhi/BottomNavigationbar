@@ -12,13 +12,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
@@ -42,11 +40,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.monster.monstersport.R;
+import com.monster.monstersport.adapter.BookMarkAdapter;
+import com.monster.monstersport.adapter.CatalogAdapter;
 import com.monster.monstersport.base.BaseActivity;
 import com.monster.monstersport.bean.BookBean;
 import com.monster.monstersport.bean.ChapterBean;
 import com.monster.monstersport.bean.ChapterListBean;
 import com.monster.monstersport.bean.TtsBean;
+import com.monster.monstersport.dao.bean.BookMarkBean;
 import com.monster.monstersport.dao.bean.BookRecordBean;
 import com.monster.monstersport.dialog.ReaderSettingDialog;
 import com.monster.monstersport.dialog.ReaderSpacingDialog;
@@ -78,7 +79,6 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 import io.reactivex.functions.Function3;
 import me.sugarkawhi.mreader.bean.BaseChapterBean;
 import me.sugarkawhi.mreader.config.IReaderConfig;
@@ -106,11 +106,12 @@ import static com.monster.monstersport.persistence.HyReaderPersistence.Backgroun
  * Created by ZhaoZongyao on 2018/1/12.
  */
 
-public class ReaderBdActivity extends BaseActivity {
+public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBookMarkItemClickListener,
+        CatalogAdapter.IChapterItemClickListener {
 
     public static final String TAG = "ReaderActivity";
     public static final String PARAM_STORY_ID = "PARAM_STORY_ID";
-    private static final char[] TAIL_CHAR = {'，', '。', ';', '”', '！', '？', '\n', '…', '：'};
+    private static final char[] TAIL_CHAR = {'，', '。', ';', '”', '！', '？', '\n', '…', '：', ':'};
     private static final int ANIM_DURATION_BAR = 200;
 
     private String mStoryId;
@@ -418,6 +419,7 @@ public class ReaderBdActivity extends BaseActivity {
         HttpUtils.getApiInstance()
                 .getLongStoryInfoByIdNew(mStoryId)
                 .compose(RxUtils.<BaseHttpResult<BookBean>>defaultSchedulers())
+                .compose(this.<BaseHttpResult<BookBean>>bindToLifecycle())
                 .subscribe(new DefaultObserver<BookBean>() {
                     @Override
                     protected void onSuccess(BookBean bookBean) {
@@ -436,14 +438,20 @@ public class ReaderBdActivity extends BaseActivity {
         HttpUtils.getApiInstance()
                 .searchChapterListVO(mStoryId)
                 .compose(RxUtils.<BaseHttpResult<ChapterListBean>>defaultSchedulers())
+                .compose(this.<BaseHttpResult<ChapterListBean>>bindToLifecycle())
                 .subscribe(new DefaultObserver<ChapterListBean>() {
                     @Override
                     protected void onSuccess(ChapterListBean chapterListBean) {
                         BookRecordBean record = HyReaderPersistence.queryBookRecord(mStoryId);
-                        if (record != null && record.getChapterId() != null) {
+                        if (record == null) {
+                            List<ChapterBean> chapterBeans = chapterListBean.getDatas();
+                            if (chapterBeans != null && !chapterBeans.isEmpty()) {
+                                getChapterById(chapterBeans.get(0).getChapterid(), 0);
+                            } else {
+                                showToast("目录为空");
+                            }
+                        } else if (record.getChapterId() != null) {
                             getChapterById(record.getChapterId(), record.getProgress());
-                        } else {
-                            getChapterById(chapterListBean.getDatas().get(0).getChapterid(), 0);
                         }
                     }
 
@@ -465,12 +473,13 @@ public class ReaderBdActivity extends BaseActivity {
 
     /**
      * 根据chapter id 来 获取章节内容
+     * 同时获取前后两章  保证上下章切换时的准确
      *
      * @param chapterId 当前章节id
      */
-    private void getChapterById(String chapterId, final float progress) {
-        IHyangApi api = HttpUtils.getApiInstance();
-        Observable<BaseHttpResult<ChapterBean>> cur = api.getChapterReadByIdV2(chapterId);
+    private void getChapterById(final String chapterId, final float progress) {
+        final IHyangApi api = HttpUtils.getApiInstance();
+        final Observable<BaseHttpResult<ChapterBean>> cur = api.getChapterReadByIdV2(chapterId);
         Observable<BaseHttpResult<ChapterBean>> pre = api.getPreChapterReadByIdV2(chapterId);
         Observable<BaseHttpResult<ChapterBean>> next = api.getNextChapterReadByIdV2(chapterId);
         Observable.zip(cur, pre, next, new Function3<BaseHttpResult<ChapterBean>, BaseHttpResult<ChapterBean>, BaseHttpResult<ChapterBean>, ZipChapter>() {
@@ -484,6 +493,7 @@ public class ReaderBdActivity extends BaseActivity {
             }
         })
                 .compose(RxUtils.<ZipChapter>defaultSchedulers())
+                .compose(this.<ZipChapter>bindToLifecycle())
                 .subscribe(new Observer<ZipChapter>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -511,6 +521,25 @@ public class ReaderBdActivity extends BaseActivity {
                 });
     }
 
+
+    /**
+     * 获取章节的前一章
+     *
+     * @param chapterId 当前章节id
+     */
+    private void getPreChapter(String chapterId) {
+        HttpUtils.getApiInstance()
+                .getPreChapterReadByIdV2(chapterId)
+                .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
+                .compose(this.<BaseHttpResult<ChapterBean>>bindToLifecycle())
+                .subscribe(new DefaultObserver<ChapterBean>() {
+                    @Override
+                    protected void onSuccess(ChapterBean chapterBean) {
+                        readerView.setPreChapter(chapterBean);
+                    }
+                });
+    }
+
     /**
      * 获取章节下一章
      *
@@ -524,23 +553,6 @@ public class ReaderBdActivity extends BaseActivity {
                     @Override
                     protected void onSuccess(ChapterBean chapterBean) {
                         readerView.setNextChapter(chapterBean);
-                    }
-                });
-    }
-
-    /**
-     * 获取章节的前一章
-     *
-     * @param chapterId 当前章节id
-     */
-    private void getPreChapter(String chapterId) {
-        HttpUtils.getApiInstance()
-                .getPreChapterReadByIdV2(chapterId)
-                .compose(RxUtils.<BaseHttpResult<ChapterBean>>defaultSchedulers())
-                .subscribe(new DefaultObserver<ChapterBean>() {
-                    @Override
-                    protected void onSuccess(ChapterBean chapterBean) {
-                        readerView.setPreChapter(chapterBean);
                     }
                 });
     }
@@ -588,20 +600,6 @@ public class ReaderBdActivity extends BaseActivity {
                         | View.SYSTEM_UI_FLAG_FULLSCREEN // hideReaderBar status bar
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
-    }
-    /**
-     * 显示隐藏状态栏，全屏不变，只在有全屏时有效
-     * @param enable
-     */
-    private void setStatusBarVisibility(boolean enable) {
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
-        if (enable) {
-            lp.flags |= WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
-        } else {
-            lp.flags &= (~WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-        }
-        getWindow().setAttributes(lp);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
 
@@ -815,6 +813,24 @@ public class ReaderBdActivity extends BaseActivity {
                 });
     }
 
+    /**
+     * 书签Item点击
+     *
+     * @param bookMark 书签
+     */
+    @Override
+    public void onBookMarkItemClick(BookMarkBean bookMark) {
+        drawer_layout.closeDrawer(Gravity.START);
+        getChapterById(bookMark.getChapterId(), bookMark.getProgress() / 100f);
+    }
+
+    @Override
+    public void onChapterItemClick(ChapterBean chapter) {
+        drawer_layout.closeDrawer(Gravity.START);
+        getChapterById(chapter.getChapterid(), 0);
+
+    }
+
     private class ZipChapter {
         ChapterBean cur;
         ChapterBean pre;
@@ -982,7 +998,7 @@ public class ReaderBdActivity extends BaseActivity {
                 // 设置初始化参数
                 // appId appKey secretKey 网站上您申请的应用获取。注意使用离线合成功能的话，需要应用中填写您app的包名。包名在build.gradle中获取。
                 mSpeechSynthesizer = SpeechSynthesizer.getInstance();
-                mSpeechSynthesizer.setContext(ReaderBdActivity.this);
+                mSpeechSynthesizer.setContext(ReaderActivity.this);
                 mSpeechSynthesizer.setSpeechSynthesizerListener(mSynthesizerListener);
                 mSpeechSynthesizer.auth(ttsMode);
                 mSpeechSynthesizer.setAppId(APP_ID);
@@ -1000,7 +1016,8 @@ public class ReaderBdActivity extends BaseActivity {
                 // 初始化tts TODO 这儿报错的可能 在初始化Tts的时候销毁了activity 会空指针
                 int result = mSpeechSynthesizer.initTts(ttsMode);
                 if (result != 0) {
-                    e.onError(new Throwable("【error】initTts 初始化失败 + errorCode：" + result));
+                    Log.e(TAG, "【error】initTts 初始化失败 + errorCode：" + result);
+//                    e.onError(new Throwable("【error】initTts 初始化失败 + errorCode：" + result));
                 } else {
                     // 此时可以调用 speak和synthesize方法
                     e.onNext("合成引擎初始化成功,此时可以调用 speak和synthesize方法");
@@ -1023,6 +1040,7 @@ public class ReaderBdActivity extends BaseActivity {
 
                     @Override
                     public void onError(Throwable e) {
+                        Log.e(TAG, "onError 语音朗读载入失败");
                         e.printStackTrace();
                         mInitialBaiduTtsDialog.dismiss();
                         showToast("语音朗读载入失败");
@@ -1241,7 +1259,7 @@ public class ReaderBdActivity extends BaseActivity {
      * 暂停播放。仅调用speak后生效
      */
     private void pauseTts() {
-        if (mSpeechSynthesizer != null) {
+        if (isInitied && mSpeechSynthesizer != null) {
             int result = mSpeechSynthesizer.pause();
             checkResult(result, "pause");
         }
@@ -1251,7 +1269,7 @@ public class ReaderBdActivity extends BaseActivity {
      * 继续播放。仅调用speak后生效，调用pause生效
      */
     private void resumeTts() {
-        if (mSpeechSynthesizer != null) {
+        if (isInitied && mSpeechSynthesizer != null) {
             int result = mSpeechSynthesizer.resume();
             checkResult(result, "resume");
         }
@@ -1309,15 +1327,15 @@ public class ReaderBdActivity extends BaseActivity {
                 .setListener(new ReaderTtsDialog.IReaderTtsChangeListener() {
                     @Override
                     public void onTtsSpeedChange(int speed) {
-                        IReaderPersistence.saveTtsSpeed(ReaderBdActivity.this, speed);
+                        IReaderPersistence.saveTtsSpeed(ReaderActivity.this, speed);
                         //语速变了 TODO 需要重新合成
                         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEED, String.valueOf(speed));
-                        reSetParams(IReaderPersistence.getTtsSpeaker(ReaderBdActivity.this));
+                        reSetParams(IReaderPersistence.getTtsSpeaker(ReaderActivity.this));
                     }
 
                     @Override
                     public void onTtsSpeakerChange(int speaker) {
-                        IReaderPersistence.saveTtsSpeaker(ReaderBdActivity.this, speaker);
+                        IReaderPersistence.saveTtsSpeaker(ReaderActivity.this, speaker);
                         //发音人变了 TODO  需要重新合成
                         mSpeechSynthesizer.setParam(SpeechSynthesizer.PARAM_SPEAKER, String.valueOf(speaker));
                         reSetParams(speaker);
