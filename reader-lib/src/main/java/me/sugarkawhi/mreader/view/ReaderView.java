@@ -255,6 +255,7 @@ public class ReaderView extends View {
      * @param progress   进度
      */
     public void setCurrentChapter(final BaseChapterBean curChapter, final float progress) {
+        mRespository.reset();
         mRespository.setCurChapter(curChapter);
         mRespository.setProgress(progress);
         mCurrentState = STATE_OPEN;
@@ -264,32 +265,39 @@ public class ReaderView extends View {
     /**
      * 设置下一章节
      * 在保证有当前章节的情况下设置下一章节
-     * <p> todo 暂无dorder字段 --> 暂时无法精准设置
      * 判断依据：下一章的索引是当前章节的索引+1 否则不予设置
-     * if (nextChapter.getDorder() == curChapter.getDorder() + 1)
      *
      * @param nextChapter 当前章节的下一章
      */
-    public void setNextChapter(final BaseChapterBean nextChapter) {
+    public boolean setNextChapter(final BaseChapterBean nextChapter) {
         BaseChapterBean curChapter = mRespository.getCurChapter();
-        if (null == curChapter) return;
-        if (null == nextChapter) return;
-        mRespository.setNextChapter(nextChapter);
-        replanNextChapter();
+        if (null == curChapter) return false;
+        if (null == nextChapter) return false;
+        if (nextChapter.getDorder() == curChapter.getDorder() + 1) {
+            mRespository.setNextChapter(nextChapter);
+            replanNextChapter();
+            return true;
+        } else {
+            L.e(TAG, "dorder错误");
+            return false;
+        }
     }
 
     /**
      * 设置上一章节
-     * <p> todo 暂无dorder字段 --> 暂时无法精准设置
      * 判断依据：上一章的索引是当前章节的索引-1 否则不予设置
-     * if (preChapter.getDorder() == curChapter.getDorder() - 1)
      */
-    public void setPreChapter(final BaseChapterBean preChapter) {
+    public boolean setPreChapter(final BaseChapterBean preChapter) {
         BaseChapterBean curChapter = mRespository.getCurChapter();
-        if (null == curChapter) return;
-        if (null == preChapter) return;
-        mRespository.setPreChapter(preChapter);
-        replanPreChapter();
+        if (null == curChapter) return false;
+        if (null == preChapter) return false;
+        if (preChapter.getDorder() == curChapter.getDorder() - 1) {
+            mRespository.setPreChapter(preChapter);
+            replanPreChapter();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Bitmap getReaderBackgroundBitmap() {
@@ -363,7 +371,7 @@ public class ReaderView extends View {
 
 
     /**
-     * 设置文字间距 TODO 需要重新分页
+     * 设置文字间距
      *
      * @param letterSpacing 文字间距
      */
@@ -377,7 +385,7 @@ public class ReaderView extends View {
     }
 
     /**
-     * 设置行间距 TODO 需要重新分页
+     * 设置行间距
      *
      * @param lineSpacing 行间距
      */
@@ -391,7 +399,7 @@ public class ReaderView extends View {
     }
 
     /**
-     * 设置文字间距 TODO 需要重新分页
+     * 设置文字间距
      *
      * @param paragraphSpacing 段间距
      */

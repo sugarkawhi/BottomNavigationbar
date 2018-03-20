@@ -3,9 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/bottomnavigationbar/bottomnavigationbar.iml" filepath="$PROJECT_DIR$/bottomnavigationbar/bottomnavigationbar.iml" />
-      <module fileurl="file://$PROJECT_DIR$/mReader/mReader.iml" filepath="$PROJECT_DIR$/mReader/mReader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bnb-lib/bottomnavigationbar.iml" filepath="$PROJECT_DIR$/bnb-lib/bottomnavigationbar.iml" />
       <module fileurl="file://$PROJECT_DIR$/monster-android.iml" filepath="$PROJECT_DIR$/monster-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ptm-lib/ptmLib.iml" filepath="$PROJECT_DIR$/ptm-lib/ptmLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/reader-lib/mReader.iml" filepath="$PROJECT_DIR$/reader-lib/mReader.iml" />
     </modules>
   </component>
 </project>

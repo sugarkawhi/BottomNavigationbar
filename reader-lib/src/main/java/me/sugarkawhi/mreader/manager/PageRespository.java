@@ -433,4 +433,17 @@ public class PageRespository {
         if (nextIndex >= mCurPageList.size()) return null;
         return mCurPageList.get(nextIndex);
     }
+
+    /**
+     * 重置数据
+     * 在重新设置当前章节的时候需要重置
+     */
+    public void reset() {
+        mPreChapter = null;
+        mCurChapter = null;
+        mNextChapter = null;
+        if (null != mPrePageList && !mPrePageList.isEmpty()) mPrePageList.clear();
+        if (null != mCurPageList && !mCurPageList.isEmpty()) mCurPageList.clear();
+        if (null != mNextPageList && !mNextPageList.isEmpty()) mNextPageList.clear();
+    }
 }

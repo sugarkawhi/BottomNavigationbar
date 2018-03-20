@@ -66,8 +66,8 @@ dependencies {
     //ButterKnife
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-    compile project(':mReader')
-    compile project(':bottomnavigationbar')
+    compile project(':reader-lib')
+    compile project(':bnb-lib')
     //数据库 greenDAO
     compile 'org.greenrobot:greendao:3.2.2'
     // add library

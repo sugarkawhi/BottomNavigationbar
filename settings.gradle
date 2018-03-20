@@ -1,1 +1,1 @@
-include ':app', ':bottomnavigationbar', ':mReader'
+include ':app', ':bnb-lib', ':reader-lib', ':ptm-lib'
