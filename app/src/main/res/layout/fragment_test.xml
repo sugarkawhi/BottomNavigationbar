@@ -2,24 +2,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/main_view"
+    <me.sugarkawhi.pulltomark.PtmLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
+
+    </me.sugarkawhi.pulltomark.PtmLayout>
 
 
-
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:gravity="center"
-            android:text="TEST"
-            android:textColor="@color/colorPrimary"
-            android:textSize="20sp" />
-
-
-    </LinearLayout>
 </FrameLayout>
