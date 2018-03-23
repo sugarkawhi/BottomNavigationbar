@@ -16,9 +16,9 @@ import me.sugarkawhi.mreader.config.IReaderConfig;
 public interface ReaderConfig {
 
     interface BaiduTts {
-        String APP_ID = "10900823";
-        String APP_KEY = "QSOlWGh5VzsrGLheDTGbm7Nx";
-        String SECRET_KEY = "537013a25672bb8748d622066487fe53";
+        String APP_ID = "10654533";
+        String APP_KEY = "9GjlKEreqWaGL0iTAboYU0et";
+        String SECRET_KEY = "b9e45aea2f75dac876479d1dc392ac28";
     }
 
 }

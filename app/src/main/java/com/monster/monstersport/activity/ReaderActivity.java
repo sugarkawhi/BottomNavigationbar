@@ -91,6 +91,7 @@ import me.sugarkawhi.mreader.persistence.IReaderPersistence;
 import me.sugarkawhi.mreader.utils.L;
 import me.sugarkawhi.mreader.utils.ScreenUtils;
 import me.sugarkawhi.mreader.view.ReaderView;
+import me.sugarkawhi.pulltomark.PtmLayout;
 
 import static com.monster.monstersport.config.ReaderConfig.BaiduTts.APP_ID;
 import static com.monster.monstersport.config.ReaderConfig.BaiduTts.APP_KEY;
@@ -140,6 +141,9 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
     SmartTabLayout mSmartTabLayout;
     @BindView(R.id.viewPager)
     ViewPager mViewPager;
+
+    @BindView(R.id.ptmLayout)
+    PtmLayout mPtmLayout;
 
 
     private int mAppBarHeight;

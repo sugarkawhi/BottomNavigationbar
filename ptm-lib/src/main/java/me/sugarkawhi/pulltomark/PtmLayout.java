@@ -1,6 +1,7 @@
 package me.sugarkawhi.pulltomark;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -27,9 +28,9 @@ public class PtmLayout extends ViewGroup {
     private int mPtmHeaderHeight;
 
     //阻尼系数
-    private float mResistance = 2.0f;
+    private float mResistance;
     //阈值 PtmHeaderHeight 的倍数
-    private float mThreSholdValue = 1.5f;
+    private float mThreSholdValue;
     //滑动产生距离
     private int mScaledTouchSlop;
     //起始点坐标
@@ -59,6 +60,10 @@ public class PtmLayout extends ViewGroup {
 
     public PtmLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.PtmLayout);
+        mResistance = array.getFloat(R.styleable.PtmLayout_ptm_resistance, 2.0f);
+        mThreSholdValue = array.getFloat(R.styleable.PtmLayout_ptm_threSholdValue, 2.0f);
+        array.recycle();
         init();
     }
 
@@ -198,6 +203,7 @@ public class PtmLayout extends ViewGroup {
                 mStartY = y;
                 mMoveX = 0;
                 mMoveY = 0;
+                isMoveState = false;
                 super.dispatchTouchEvent(ev);
                 return true;
             case MotionEvent.ACTION_MOVE:
@@ -210,7 +216,7 @@ public class PtmLayout extends ViewGroup {
                 if (!isMoveState) break;
                 if (mTouchY <= mStartY) {
                     reset();
-                    break;
+                    return true;
                 }
                 mMoveX = x;
                 mMoveY = y;
@@ -218,10 +224,13 @@ public class PtmLayout extends ViewGroup {
                 return true;
             case MotionEvent.ACTION_UP:
                 Log.e(TAG, "dispatchTouchEvent: ACTION_UP");
+                if (!isMoveState) break;
                 moveTop();
+                return true;
         }
         return super.dispatchTouchEvent(ev);
     }
+
 
     /**
      * 对PtmHeader和contentView进行重新布局

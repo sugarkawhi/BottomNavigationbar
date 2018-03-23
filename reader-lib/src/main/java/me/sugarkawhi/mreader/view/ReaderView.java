@@ -1,5 +1,6 @@
 package me.sugarkawhi.mreader.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -88,8 +89,6 @@ public class ReaderView extends View {
 
     private PageRespository mRespository;
 
-    private Handler mHandler;
-    private PageData mNextPage;
 
     public ReaderView(Context context) {
         this(context, null);
@@ -138,12 +137,10 @@ public class ReaderView extends View {
         mRespository = new PageRespository(mPageElement);
         int pageMode = IReaderPersistence.getPageMode(getContext());
         setPageMode(pageMode);
-        mHandler = new Handler();
     }
 
     /**
      * 设置翻页模式
-     * {@link #(IReaderConfig.PageMode.COVER)} 覆盖模式
      * {@link #(IReaderConfig.PageMode.SLIDE)}  平移模式
      * {@link #(IReaderConfig.PageMode.NONE)}  无动画
      * {@link #(IReaderConfig.PageMode.SIMULATION)} 仿真
@@ -213,6 +210,8 @@ public class ReaderView extends View {
         }
     }
 
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (isSpeaking) {
@@ -222,6 +221,7 @@ public class ReaderView extends View {
         }
         return mAnimController.dispatchTouchEvent(event);
     }
+
 
     @Override
     public void computeScroll() {
