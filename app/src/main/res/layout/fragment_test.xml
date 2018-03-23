@@ -6,7 +6,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    </me.sugarkawhi.pulltomark.PtmLayout>
+        <com.monster.monstersport.view.PtmTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#abc"
+            android:gravity="center"
+            android:text="模拟阅读器"
+            android:textSize="20sp" />
 
+    </me.sugarkawhi.pulltomark.PtmLayout>
 
 </FrameLayout>

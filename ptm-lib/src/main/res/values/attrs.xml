@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="PtmLayout">
-        <attr name="ptr_header" format="reference" />
-        <attr name="ptr_content" format="reference" />
+        <attr name="ptm_resistance" format="float" />
     </declare-styleable>
+
+
 </resources>

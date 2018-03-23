@@ -38,9 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
         mEntities = new ArrayList<>();
         mFragments = new ArrayList<>();
+        mFragments.add(TestFragment.newInstance());
         mFragments.add(BookListFragment.newInstance());
         mFragments.add(TtsFragment.newInstance());
-        mFragments.add(TestFragment.newInstance());
         mEntities.add(new BottomNavigationEntity(
                 R.drawable.ic_tab_album_default,
                 R.drawable.ic_tab_album_selected));
@@ -65,8 +65,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationBar.setBnbItemDoubleClickListener(new BottomNavigationBar.IBnbItemDoubleClickListener() {
             @Override
             public void onBnbItemDoubleClick(int position) {
-//                Toast.makeText(MainActivity.this, "onBnbItemDoubleClick " + position, Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(MainActivity.this, ReaderActivity.class));
+                startActivity(new Intent(MainActivity.this, FakeReaderActivity.class));
             }
         });
 
