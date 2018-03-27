@@ -171,9 +171,72 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
         mScreenHeight = ScreenUtils.getScreenHeight(this);
         registerReaderReceiver();
         initDrawer();
+        initPtmLayout();
         initReaderBar();
         initReaderView();
         getData();
+    }
+
+    /**
+     * 初始化下拉添加书签控件
+     */
+    private void initPtmLayout() {
+        mPtmLayout.setListener(new PtmLayout.OnPtmHandleListener() {
+
+            private PageData getCurrentPage() {
+                return readerView.getCurrentPage();
+            }
+
+            @Override
+            public boolean canTouch() {
+                return !isShow;
+            }
+
+            @Override
+            public void onPtmStart() {
+                Log.e(TAG, "onPtmStart: ");
+                //如果当前页已经是书签了 先把当前页临时变为非书签
+                PageData page = getCurrentPage();
+                if (page == null) return;
+                if (page.isMark()) {
+                    mPtmLayout.setMark(true);
+                    //一下两行代码是为了阅读器上不显示书签标记 。如果是cancel操作要重新设置回来
+                    page.setMark(false);
+                    readerView.invalidateSelf();
+                } else {
+                    mPtmLayout.setMark(false);
+                }
+            }
+
+
+            @Override
+            public void onPtmAddSuccess() {
+                PageData page = getCurrentPage();
+                if (page == null) return;
+                page.setMark(true);
+                readerView.invalidateSelf();
+                addMark(page);
+            }
+
+
+            @Override
+            public void onPtmDeleteSuccess() {
+                PageData page = getCurrentPage();
+                if (page == null) return;
+                page.setMark(false);
+                readerView.invalidateSelf();
+                deleteMark(page);
+            }
+
+            @Override
+            public void onPtmCancel() {
+                Log.e(TAG, "onPtmCancel: ");
+                PageData page = getCurrentPage();
+                if (page == null) return;
+                page.setMark(mPtmLayout.isMark());
+                readerView.invalidateSelf();
+            }
+        });
     }
 
     /**
@@ -371,6 +434,9 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
         }
     }
 
+    private BookMarkFragment mBookMarkFragment;
+    private CatalogueFragment mCatalogFragment;
+
     /**
      * 初始化抽屉栏
      */
@@ -378,8 +444,8 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
         drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         Bundle bundle = new Bundle();
         bundle.putString(PARAM_STORY_ID, mStoryId);
-        final CatalogueFragment mCatalogFragment = CatalogueFragment.newInstance();
-        final BookMarkFragment mBookMarkFragment = BookMarkFragment.newInstance();
+        mCatalogFragment = CatalogueFragment.newInstance();
+        mBookMarkFragment = BookMarkFragment.newInstance();
         mCatalogFragment.setArguments(bundle);
         mBookMarkFragment.setArguments(bundle);
         final List<Fragment> fragments = new ArrayList<>();
@@ -619,13 +685,11 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
     /**
      * 添加书签
      */
-    @OnClick(R.id.tv_add_mark)
-    public void addMark() {
-        final PageData page = readerView.getCurrentPage();
+    private void addMark(final PageData page) {
         Observable.create(new ObservableOnSubscribe<Boolean>() {
             @Override
             public void subscribe(ObservableEmitter<Boolean> e) throws Exception {
-                e.onNext(HyReaderPersistence.saveBookMark(mStoryId, page));
+                e.onNext(HyReaderPersistence.addBookMark(mStoryId, page));
                 e.onComplete();
             }
         })
@@ -635,9 +699,48 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
                     @Override
                     public void onNext(Boolean aBoolean) {
                         if (aBoolean)
-                            showToast("添加成功");
+                            showToast("添加书签成功");
                         else
-                            showToast("添加失败");
+                            showToast("添加书签失败");
+                        mBookMarkFragment.refresh();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    /**
+     * 删除书签
+     */
+    private void deleteMark(final PageData page) {
+        Observable.create(new ObservableOnSubscribe<Boolean>() {
+            @Override
+            public void subscribe(ObservableEmitter<Boolean> e) throws Exception {
+                HyReaderPersistence.deleteBookMark(mStoryId, page);
+                e.onNext(true);
+                e.onComplete();
+            }
+        })
+                .compose(RxUtils.<Boolean>defaultSchedulers())
+                .compose(this.<Boolean>bindToLifecycle())
+                .subscribe(new Observer<Boolean>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Boolean aBoolean) {
+                        mBookMarkFragment.refresh();
+                        showToast("删除书签成功");
                     }
 
                     @Override
@@ -754,7 +857,7 @@ public class ReaderActivity extends BaseActivity implements BookMarkAdapter.IBoo
             hideSystemUI();
             showToast("HIDE SYS UI");
 //            hideReaderBar();
-            //L.e(TAG,"OnDismissListener HIDE SYS UI");
+            //PtmLogger.e(TAG,"OnDismissListener HIDE SYS UI");
         }
     };
 

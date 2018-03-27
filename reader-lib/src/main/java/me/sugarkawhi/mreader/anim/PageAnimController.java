@@ -158,7 +158,7 @@ public abstract class PageAnimController {
         mTouchY = y;
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                L.e(TAG,"dispatchTouchEvent ACTION_DOWN");
+                L.e(TAG, "dispatchTouchEvent ACTION_DOWN");
                 //NOTICE:务必在最前面调用
                 abortAnim();
                 mStartX = x;
@@ -177,11 +177,14 @@ public abstract class PageAnimController {
 
                 return true;
             case MotionEvent.ACTION_MOVE:
-                L.e(TAG,"dispatchTouchEvent ACTION_MOVE");
+                L.e(TAG, "dispatchTouchEvent ACTION_MOVE");
                 //如果不在滑动状态 判断是否需要进入滑动状态
                 if (!isMoveState) isMoveState = Math.abs(mTouchX - mStartX) > mTouchSlop;
                 //如果不构成滑动 不处理
                 if (!isMoveState) return true;
+                //自己处理滑动事件 父View不要拦截
+                if (mReaderView.getParent() != null)
+                    mReaderView.getParent().requestDisallowInterceptTouchEvent(true);
                 //构成滑动第一次 处理事件：1.判断方向2.根据方向判断存在上/下页进行回调
                 if (mMoveX == 0 && mMoveY == 0) {
                     L.e(TAG, "MotionEvent1.构成滑动 判断方向 x=" + x + " mStartX=" + mStartX);
@@ -230,7 +233,7 @@ public abstract class PageAnimController {
                 mReaderView.invalidate();
                 return true;
             case MotionEvent.ACTION_UP:
-                L.e(TAG,"dispatchTouchEvent ACTION_UP");
+                L.e(TAG, "dispatchTouchEvent ACTION_UP");
                 //i:非滑动状态 点击屏幕 1.中间2.左侧3.右侧
                 if (!isMoveState) {
                     if (mCenterRect.contains(mTouchX, mTouchY)) {

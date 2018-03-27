@@ -1,5 +1,6 @@
 package me.sugarkawhi.pulltomark;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Scroller;
 import android.widget.TextView;
 
@@ -22,14 +24,22 @@ import android.widget.TextView;
 public class PtmLayout extends ViewGroup {
 
     private static final String TAG = "PtmLayout";
+    //取消状态
+    public static final int STATUS_CANCEL = 1;
+    //松手添加书签
+    public static final int STATUS_RELEASE_ADD = 2;
+    //松手删除书签
+    public static final int STATUS_RELEASE_DELETE = 3;
+
 
     private PtmHeader mPtmHeader;
+    private ImageView mPtmBookmark;
     private View mContentView;
     private int mPtmHeaderHeight;
 
     //阻尼系数
     private float mResistance;
-    //阈值 PtmHeaderHeight 的倍数
+    //阈值 PtmHeaderHeight 的倍数 超过这个高度才进行变化删除/添加
     private float mThreSholdValue;
     //滑动产生距离
     private int mScaledTouchSlop;
@@ -43,12 +53,15 @@ public class PtmLayout extends ViewGroup {
     private int mDistanceTemp;
     //Y轴垂直滑动距离
     private int mDistanceY;
-    private boolean isMoveState;
+
     private Scroller mScroller;
     //当前是否是书签
     private boolean isMark;
     //正在滚动
     private boolean isScroll;
+
+    private OnPtmHandleListener mListener;
+    private int mCurPtmStatus;
 
     public PtmLayout(Context context) {
         this(context, null);
@@ -61,8 +74,8 @@ public class PtmLayout extends ViewGroup {
     public PtmLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.PtmLayout);
-        mResistance = array.getFloat(R.styleable.PtmLayout_ptm_resistance, 2.0f);
-        mThreSholdValue = array.getFloat(R.styleable.PtmLayout_ptm_threSholdValue, 2.0f);
+        mResistance = array.getFloat(R.styleable.PtmLayout_ptm_resistance, 4.0f);
+        mThreSholdValue = array.getFloat(R.styleable.PtmLayout_ptm_threSholdValue, 1.2f);
         array.recycle();
         init();
     }
@@ -72,7 +85,8 @@ public class PtmLayout extends ViewGroup {
      */
     private void init() {
         initPtmHeader();
-        mScaledTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop() * 2;
+        initBookmark();
+        mScaledTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();
         mScroller = new Scroller(getContext());
     }
 
@@ -86,6 +100,25 @@ public class PtmLayout extends ViewGroup {
         lp.width = LayoutParams.MATCH_PARENT;
         lp.height = LayoutParams.WRAP_CONTENT;
         addView(mPtmHeader, lp);
+    }
+
+    /**
+     *
+     */
+    private void initBookmark() {
+        mPtmBookmark = new ImageView(getContext());
+        mPtmBookmark.setImageResource(R.drawable.book_mark);
+        LayoutParams lp = (LayoutParams) generateDefaultLayoutParams();
+        lp.width = LayoutParams.WRAP_CONTENT;
+        lp.height = LayoutParams.WRAP_CONTENT;
+        addView(mPtmBookmark, lp);
+        mPtmBookmark.setVisibility(GONE);
+    }
+
+    /**
+     * 重置 PtmHeader
+     */
+    private void resetPtmHeader() {
         if (isMark) mPtmHeader.prepareAdd();
         else mPtmHeader.prepareDelete();
     }
@@ -93,7 +126,7 @@ public class PtmLayout extends ViewGroup {
     @Override
 
     protected void onLayout(boolean b, int i, int i1, int i2, int i3) {
-        Log.e(TAG, "onLayout: ");
+        PtmLogger.e(TAG, "onLayout: ");
         layoutChildren();
     }
 
@@ -127,6 +160,7 @@ public class PtmLayout extends ViewGroup {
             mPtmHeader.setLayoutParams(headerParams);
             mPtmHeader.layout(left, top, right, bottom);
         }
+
         if (mContentView != null) {
             MarginLayoutParams lp = (MarginLayoutParams) mContentView.getLayoutParams();
             int left = paddingLeft + lp.leftMargin;
@@ -136,6 +170,11 @@ public class PtmLayout extends ViewGroup {
             mContentView.layout(left, top, right, bottom);
         }
 
+        int bmLeft = getMeasuredWidth() - mPtmBookmark.getMeasuredWidth();
+        int bmTop = 0;
+        int bmRight = getMeasuredWidth();
+        int bmBottom = mPtmBookmark.getMeasuredHeight();
+        mPtmBookmark.layout(bmLeft, bmTop, bmRight, bmBottom);
     }
 
     @Override
@@ -158,19 +197,19 @@ public class PtmLayout extends ViewGroup {
 
             mContentView.measure(childWidthMeasureSpec, childHeightMeasureSpec);
         }
+        measureChild(mPtmBookmark, widthMeasureSpec, heightMeasureSpec);
+
     }
 
     @Override
     protected void onFinishInflate() {
         int childCount = getChildCount();
-        if (childCount > 2) {
-            throw new IllegalStateException("PtmLayout only contain two child ");
-        } else if (childCount == 2) {
+        if (childCount > 3) {
+            throw new IllegalStateException("PtmLayout only contain three child ");
+        } else if (childCount == 3) {
             Log.i(TAG, "child is ok");
-            MarginLayoutParams lp = (MarginLayoutParams) generateDefaultLayoutParams();
-            mContentView = getChildAt(1);
-            Log.e(TAG, "onFinishInflate: " + (mContentView.getLayoutParams() instanceof LayoutParams));
-        } else {
+            mContentView = getChildAt(2);
+        } else if (childCount == 2) {
             TextView errorView = new TextView(getContext());
             errorView.setClickable(true);
             errorView.setTextColor(0xffff6600);
@@ -183,12 +222,56 @@ public class PtmLayout extends ViewGroup {
             lp.height = LayoutParams.MATCH_PARENT;
             addView(mContentView, lp);
         }
-
+        mPtmBookmark.bringToFront();
         super.onFinishInflate();
     }
 
+
     @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        PtmLogger.e(TAG, "onInterceptTouchEvent");
+        int x = (int) ev.getX();
+        int y = (int) ev.getY();
+        mTouchX = x;
+        mTouchY = y;
+        final int action = ev.getAction();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                mStartX = x;
+                mStartY = y;
+                reset();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float deltaX = Math.abs(x - mStartX);
+                float deltaY = Math.abs(y - mStartY);
+                if (deltaX >= mScaledTouchSlop && deltaY >= mScaledTouchSlop) {
+                    if (deltaX > deltaY) {//左右滑动  不拦截
+                        return false;
+                    } else {//上下滑动  拦截
+                        if (mListener != null)
+                            mListener.onPtmStart();
+                        return true;
+                    }
+                } else if (deltaX >= mScaledTouchSlop && deltaY < mScaledTouchSlop) {
+                    return false;//左右滑动  不拦截
+                } else if (deltaX < mScaledTouchSlop && deltaY >= mScaledTouchSlop) {
+                    if (mListener != null)
+                        mListener.onPtmStart();
+                    return true;//上下滑动  拦截
+                }
+
+        }
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        PtmLogger.e(TAG, "onTouchEvent");
+        if (mListener != null && !mListener.canTouch()) {
+            PtmLogger.e(TAG, "canTouch is false");
+            return true;
+        }
         if (isScroll || !isEnabled() || mContentView == null) {
             return false;
         }
@@ -198,22 +281,14 @@ public class PtmLayout extends ViewGroup {
         mTouchY = y;
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Log.e(TAG, "dispatchTouchEvent: ACTION_DOWN");
+                PtmLogger.e(TAG, "onTouchEvent: ACTION_DOWN");
                 mStartX = x;
                 mStartY = y;
                 mMoveX = 0;
                 mMoveY = 0;
-                isMoveState = false;
-                super.dispatchTouchEvent(ev);
                 return true;
             case MotionEvent.ACTION_MOVE:
-                Log.e(TAG, "dispatchTouchEvent: ACTION_MOVE");
-                // 如果是左滑右滑 幅度 大于 上下滑动
-                if (Math.abs(mTouchX - mStartX) > Math.abs(mTouchY - mStartY)) {
-                    break;
-                }
-                if (!isMoveState) isMoveState = Math.abs(mTouchY - mStartY) > mScaledTouchSlop;
-                if (!isMoveState) break;
+                PtmLogger.e(TAG, "onTouchEvent: ACTION_MOVE");
                 if (mTouchY <= mStartY) {
                     reset();
                     return true;
@@ -223,14 +298,12 @@ public class PtmLayout extends ViewGroup {
                 updatePos();
                 return true;
             case MotionEvent.ACTION_UP:
-                Log.e(TAG, "dispatchTouchEvent: ACTION_UP");
-                if (!isMoveState) break;
+                PtmLogger.e(TAG, "onTouchEvent: ACTION_UP");
                 moveTop();
                 return true;
         }
-        return super.dispatchTouchEvent(ev);
+        return super.onTouchEvent(ev);
     }
-
 
     /**
      * 对PtmHeader和contentView进行重新布局
@@ -247,12 +320,21 @@ public class PtmLayout extends ViewGroup {
     private void updatePtmHeader() {
         if (mDistanceY > mPtmHeaderHeight * mThreSholdValue) {
             mPtmHeader.arrowUp();
-            if (isMark) mPtmHeader.releaseDelete();
-            else mPtmHeader.releaseAdd();
+            if (isMark) {
+                mCurPtmStatus = STATUS_RELEASE_DELETE;
+                mPtmHeader.releaseDelete();
+                hideBookMark();
+            } else {
+                mCurPtmStatus = STATUS_RELEASE_ADD;
+                mPtmHeader.releaseAdd();
+            }
         } else {
+            mCurPtmStatus = STATUS_CANCEL;
             mPtmHeader.arrowDown();
-            if (isMark) mPtmHeader.prepareDelete();
-            else mPtmHeader.prepareAdd();
+            if (isMark) {
+                showBookMark();
+                mPtmHeader.prepareDelete();
+            } else mPtmHeader.prepareAdd();
         }
     }
 
@@ -264,21 +346,64 @@ public class PtmLayout extends ViewGroup {
         isScroll = true;
         mScroller.startScroll(0, 0, 0, mDistanceY, 400);
         invalidate();
+        callBackRelease();
     }
 
     @Override
     public void computeScroll() {
-        super.computeScroll();
-        if (mScroller.computeScrollOffset()) {
+        boolean isNotFinish = mScroller.computeScrollOffset();
+        PtmLogger.e(TAG, "isNotFinish=" + isNotFinish);
+        if (isNotFinish) {
             int currY = mScroller.getCurrY();
             mDistanceY = mDistanceTemp - Math.abs(currY);
-            //Log.e(TAG, "computeScroll  currY=" + currY + "   distance=" + mDistanceY);
-            if (mScroller.getFinalY() == currY) {
+            if (isScroll && mScroller.getFinalY() == currY) {
                 isScroll = false;
+                callBackSuccess();
             }
             invalidate();
             requestLayout();
         }
+    }
+
+
+    /**
+     * 松手回调
+     */
+    private void callBackRelease() {
+        //回调
+        switch (mCurPtmStatus) {
+            case STATUS_RELEASE_ADD:
+                showBookMark();
+                break;
+            case STATUS_RELEASE_DELETE:
+                hideBookMark();
+                break;
+            case STATUS_CANCEL:
+                if (isMark) showBookMark();
+                else hideBookMark();
+                break;
+        }
+    }
+
+    /**
+     * 动画结束回调
+     */
+    private void callBackSuccess() {
+        PtmLogger.e(TAG, "callBackSuccess ");
+        if (mListener != null) {
+            //回调
+            switch (mCurPtmStatus) {
+                case STATUS_RELEASE_ADD:
+                    mListener.onPtmAddSuccess();
+                    break;
+                case STATUS_RELEASE_DELETE:
+                    mListener.onPtmDeleteSuccess();
+                    break;
+                case STATUS_CANCEL:
+                    mListener.onPtmCancel();
+            }
+        }
+        hideBookMark();
     }
 
     @Override
@@ -294,6 +419,20 @@ public class PtmLayout extends ViewGroup {
     @Override
     public ViewGroup.LayoutParams generateLayoutParams(AttributeSet attrs) {
         return new LayoutParams(getContext(), attrs);
+    }
+
+    /**
+     * 隐藏书签
+     */
+    private void hideBookMark() {
+        mPtmBookmark.setVisibility(GONE);
+    }
+
+    /**
+     * 显示书签
+     */
+    private void showBookMark() {
+        mPtmBookmark.setVisibility(VISIBLE);
     }
 
 
@@ -324,8 +463,13 @@ public class PtmLayout extends ViewGroup {
      */
     public void setMark(boolean mark) {
         isMark = mark;
-        if (mark) mPtmHeader.prepareDelete();
-        else mPtmHeader.prepareDelete();
+        if (mark) {
+            mPtmHeader.prepareDelete();
+            showBookMark();
+        } else {
+            mPtmHeader.prepareDelete();
+            hideBookMark();
+        }
     }
 
     /**
@@ -342,7 +486,43 @@ public class PtmLayout extends ViewGroup {
      */
     private void reset() {
         mDistanceY = 0;
+        mCurPtmStatus = -1;
+        resetPtmHeader();
         requestLayout();
     }
+
+    public void setListener(OnPtmHandleListener listener) {
+        mListener = listener;
+    }
+
+    public interface OnPtmHandleListener {
+
+        /**
+         * 可分发处理事件
+         */
+        boolean canTouch();
+
+        /**
+         * 开始
+         */
+        void onPtmStart();
+
+        /**
+         * 添加书签完成
+         */
+        void onPtmAddSuccess();
+
+
+        /**
+         * 删除书签成功
+         */
+        void onPtmDeleteSuccess();
+
+        /**
+         * 取消操作
+         */
+        void onPtmCancel();
+    }
+
 }
 

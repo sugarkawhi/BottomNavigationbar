@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.monster.monstersport.R;
@@ -28,6 +29,8 @@ import io.reactivex.ObservableOnSubscribe;
  */
 
 public class BookMarkFragment extends BaseFragment {
+
+    private String mStoryId;
 
     @BindView(R.id.recyclerView)
     RecyclerView mRecyclerView;
@@ -70,18 +73,19 @@ public class BookMarkFragment extends BaseFragment {
                     mBookMarkItemClickListener.onBookMarkItemClick(bookMark);
             }
         });
+        Bundle bundle = getArguments();
+        if (bundle == null) return;
+        mStoryId = bundle.getString(ReaderActivity.PARAM_STORY_ID);
     }
 
 
     @Override
     protected void loadData() {
-        Bundle bundle = getArguments();
-        if (bundle == null) return;
-        final String id = bundle.getString(ReaderActivity.PARAM_STORY_ID);
+        if (TextUtils.isEmpty(mStoryId)) return;
         Observable.create(new ObservableOnSubscribe<List<BookMarkBean>>() {
             @Override
             public void subscribe(ObservableEmitter<List<BookMarkBean>> e) throws Exception {
-                e.onNext(HyReaderPersistence.queryBookMarkList(id));
+                e.onNext(HyReaderPersistence.queryBookMarkList(mStoryId));
                 e.onComplete();
             }
         })
@@ -95,7 +99,7 @@ public class BookMarkFragment extends BaseFragment {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        e.printStackTrace();
                     }
 
                     @Override
@@ -105,5 +109,10 @@ public class BookMarkFragment extends BaseFragment {
                 });
     }
 
-
+    /**
+     * 刷新书签页面
+     */
+    public void refresh() {
+        loadData();
+    }
 }

@@ -130,7 +130,7 @@ public class HyReaderPersistence extends IReaderPersistence {
     /**
      * 保存书签
      */
-    public static boolean saveBookMark(String bookId, PageData pageData) {
+    public static boolean addBookMark(String bookId, PageData pageData) {
         if (pageData == null) return false;
         BookMarkBean bookMark = queryBookMark(bookId, pageData);
         DaoSession session = MonApplication.getInstance().getDaoSession();
@@ -142,13 +142,31 @@ public class HyReaderPersistence extends IReaderPersistence {
             String chapterId = pageData.getChapterId();
             int progress = pageData.getProgress();
             String content = pageData.getContent() + "";
-            bookMark = new BookMarkBean(bookId, time, chapterName, chapterId, progress, content);
+            bookMark = new BookMarkBean();
+            bookMark.setBookId(bookId);
+            bookMark.setTime(time);
+            bookMark.setChapterName(chapterName);
+            bookMark.setChapterId(chapterId);
+            bookMark.setProgress(progress);
+            bookMark.setContent(content);
             long rowID = dao.insert(bookMark);
             L.e(TAG, "insert one book mark chapter=" + rowID);
             return true;
         } else {
-            L.e(TAG, "saveBookMark has one");
+            L.e(TAG, "addBookMark has one");
             return false;
+        }
+    }
+
+    /**
+     * 删除书签
+     */
+    public static void deleteBookMark(String bookId, PageData page) {
+        BookMarkBean bookMark = queryBookMark(bookId, page);
+        if (bookMark != null) {
+            DaoSession session = MonApplication.getInstance().getDaoSession();
+            BookMarkBeanDao dao = session.getBookMarkBeanDao();
+            dao.deleteByKey(bookMark.get_id());
         }
     }
 
@@ -175,6 +193,8 @@ public class HyReaderPersistence extends IReaderPersistence {
 
     /**
      * 根据书籍id查询本书籍的书签列表
+     * <p>
+     * 新加进来的在最前边-》时间降序排序
      *
      * @param bookId   书籍id
      * @param pageData 页面信息
@@ -185,6 +205,7 @@ public class HyReaderPersistence extends IReaderPersistence {
         BookMarkBeanDao dao = session.getBookMarkBeanDao();
         List<BookMarkBean> list = dao.queryBuilder()
                 .where(BookMarkBeanDao.Properties.BookId.eq(bookId))
+                .orderDesc(BookMarkBeanDao.Properties.Time)
                 .list();
         return list;
     }

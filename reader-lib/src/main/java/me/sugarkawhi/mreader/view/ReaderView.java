@@ -4,10 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -121,7 +121,9 @@ public class ReaderView extends View {
         mChapterNamePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mChapterNamePaint.setTextSize(contentFontSize * IReaderConfig.RATIO_CHAPTER_CONTENT);
         mChapterNamePaint.setColor(Color.parseColor("#A0522D"));
-        mPageElement = new PageElement(mWidth, mHeight,
+
+        Bitmap bookmarkBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.reader_book_mark);
+        mPageElement = new PageElement(mWidth, mHeight, bookmarkBitmap,
                 headerHeight, footerHeight, padding,
                 mHeaderPaint, mContentPaint, mChapterNamePaint);
         mPageManager = new PageManager(mWidth - padding - padding, mHeight - headerHeight - footerHeight,
@@ -210,7 +212,6 @@ public class ReaderView extends View {
         }
     }
 
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -219,6 +220,7 @@ public class ReaderView extends View {
                 mReaderTouchListener.onTouchSpeaking();
             return false;
         }
+        L.e(TAG, "onTouchEvent");
         return mAnimController.dispatchTouchEvent(event);
     }
 
@@ -228,6 +230,7 @@ public class ReaderView extends View {
         mAnimController.computeScroll();
         super.computeScroll();
     }
+
 
     /**
      * 阅读器触摸监听
@@ -307,9 +310,16 @@ public class ReaderView extends View {
     /**
      * 绘制当前页面
      */
-    public void drawCurrentPage() {
+    private void drawCurrentPage() {
         mPageElement.generatePage(mRespository.getCurPage(), mAnimController.getCurrentBitmap());
         invalidate();
+    }
+
+    /**
+     * 为了更好的理解
+     */
+    public void invalidateSelf() {
+        drawCurrentPage();
     }
 
     /**

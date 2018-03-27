@@ -30,7 +30,8 @@ public class PageData {
     private String content;
     //字符数据
     private List<LetterData> letters;
-
+    //是否是书签页
+    private boolean isMark;
 
     public PageData() {
     }
@@ -113,5 +114,13 @@ public class PageData {
 
     public void setLetters(List<LetterData> letters) {
         this.letters = letters;
+    }
+
+    public boolean isMark() {
+        return isMark;
+    }
+
+    public void setMark(boolean mark) {
+        isMark = mark;
     }
 }

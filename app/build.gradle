@@ -33,7 +33,7 @@ sourceSets {
 }
 
 greendao {
-    schemaVersion 2
+    schemaVersion 3
 
 }
 

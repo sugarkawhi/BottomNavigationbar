@@ -30,7 +30,7 @@ public class PageElement {
     private HeaderElement mHeaderElement;
     private FooterElement mFooterElement;
     private LineElement mLineElement;
-
+    private BookMarkElement mBookMarkElement;
 
     //内容 宽。高
 
@@ -43,7 +43,7 @@ public class PageElement {
     //扉页 Bitmap
     private Bitmap mCoverBitmap;
 
-    public PageElement(int readerWidth, int readerHeight,
+    public PageElement(int readerWidth, int readerHeight, Bitmap bookmark,
                        float headerHeight, float footerHeight,
                        float padding, Paint headPaint, Paint contentPaint, Paint chapterNamePaint) {
         mReaderWidth = readerWidth;
@@ -55,7 +55,7 @@ public class PageElement {
         mFooterElement = new FooterElement(readerWidth, readerHeight, footerHeight, padding, headPaint);
         mLineElement = new LineElement(mContentWidth, mContentHeight,
                 headerHeight, footerHeight, padding, contentPaint, chapterNamePaint);
-
+        mBookMarkElement = new BookMarkElement(bookmark, readerWidth);
 
         mBackgroundBitmap = Bitmap.createBitmap(mReaderWidth, mReaderHeight, Bitmap.Config.RGB_565);
         mBackgroundCanvas = new Canvas(mBackgroundBitmap);
@@ -86,7 +86,10 @@ public class PageElement {
             mLineElement.setLineData(pageData.getLines());
             mLineElement.setLetterData(pageData.getLetters());
             mLineElement.onDraw(canvas);
-
+            //set mark
+            if (pageData.isMark()) {
+                mBookMarkElement.onDraw(canvas);
+            }
         }
         //封面页
         else {
