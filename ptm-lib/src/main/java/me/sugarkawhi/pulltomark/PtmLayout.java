@@ -229,6 +229,7 @@ public class PtmLayout extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (isScroll) return true;
         PtmLogger.e(TAG, "onInterceptTouchEvent");
         int x = (int) ev.getX();
         int y = (int) ev.getY();
