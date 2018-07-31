@@ -19,6 +19,10 @@ import com.monster.monstersport.view.JiKeView;
 public class JikeViewFragment extends Fragment {
 
 
+    public static JikeViewFragment newInstance() {
+        return new JikeViewFragment();
+    }
+
     SeekBar seekBar;
     JiKeView jiKeView;
 

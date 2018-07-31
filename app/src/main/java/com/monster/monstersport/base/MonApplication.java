@@ -2,9 +2,7 @@ package com.monster.monstersport.base;
 
 import android.app.Application;
 import android.content.Context;
-import android.os.StrictMode;
 
-import com.iflytek.cloud.SpeechUtility;
 import com.monster.monstersport.dao.bean.DaoMaster;
 import com.monster.monstersport.dao.bean.DaoSession;
 import com.squareup.leakcanary.LeakCanary;
@@ -13,7 +11,6 @@ import com.squareup.leakcanary.RefWatcher;
 import org.greenrobot.greendao.database.Database;
 
 /**
- *
  * Created by ZhaoZongyao on 2017/9/25.
  */
 
@@ -23,14 +20,13 @@ public class MonApplication extends Application {
     /**
      * A flag to show how easily you can switch from standard SQLite to the encrypted SQLCipher.
      */
-    public static final boolean ENCRYPTED = true;
     private DaoSession daoSession;
 
     @Override
     public void onCreate() {
         super.onCreate();
         application = this;
-        SpeechUtility.createUtility(this, "appid=5a936bf5");
+
         setupLeakCanary();
         initGreenDao();
     }
@@ -57,9 +53,10 @@ public class MonApplication extends Application {
     }
 
     private void initGreenDao() {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, ENCRYPTED ? "notes-db-encrypted" : "notes-db");
-        Database db = ENCRYPTED ? helper.getEncryptedWritableDb("super-secret") : helper.getWritableDb();
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "notes-db");
+        Database db = helper.getWritableDb();
         daoSession = new DaoMaster(db).newSession();
+        String databaseName = helper.getDatabaseName();
     }
 
     public DaoSession getDaoSession() {

@@ -15,7 +15,6 @@ import com.monster.monstersport.view.ZWHistoryView;
 import com.monster.monstersport.view.ZWTimeLineView;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 

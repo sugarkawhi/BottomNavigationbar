@@ -1,6 +1,5 @@
 package com.monster.monstersport.fragment;
 
-import android.util.Log;
 import android.view.View;
 
 import com.monster.monstersport.R;

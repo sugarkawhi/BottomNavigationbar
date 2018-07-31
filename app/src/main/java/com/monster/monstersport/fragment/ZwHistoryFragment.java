@@ -3,12 +3,9 @@ package com.monster.monstersport.fragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.monster.monstersport.R;
-import com.monster.monstersport.adapter.ZwHistoryAdapter;
 import com.monster.monstersport.base.BaseLazyFragment;
 import com.monster.monstersport.view.HyTabLayout;
 

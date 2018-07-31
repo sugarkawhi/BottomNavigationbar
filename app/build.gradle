@@ -67,12 +67,10 @@ dependencies {
     //ButterKnife
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-    compile project(':reader-lib')
+    //compile project(':reader-lib')
     compile project(':bnb-lib')
-    compile project(':ptm-lib')
+    //compile project(':ptm-lib')
     //数据库 greenDAO
     compile 'org.greenrobot:greendao:3.2.2'
-    // add library
-    compile 'net.zetetic:android-database-sqlcipher:3.5.6'
     implementation files('libs/com.baidu.tts_2.3.1.20170808_e39ea89.jar')
 }

@@ -1,6 +1,5 @@
 package com.monster.monstersport.fragment;
 
-import android.graphics.Color;
 import android.view.View;
 import android.widget.ImageView;
 

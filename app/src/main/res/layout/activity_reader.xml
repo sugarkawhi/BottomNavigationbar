@@ -19,10 +19,7 @@
             <me.sugarkawhi.mreader.view.ReaderView
                 android:id="@+id/readerView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:mReader_footerHeight="35dp"
-                app:mReader_headerHeight="35dp"
-                app:mReader_padding="18dp" />
+                android:layout_height="match_parent" />
 
         </me.sugarkawhi.pulltomark.PtmLayout>
 

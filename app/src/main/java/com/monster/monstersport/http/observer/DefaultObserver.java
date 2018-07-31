@@ -16,7 +16,6 @@ import java.net.UnknownHostException;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import me.sugarkawhi.mreader.utils.L;
 import retrofit2.HttpException;
 
 import static com.monster.monstersport.http.observer.DefaultObserver.ExceptionReason.BAD_NETWORK;
@@ -84,9 +83,7 @@ public abstract class DefaultObserver<T> implements Observer<BaseHttpResult<T>> 
     protected void onFail(BaseHttpResult<T> result) {
         String message = result.getMessage();
         if (TextUtils.isEmpty(message)) {
-            L.e(TAG, "onFail -> message is empty");
         } else {
-            L.e(TAG, "onFail -> " + message);
         }
     }
 

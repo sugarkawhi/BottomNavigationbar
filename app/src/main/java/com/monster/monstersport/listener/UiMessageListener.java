@@ -1,11 +1,5 @@
 package com.monster.monstersport.listener;
 
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
-
-import static com.monster.monstersport.util.MainHandlerConstant.UI_CHANGE_SYNTHES_TEXT_SELECTION;
-
 /**
  * 在 MessageListener的基础上，和UI配合。
  * Created by fujiayi on 2017/9/14.

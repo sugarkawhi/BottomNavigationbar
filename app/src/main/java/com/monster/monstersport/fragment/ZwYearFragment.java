@@ -7,10 +7,6 @@ import android.view.View;
 import com.monster.monstersport.R;
 import com.monster.monstersport.adapter.ZwHistoryAdapter;
 import com.monster.monstersport.base.BaseLazyFragment;
-import com.monster.monstersport.view.HyTabLayout;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by ZhaoZongyao on 2017/10/16.
