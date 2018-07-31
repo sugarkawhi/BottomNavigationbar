@@ -8,6 +8,7 @@ public class BottomNavigationEntity {
     private String text;
     private int selectedIcon;
     private int unSelectIcon;
+    private int badgeNum;
 
     //need text
     public BottomNavigationEntity(String text, int unSelectIcon, int selectedIcon) {
@@ -16,10 +17,26 @@ public class BottomNavigationEntity {
         this.selectedIcon = selectedIcon;
     }
 
+    //need text
+    public BottomNavigationEntity(String text, int unSelectIcon, int selectedIcon, int badgeNum) {
+        this.text = text;
+        this.unSelectIcon = unSelectIcon;
+        this.selectedIcon = selectedIcon;
+        this.badgeNum = badgeNum;
+    }
+
     //do not need text
     public BottomNavigationEntity(int unSelectIcon, int selectedIcon) {
         this.unSelectIcon = unSelectIcon;
         this.selectedIcon = selectedIcon;
+    }
+
+
+    //do not need text
+    public BottomNavigationEntity(int unSelectIcon, int selectedIcon, int badgeNum) {
+        this.unSelectIcon = unSelectIcon;
+        this.selectedIcon = selectedIcon;
+        this.badgeNum = badgeNum;
     }
 
     public String getText() {
@@ -44,5 +61,13 @@ public class BottomNavigationEntity {
 
     public void setUnSelectIcon(int unSelectIcon) {
         this.unSelectIcon = unSelectIcon;
+    }
+
+    public int getBadgeNum() {
+        return badgeNum;
+    }
+
+    public void setBadgeNum(int badgeNum) {
+        this.badgeNum = badgeNum;
     }
 }

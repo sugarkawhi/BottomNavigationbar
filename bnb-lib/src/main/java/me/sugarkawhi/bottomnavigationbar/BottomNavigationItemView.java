@@ -1,15 +1,14 @@
 package me.sugarkawhi.bottomnavigationbar;
 
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,15 +19,13 @@ import android.widget.TextView;
  * Created by sugarkawhi on 2017/8/25.
  */
 class BottomNavigationItemView extends LinearLayout {
-    private int mSelectedIcon;
-    private int mUnSelectedIcon;
-    private String mText;
+    private BottomNavigationEntity mBottomNavigationEntity;
     private int mTextSelectedColor;
     private int mTextUnSelectedColor;
-    private int mGap;
 
     private ImageView mItemIcon;
     private TextView mItemText;
+    private TextView mItemBadge;
 
     private boolean isAnim;
     private float scaleRatio;
@@ -36,15 +33,15 @@ class BottomNavigationItemView extends LinearLayout {
 
     private static final float SCALE_MAX = 1.1f;
 
-    public BottomNavigationItemView(Context context) {
+    protected BottomNavigationItemView(Context context) {
         this(context, null);
     }
 
-    public BottomNavigationItemView(Context context, @Nullable AttributeSet attrs) {
+    protected BottomNavigationItemView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public BottomNavigationItemView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    protected BottomNavigationItemView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
@@ -54,7 +51,7 @@ class BottomNavigationItemView extends LinearLayout {
         setGravity(Gravity.CENTER);
     }
 
-    public void setScaleRatio(float scaleRatio) {
+    protected void setScaleRatio(float scaleRatio) {
         this.scaleRatio = Math.abs(scaleRatio);
     }
 
@@ -63,7 +60,7 @@ class BottomNavigationItemView extends LinearLayout {
         return scaleRatio;
     }
 
-    public void setAnim(boolean anim) {
+    protected void setAnim(boolean anim) {
         isAnim = anim;
     }
 
@@ -78,7 +75,7 @@ class BottomNavigationItemView extends LinearLayout {
         LayoutInflater.from(getContext()).inflate(mLayoutId, this, true);
         mItemIcon = findViewById(R.id.bnb_item_icon);
         mItemText = findViewById(R.id.bnb_item_text);
-        setDefaultState();
+        mItemBadge = findViewById(R.id.bnb_item_badge);
     }
 
     /*unused*/
@@ -86,28 +83,20 @@ class BottomNavigationItemView extends LinearLayout {
         return isAnim;
     }
 
-    public void setSelectedIcon(int selectedIcon) {
-        this.mSelectedIcon = selectedIcon;
+    /**
+     * 设置
+     */
+    protected void setBottomNavigationEntity(BottomNavigationEntity bottomNavigationEntity) {
+        mBottomNavigationEntity = bottomNavigationEntity;
+        setDefaultState();
     }
 
-    public void setUnSelectedIcon(int unSelectedIcon) {
-        this.mUnSelectedIcon = unSelectedIcon;
-    }
-
-
-    public void setTextSelectedColor(int textSelectedColor) {
+    protected void setTextSelectedColor(int textSelectedColor) {
         this.mTextSelectedColor = textSelectedColor;
     }
 
-    public void setTextUnSelectedColor(int textUnSelectedColor) {
+    protected void setTextUnSelectedColor(int textUnSelectedColor) {
         this.mTextUnSelectedColor = textUnSelectedColor;
-    }
-
-    public void setText(String text) {
-        this.mText = text;
-        if (mItemText != null) {
-            mItemText.setText(mText);
-        }
     }
 
 
@@ -123,28 +112,37 @@ class BottomNavigationItemView extends LinearLayout {
                 scale(scaleRatio > SCALE_MAX ? scaleRatio : SCALE_MAX, 1f);
             }
         }
-
     }
 
     /**
      * 设置为初始状态
      * 默认未选中
      */
-    public void setDefaultState() {
+    protected void setDefaultState() {
         rendingItemText(false);
         rendingItemIcon(false);
+        rendingItemBadge();
+    }
+
+    /**
+     * 目前刷新只是刷新badge
+     */
+    protected void refresh() {
+        rendingItemBadge();
     }
 
     /**
      * rendind ICON only
      */
     private void rendingItemText(boolean select) {
-        if (mItemText == null)
+        if (mItemText == null || mBottomNavigationEntity == null)
             return;
-        if (TextUtils.isEmpty(mText)) {
+        String text = mBottomNavigationEntity.getText();
+        if (TextUtils.isEmpty(text)) {
             mItemText.setVisibility(GONE);
         } else {
-            mItemText.setText(View.VISIBLE);
+            mItemText.setText(text);
+            mItemText.setVisibility(View.VISIBLE);
             if (select) {
                 mItemText.setTextColor(mTextSelectedColor);
             } else {
@@ -154,14 +152,32 @@ class BottomNavigationItemView extends LinearLayout {
     }
 
     private void rendingItemIcon(boolean select) {
-        if (mItemIcon == null)
+        if (mItemIcon == null || mBottomNavigationEntity == null)
             return;
         if (select) {
-            mItemIcon.setImageResource(mSelectedIcon);
+            mItemIcon.setImageResource(mBottomNavigationEntity.getSelectedIcon());
         } else {
-            mItemIcon.setImageResource(mUnSelectedIcon);
+            mItemIcon.setImageResource(mBottomNavigationEntity.getUnSelectIcon());
         }
     }
+
+    @SuppressLint("SetTextI18n")
+    private void rendingItemBadge() {
+        if (mItemBadge == null || mBottomNavigationEntity == null)
+            return;
+        int num = mBottomNavigationEntity.getBadgeNum();
+        if (num > 0) {
+            if (num < 99) {
+                mItemBadge.setText(String.valueOf(num));
+            } else {
+                mItemBadge.setText("99+");
+            }
+            mItemBadge.setVisibility(VISIBLE);
+        } else {
+            mItemBadge.setVisibility(INVISIBLE);
+        }
+    }
+
 
     private ValueAnimator valueAnimator;
 

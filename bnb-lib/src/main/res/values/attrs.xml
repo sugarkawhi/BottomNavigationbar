@@ -7,5 +7,7 @@
         <attr name="bnb_anim" format="boolean" />
         <attr name="bnb_scale_ratio" format="float" />
         <attr name="bnb_layoutId" format="reference" />
+        <attr name="bnb_textSize" format="dimension" />
+        <attr name="bnb_iconSize" format="dimension" />
     </declare-styleable>
 </resources>
