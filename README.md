@@ -1,9 +1,10 @@
 # BottomNavigationbar
-底部导航栏
 
 ## 使用
-```
-compile 'me.sugarkawhi:BottomNavigationBar:1.2.1'
+```java
+dependencies {
+  compile 'me.sugarkawhi:BottomNavigationBar:1.2.1'
+}
 ```
 
 ## 功能
