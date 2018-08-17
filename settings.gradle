@@ -1,1 +1,1 @@
-include ':app', ':bnb-lib', ':reader-lib', ':ptm-lib'
+include ':app', ':bnb-lib'

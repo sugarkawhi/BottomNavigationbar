@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="PtmLayout">
-        <attr name="ptm_resistance" format="float" />
-        <attr name="ptm_threSholdValue" format="float" />
-    </declare-styleable>
-
-
-</resources>

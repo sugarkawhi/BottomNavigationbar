@@ -4,12 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/bnb-lib/bnb-lib.iml" filepath="$PROJECT_DIR$/bnb-lib/bnb-lib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/bnb-lib/bottomnavigationbar.iml" filepath="$PROJECT_DIR$/bnb-lib/bottomnavigationbar.iml" />
-      <module fileurl="file://$PROJECT_DIR$/reader-lib/mReader.iml" filepath="$PROJECT_DIR$/reader-lib/mReader.iml" />
       <module fileurl="file://$PROJECT_DIR$/monster-android.iml" filepath="$PROJECT_DIR$/monster-android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ptm-lib/ptm-lib.iml" filepath="$PROJECT_DIR$/ptm-lib/ptm-lib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ptm-lib/ptmLib.iml" filepath="$PROJECT_DIR$/ptm-lib/ptmLib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/reader-lib/reader-lib.iml" filepath="$PROJECT_DIR$/reader-lib/reader-lib.iml" />
     </modules>
   </component>
 </project>
