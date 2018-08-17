@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -9,25 +9,5 @@
         <item name="android:windowBackground">@color/white</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-
-    <!--屏幕底部弹窗显示与消失的动画 由下至上-->
-    <style name="bookshelf_bottom_pop" parent="android:Animation">
-        <!-- 指定显示的动画xml -->
-        <item name="android:windowEnterAnimation">@anim/pop_bottom_enter</item>
-        <!-- 指定消失的动画xml -->
-        <item name="android:windowExitAnimation">@anim/pop_bottom_exit</item>
-    </style>
-
-    <!--屏幕底部弹窗显示与消失的动画 由下至上-->
-    <style name="ReaderDialog" parent="android:Animation">
-        <!-- 指定显示的动画xml -->
-        <item name="android:windowEnterAnimation">@null</item>
-        <!-- 指定消失的动画xml -->
-        <item name="android:windowExitAnimation">@null</item>
-    </style>
 
 </resources>

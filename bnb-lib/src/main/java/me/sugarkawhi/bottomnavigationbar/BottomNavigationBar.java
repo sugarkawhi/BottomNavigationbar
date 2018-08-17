@@ -33,12 +33,6 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
     private int mTextSelectedColor;
     //未选中的color
     private int mTextUnSelectedColor;
-    //dot 用于实现提醒的功能
-    private int mDotColor;
-    //文字大小
-    private int mTextSize;
-    //图片大小
-    private int mIconSize;
     //单个布局
     private int mItemLayout;
     //是否需要缩放动画
@@ -48,7 +42,6 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
 
     private static final String DEFAULT_SELECTED_COLOR = "#000000";
     private static final String DEFAULT_UNSELECTED_COLOR = "#999999";
-    private static final String DEFAULT_DOT_COLOR = "#ff0000";
 
     public BottomNavigationBar(Context context) {
         this(context, null);
@@ -76,7 +69,6 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.BottomNavigationBar);
         mTextSelectedColor = array.getColor(R.styleable.BottomNavigationBar_bnb_selectedColor, Color.parseColor(DEFAULT_SELECTED_COLOR));
         mTextUnSelectedColor = array.getColor(R.styleable.BottomNavigationBar_bnb_unSelectedColor, Color.parseColor(DEFAULT_UNSELECTED_COLOR));
-        mDotColor = array.getColor(R.styleable.BottomNavigationBar_bnb_dotColor, Color.parseColor(DEFAULT_DOT_COLOR));
         isAnim = array.getBoolean(R.styleable.BottomNavigationBar_bnb_anim, false);
         scaleRatio = array.getFloat(R.styleable.BottomNavigationBar_bnb_scale_ratio, 1.1f);
         mItemLayout = array.getResourceId(R.styleable.BottomNavigationBar_bnb_layoutId, -1);
@@ -167,6 +159,14 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
         itemView.refresh();
     }
 
+    /**
+     * 设置是否开启切换动画
+     *
+     * @param anim
+     */
+    public void setAnim(boolean anim) {
+        isAnim = anim;
+    }
 
     public interface IBnbItemSelectListener {
         void onBnbItemSelect(int position);

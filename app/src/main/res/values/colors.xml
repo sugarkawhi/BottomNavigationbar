@@ -3,31 +3,8 @@
     <color name="colorPrimary">#34495E</color>
     <color name="colorPrimaryDark">#34495E</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="default_text_color">#bfbfbf</color>
-    <color name="colorDivider">#EBEBF3</color>
     <color name="white">#ffffff</color>
-    <color name="black">#000</color>
-    <color name="letter_bg1">#DEDEDE</color>
-    <color name="letter_bg2">#E5E5E5</color>
     <color name="letter_bg3">#CDC9C9</color>
     <color name="letter_color1">#34495E</color>
-    <color name="letter_color2">#FF4081</color>
-    <color name="letter_color3">#FABC76</color>
-    <color name="letter_color4">#959595</color>
 
-
-    <color name="reader_setting_bg">#F22c2c2c</color>
-    <!--背景颜色-->
-    <color name="reader_bg_matcha">#CCEBCC</color>
-    <color name="reader_bg_purple">#D5BBF6</color>
-    <color name="reader_bg_blue">#6AC9DE</color>
-    <color name="reader_bg_default">#CEC29C</color>
-    <color name="reader_bg_night">#000</color>
-
-    <!--字体颜色-->
-    <color name="reader_font_default">#424242</color>
-    <color name="reader_font_matcha">#454545</color>
-    <color name="reader_font_purple">#454545</color>
-    <color name="reader_font_blue">#454545</color>
-    <color name="reader_font_night">#AAAAAA</color>
 </resources>

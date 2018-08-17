@@ -2,14 +2,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
     android:clipChildren="false">
 
     <ImageView
         android:id="@+id/bnb_item_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_centerHorizontal="true"
         android:scaleType="centerInside"
         android:src="@drawable/ic_tab_album_selected" />
 
@@ -19,19 +20,18 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/bnb_item_icon"
         android:layout_centerHorizontal="true"
+        android:textSize="10sp"
         tools:text="哈哈哈" />
 
     <TextView
         android:id="@+id/bnb_item_badge"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_alignTop="@+id/bnb_item_icon"
-        android:layout_centerInParent="true"
-        android:layout_toEndOf="@+id/bnb_item_icon"
-        android:background="@drawable/abc_circle_red"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_toEndOf="@id/bnb_item_icon"
+        android:background="@drawable/circle_msg"
         android:gravity="center"
         android:textColor="@color/white"
-        android:textSize="10sp"
+        android:textSize="8sp"
         tools:ignore="SmallSp"
         tools:text="99+" />
 

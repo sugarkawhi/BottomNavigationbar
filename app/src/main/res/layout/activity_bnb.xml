@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="48dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="48dp"
+        android:background="@drawable/shadow_bottom_bar" />
+
+    <me.sugarkawhi.bottomnavigationbar.BottomNavigationBar
+        android:id="@+id/bottomNavigationBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom"
+        app:bnb_layoutId="@layout/bnb_item_view"
+        app:bnb_selectedColor="#000000"
+        app:bnb_unSelectedColor="#999999"
+        app:bnb_anim="false"
+        app:bnb_scale_ratio="1.1" />
+
+
+</FrameLayout>
