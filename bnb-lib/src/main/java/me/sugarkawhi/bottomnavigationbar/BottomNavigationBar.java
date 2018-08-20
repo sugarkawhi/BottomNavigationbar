@@ -20,7 +20,7 @@ import java.util.List;
 
 public class BottomNavigationBar extends LinearLayout implements View.OnClickListener {
 
-    private String TAG = "BottomNavigationBar";
+    private static final String TAG = "BottomNavigationBar";
 
     private IBnbItemSelectListener bnbItemSelectListener;
     private IBnbItemDoubleClickListener bnbItemDoubleClickListener;
@@ -103,7 +103,7 @@ public class BottomNavigationBar extends LinearLayout implements View.OnClickLis
     @Override
     public void onClick(View view) {
         int position = (int) view.getTag();
-        Log.e(TAG, "onClick: position=" + position);
+        Log.i(TAG, "onClick: position=" + position);
         if (position == mCurrentPosition && bnbItemDoubleClickListener != null) {
             bnbItemDoubleClickListener.onBnbItemDoubleClick(position);
             return;

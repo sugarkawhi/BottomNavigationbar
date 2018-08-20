@@ -70,7 +70,7 @@ class BottomNavigationItemView extends LinearLayout {
      *
      * @param layoutId 布局ID
      */
-    public void setLayoutId(int layoutId) {
+    protected void setLayoutId(int layoutId) {
         mLayoutId = layoutId;
         LayoutInflater.from(getContext()).inflate(mLayoutId, this, true);
         mItemIcon = findViewById(R.id.bnb_item_icon);
