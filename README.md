@@ -3,7 +3,7 @@
 ## 使用
 ```java
 dependencies {
-  compile 'me.sugarkawhi:BottomNavigationBar:1.2.1'
+  compile 'me.sugarkawhi:BottomNavigationBar:1.2.2'
 }
 ```
 
